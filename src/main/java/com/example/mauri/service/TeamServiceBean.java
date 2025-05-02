@@ -44,7 +44,6 @@ public class TeamServiceBean implements TeamService {
         teamRepository.save(team);
         return team;
     }
-
     @Override
     public void deleteTeam(@NonNull String id) {
         if (!teamRepository.existsById(id)) {
