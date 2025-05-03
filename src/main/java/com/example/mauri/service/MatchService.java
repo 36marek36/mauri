@@ -12,4 +12,5 @@ public interface MatchService {
     Match getMatch(@NonNull String id);
     Match createMatch(CreateMatchDTO createMatchDTO);
     void deleteMatch(@NonNull String id);
+    Match addResult (String matchId,String scratchedId, Integer score1, Integer score2);
 }
