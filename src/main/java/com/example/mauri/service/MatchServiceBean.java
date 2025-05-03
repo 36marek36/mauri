@@ -36,7 +36,7 @@ public class MatchServiceBean implements MatchService {
     @Override
     public Match getMatch(@NonNull String id) {
         return matchRepository.findById(id)
-                .orElseThrow(()-> new IllegalArgumentException("No Match found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + id));
     }
 
     @Override
@@ -46,7 +46,7 @@ public class MatchServiceBean implements MatchService {
         match.setMatchType(createMatchDTO.getMatchType());
         match.setLeagueId(createMatchDTO.getLeagueId());
 
-        if (createMatchDTO.getMatchType() == MatchType.SINGLES){
+        if (createMatchDTO.getMatchType() == MatchType.SINGLES) {
             Player player1 = playerRepository.findById(createMatchDTO.getPlayer1Id())
                     .orElseThrow(() -> new RuntimeException("Player1 not found"));
             Player player2 = playerRepository.findById(createMatchDTO.getPlayer2Id())
@@ -60,8 +60,8 @@ public class MatchServiceBean implements MatchService {
                     .orElseThrow(() -> new RuntimeException("Team2 not found"));
             match.setTeam1(team1);
             match.setTeam2(team2);
-            
-        }else {
+
+        } else {
             throw new IllegalArgumentException("Unsupported match type: " + createMatchDTO.getMatchType());
         }
         return matchRepository.save(match);
@@ -73,5 +73,29 @@ public class MatchServiceBean implements MatchService {
             throw new IllegalArgumentException("No Match found with id: " + id);
         }
         matchRepository.deleteById(id);
+    }
+
+    @Override
+    public Match addResult(String matchId, String scratchedId, Integer score1, Integer score2) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
+
+        match.setScratchedId(scratchedId);
+        match.setScore1(score1);
+        match.setScore2(score2);
+
+        if (scratchedId != null) {
+            String winnerId = switch (match.getMatchType()) {
+                case SINGLES -> scratchedId.equals(match.getPlayer1().getId())
+                        ? match.getPlayer2().getId()
+                        : match.getPlayer1().getId();
+                case DOUBLES -> scratchedId.equals(match.getTeam1().getId())
+                        ? match.getTeam2().getId()
+                        : match.getTeam1().getId();
+            };
+            match.setWinnerId(winnerId);
+        }
+
+        return matchRepository.save(match);
     }
 }

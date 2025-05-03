@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity(name = "matches")
 @Data
 @NoArgsConstructor
@@ -35,7 +32,9 @@ public class Match {
 
     private String leagueId;
 
-    @OneToMany(mappedBy = "match")
-    private List<SetResult> results = new ArrayList<>();
+    private Integer score1;
+    private Integer score2;
+    private String scratchedId;
+    private String winnerId;
 
 }
