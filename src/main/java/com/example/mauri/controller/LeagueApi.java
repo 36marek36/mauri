@@ -1,6 +1,7 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.League;
+import com.example.mauri.model.dto.AddParticipantToLeagueDTO;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.service.LeagueService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,14 @@ public class LeagueApi {
     ResponseEntity<League> createLeague(@RequestBody CreateLeagueDTO createLeagueDTO) {
         League createdLeague = leagueService.createLeague(createLeagueDTO);
         return new ResponseEntity<>(createdLeague, HttpStatus.CREATED);
+    }
+
+    @PatchMapping("/{leagueId}/addParticipant")
+    ResponseEntity<League> addParticipantToLeague(
+            @PathVariable("leagueId") String leagueId,
+            @RequestBody AddParticipantToLeagueDTO addParticipantToLeagueDTO) {
+        League updateLeague = leagueService.addParticipantToLeague(leagueId, addParticipantToLeagueDTO.getParticipantId());
+        return new ResponseEntity<>(updateLeague, HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
