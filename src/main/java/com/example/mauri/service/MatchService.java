@@ -14,4 +14,5 @@ public interface MatchService {
     Match createMatch(CreateMatchDTO createMatchDTO);
     void deleteMatch(@NonNull String id);
     Match addResult (String matchId, MatchResult matchResult);
+    List<Match> generateMatchesForLeague(String leagueId);
 }
