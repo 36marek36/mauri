@@ -2,7 +2,7 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.CreateMatchDTO;
-import com.example.mauri.model.dto.MatchResultDTO;
+import com.example.mauri.model.MatchResult;
 import com.example.mauri.service.MatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +47,8 @@ public class MatchApi {
     }
 
     @PatchMapping("/{matchId}/result")
-    ResponseEntity<Match> addMatchResult(@PathVariable String matchId, @RequestBody MatchResultDTO matchResultDTO) {
-        Match matchResult = matchService.addResult(matchId,matchResultDTO.getScratchedId(), matchResultDTO.getScore1(), matchResultDTO.getScore2());
+    ResponseEntity<Match> addMatchResult(@PathVariable String matchId, @RequestBody MatchResult matchResultDTO) {
+        Match matchResult = matchService.addResult(matchId, matchResultDTO);
         return new ResponseEntity<>(matchResult, HttpStatus.OK);
     }
 
