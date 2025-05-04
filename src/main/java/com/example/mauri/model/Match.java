@@ -32,9 +32,7 @@ public class Match {
 
     private String leagueId;
 
-    private Integer score1;
-    private Integer score2;
-    private String scratchedId;
-    private String winnerId;
+    @Embedded
+    private MatchResult result;
 
 }
