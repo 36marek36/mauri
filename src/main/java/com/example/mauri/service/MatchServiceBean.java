@@ -1,6 +1,7 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.Match;
+import com.example.mauri.model.SetScore;
 import com.example.mauri.model.dto.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
 import com.example.mauri.repository.MatchRepository;
@@ -75,8 +76,11 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
 
+        String winnerId = null;
+
         if (matchResult.getScratchedId() != null) {
-            String winnerId = switch (match.getMatchType()) {
+            // Skrečovaný zápas
+            winnerId = switch (match.getMatchType()) {
                 case SINGLES -> matchResult.getScratchedId().equals(match.getPlayer1().getId())
                         ? match.getPlayer2().getId()
                         : match.getPlayer1().getId();
@@ -84,29 +88,43 @@ public class MatchServiceBean implements MatchService {
                         ? match.getTeam2().getId()
                         : match.getTeam1().getId();
             };
-            matchResult.setWinnerId(winnerId);
-        } else if (matchResult.getScore1() != null && matchResult.getScore2() != null) {
-            switch (match.getMatchType()) {
-                case SINGLES -> {
-                    if (matchResult.getScore1() > matchResult.getScore2()) {
-                        matchResult.setWinnerId(match.getPlayer1().getId());
-                    } else if (matchResult.getScore2() > matchResult.getScore1()) {
-                        matchResult.setWinnerId(match.getPlayer2().getId());
-                    }
-                }
-                case DOUBLES -> {
-                    if (matchResult.getScore1() > matchResult.getScore2()) {
-                        matchResult.setWinnerId(match.getTeam1().getId());
-                    } else if (matchResult.getScore2() > matchResult.getScore1()) {
-                        matchResult.setWinnerId(match.getTeam2().getId());
+        } else if (matchResult.getSetScores() != null && !matchResult.getSetScores().isEmpty()) {
+            // Automatické očíslovanie setov
+            for (int i = 0; i < matchResult.getSetScores().size(); i++) {
+                matchResult.getSetScores().get(i).setSetNumber(i + 1); // 1-based index
+            }
+            // Výpočet skóre zo setov
+            int setsWon1 = 0;
+            int setsWon2 = 0;
+
+            for (SetScore set : matchResult.getSetScores()) {
+                if (set.getScore1() != null && set.getScore2() != null) {
+                    if (set.getScore1() > set.getScore2()) {
+                        setsWon1++;
+                    } else if (set.getScore2() > set.getScore1()) {
+                        setsWon2++;
                     }
                 }
             }
 
+            matchResult.setScore1(setsWon1);
+            matchResult.setScore2(setsWon2);
+
+            if (setsWon1 > setsWon2) {
+                winnerId = switch (match.getMatchType()) {
+                    case SINGLES -> match.getPlayer1().getId();
+                    case DOUBLES -> match.getTeam1().getId();
+                };
+            } else if (setsWon2 > setsWon1) {
+                winnerId = switch (match.getMatchType()) {
+                    case SINGLES -> match.getPlayer2().getId();
+                    case DOUBLES -> match.getTeam2().getId();
+                };
+            }
         }
 
+        matchResult.setWinnerId(winnerId);
         match.setResult(matchResult);
-
         return matchRepository.save(match);
     }
 }
