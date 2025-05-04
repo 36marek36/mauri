@@ -1,15 +1,17 @@
 package com.example.mauri.service;
 
-import com.example.mauri.model.Match;
-import com.example.mauri.model.SetScore;
+import com.example.mauri.enums.MatchType;
+import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateMatchDTO;
-import com.example.mauri.model.MatchResult;
+import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.TeamRepository;
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,11 +21,13 @@ public class MatchServiceBean implements MatchService {
     private final MatchRepository matchRepository;
     private final TeamRepository teamRepository;
     private final PlayerRepository playerRepository;
+    private final LeagueRepository leagueRepository;
 
-    public MatchServiceBean(MatchRepository matchRepository, TeamRepository teamRepository, PlayerRepository playerRepository) {
+    public MatchServiceBean(MatchRepository matchRepository, TeamRepository teamRepository, PlayerRepository playerRepository, LeagueRepository leagueRepository) {
         this.matchRepository = matchRepository;
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
+        this.leagueRepository = leagueRepository;
     }
 
 
@@ -47,15 +51,15 @@ public class MatchServiceBean implements MatchService {
 
         switch (createMatchDTO.getMatchType()) {
             case SINGLES -> {
-                match.setPlayer1(playerRepository.findById(createMatchDTO.getPlayer1Id())
+                match.setHomePlayer(playerRepository.findById(createMatchDTO.getPlayer1Id())
                         .orElseThrow(() -> new IllegalArgumentException("No Player found with id: " + createMatchDTO.getPlayer1Id())));
-                match.setPlayer2(playerRepository.findById(createMatchDTO.getPlayer2Id())
+                match.setAwayPlayer(playerRepository.findById(createMatchDTO.getPlayer2Id())
                         .orElseThrow(() -> new IllegalArgumentException("No Player found with id: " + createMatchDTO.getPlayer2Id())));
             }
             case DOUBLES -> {
-                match.setTeam1(teamRepository.findById(createMatchDTO.getTeam1Id())
+                match.setHomeTeam(teamRepository.findById(createMatchDTO.getTeam1Id())
                         .orElseThrow(() -> new IllegalArgumentException("No Team found with id: " + createMatchDTO.getTeam1Id())));
-                match.setTeam2(teamRepository.findById(createMatchDTO.getTeam2Id())
+                match.setAwayTeam(teamRepository.findById(createMatchDTO.getTeam2Id())
                         .orElseThrow(() -> new IllegalArgumentException("No Team found with id: " + createMatchDTO.getTeam2Id())));
             }
             default -> throw new IllegalArgumentException("Unsupported MatchType: " + createMatchDTO.getMatchType());
@@ -81,12 +85,12 @@ public class MatchServiceBean implements MatchService {
         if (matchResult.getScratchedId() != null) {
             // Skrečovaný zápas
             winnerId = switch (match.getMatchType()) {
-                case SINGLES -> matchResult.getScratchedId().equals(match.getPlayer1().getId())
-                        ? match.getPlayer2().getId()
-                        : match.getPlayer1().getId();
-                case DOUBLES -> matchResult.getScratchedId().equals(match.getTeam1().getId())
-                        ? match.getTeam2().getId()
-                        : match.getTeam1().getId();
+                case SINGLES -> matchResult.getScratchedId().equals(match.getHomePlayer().getId())
+                        ? match.getAwayPlayer().getId()
+                        : match.getHomePlayer().getId();
+                case DOUBLES -> matchResult.getScratchedId().equals(match.getHomeTeam().getId())
+                        ? match.getAwayTeam().getId()
+                        : match.getHomeTeam().getId();
             };
         } else if (matchResult.getSetScores() != null && !matchResult.getSetScores().isEmpty()) {
             // Automatické očíslovanie setov
@@ -112,13 +116,13 @@ public class MatchServiceBean implements MatchService {
 
             if (setsWon1 > setsWon2) {
                 winnerId = switch (match.getMatchType()) {
-                    case SINGLES -> match.getPlayer1().getId();
-                    case DOUBLES -> match.getTeam1().getId();
+                    case SINGLES -> match.getHomePlayer().getId();
+                    case DOUBLES -> match.getHomeTeam().getId();
                 };
             } else if (setsWon2 > setsWon1) {
                 winnerId = switch (match.getMatchType()) {
-                    case SINGLES -> match.getPlayer2().getId();
-                    case DOUBLES -> match.getTeam2().getId();
+                    case SINGLES -> match.getAwayPlayer().getId();
+                    case DOUBLES -> match.getAwayTeam().getId();
                 };
             }
         }
@@ -126,5 +130,63 @@ public class MatchServiceBean implements MatchService {
         matchResult.setWinnerId(winnerId);
         match.setResult(matchResult);
         return matchRepository.save(match);
+    }
+
+    @Override
+    @Transactional
+    public List<Match> generateMatchesForLeague(String leagueId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new IllegalArgumentException("No League found with id: " + leagueId));
+
+        if (league.getMatches() != null && !league.getMatches().isEmpty()) {
+            throw new IllegalStateException("Matches have already been generated for league " + leagueId);
+        }
+
+
+        MatchType type = league.getLeagueType();
+        List<Match> matches = new ArrayList<>();
+
+        if (type == MatchType.SINGLES) {
+            List<Player> players = league.getPlayers();
+            for (int i = 0; i < players.size(); i++) {
+                for (int j = i + 1; j < players.size(); j++) {
+                    Player p1 = players.get(i);
+                    Player p2 = players.get(j);
+
+                    boolean isEven = (i + j) % 2 == 0;
+
+                    Match match = new Match();
+                    match.setId(UUID.randomUUID().toString());
+                    match.setLeagueId(leagueId);
+                    match.setMatchType(type);
+                    match.setHomePlayer(isEven ? p1 : p2);
+                    match.setAwayPlayer(isEven ? p2 : p1);
+                    matches.add(match);
+                }
+
+            }
+        } else if (type == MatchType.DOUBLES) {
+            List<Team> teams = league.getTeams();
+            for (int i = 0; i < teams.size(); i++) {
+                for (int j = i + 1; j < teams.size(); j++) {
+                    Team t1 = teams.get(i);
+                    Team t2 = teams.get(j);
+                    boolean isEven = (i + j) % 2 == 0;
+                    Match match = new Match();
+                    match.setId(UUID.randomUUID().toString());
+                    match.setLeagueId(leagueId);
+                    match.setMatchType(type);
+                    match.setHomeTeam(isEven ? t1 : t2);
+                    match.setAwayTeam(isEven ? t2 : t1);
+                    matches.add(match);
+                }
+            }
+        }
+
+        matchRepository.saveAll(matches);
+        league.setMatches(matches);
+        leagueRepository.save(league);
+
+        return matches;
     }
 }

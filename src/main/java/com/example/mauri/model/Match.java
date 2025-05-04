@@ -19,16 +19,16 @@ public class Match {
     private MatchType matchType;
 
     @ManyToOne
-    private Player player1;
+    private Player homePlayer;
 
     @ManyToOne
-    private Player player2;
+    private Player awayPlayer;
 
     @ManyToOne
-    private Team team1;
+    private Team homeTeam;
 
     @ManyToOne
-    private Team team2;
+    private Team awayTeam;
 
     private String leagueId;
 

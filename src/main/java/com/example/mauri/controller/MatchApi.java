@@ -52,6 +52,16 @@ public class MatchApi {
         return new ResponseEntity<>(matchResult, HttpStatus.OK);
     }
 
+    @PatchMapping("/{leagueId}/generate-matches")
+    ResponseEntity<?> generateMatch(@PathVariable String leagueId) {
+        try {
+            List<Match> matches = matchService.generateMatchesForLeague(leagueId);
+            return new ResponseEntity<>(matches, HttpStatus.OK);
+        }catch (IllegalStateException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Match> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("handleIllegalArgumentException: {}", e.getMessage());
