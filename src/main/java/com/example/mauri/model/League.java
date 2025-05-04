@@ -25,6 +25,9 @@ public class League {
     @ManyToMany
     private List<Player> players;
 
+    @ManyToMany
+    private List<Team> teams;
+
     @OneToMany
     private List<Match> matches;
 

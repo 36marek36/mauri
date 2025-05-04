@@ -11,4 +11,5 @@ public interface LeagueService {
     League getLeagueById(@NonNull String id);
     League createLeague(CreateLeagueDTO createLeagueDTO);
     void deleteLeagueById(@NonNull String id);
+    League addParticipantToLeague(String leagueId, String participantId);
 }
