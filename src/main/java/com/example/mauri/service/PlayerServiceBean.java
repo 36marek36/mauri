@@ -32,7 +32,7 @@ public class PlayerServiceBean implements PlayerService {
     @Override
     public Player addPlayer(String firstName, String lastName, String email, String phone, LocalDate registrationDate) {
         registrationDate = LocalDate.now();
-        var player = new Player(UUID.randomUUID().toString(), firstName, lastName, email, phone, null, registrationDate);
+        var player = new Player(UUID.randomUUID().toString(), firstName, lastName, email, phone, registrationDate);
         playerRepository.save(player);
         return player;
     }

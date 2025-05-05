@@ -138,10 +138,9 @@ public class MatchServiceBean implements MatchService {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("No League found with id: " + leagueId));
 
-        if (league.getMatches() != null && !league.getMatches().isEmpty()) {
-            throw new IllegalStateException("Matches have already been generated for league " + leagueId);
+        if (matchRepository.existsByLeagueId(leagueId)) {
+            throw new IllegalStateException("Matches already exists for League with id: " + leagueId);
         }
-
 
         MatchType type = league.getLeagueType();
         List<Match> matches = new ArrayList<>();
@@ -184,8 +183,6 @@ public class MatchServiceBean implements MatchService {
         }
 
         matchRepository.saveAll(matches);
-        league.setMatches(matches);
-        leagueRepository.save(league);
 
         return matches;
     }
