@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MatchRepository extends JpaRepository<Match, String> {
+    boolean existsByLeagueId(String leagueId);
 }

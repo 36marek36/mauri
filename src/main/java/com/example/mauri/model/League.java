@@ -19,16 +19,23 @@ public class League {
 
     private String name;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private MatchType leagueType;
 
     @ManyToMany
+    @JoinTable(
+            name = ("league_players"),
+            joinColumns = @JoinColumn(name = ("league_id")),
+            inverseJoinColumns = @JoinColumn(name = ("player_id"))
+    )
     private List<Player> players;
 
     @ManyToMany
+    @JoinTable(
+            name = ("league_teams"),
+            joinColumns = @JoinColumn(name = ("league_id")),
+            inverseJoinColumns = @JoinColumn(name = ("team_id"))
+    )
     private List<Team> teams;
-
-    @OneToMany
-    private List<Match> matches;
 
 }

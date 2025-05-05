@@ -21,6 +21,6 @@ public class Player {
     private String lastName;
     private String email;
     private String phone;
-    private String leagueId;
     private LocalDate registrationDate;
+
 }

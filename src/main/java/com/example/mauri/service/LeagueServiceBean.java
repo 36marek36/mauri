@@ -46,7 +46,6 @@ public class LeagueServiceBean implements LeagueService {
                 createLeagueDTO.getLeagueName(),
                 createLeagueDTO.getLeagueType(),
                 new ArrayList<>(),
-                new ArrayList<>(),
                 new ArrayList<>());
         return leagueRepository.save(league);
     }
