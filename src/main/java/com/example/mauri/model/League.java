@@ -1,6 +1,7 @@
 package com.example.mauri.model;
 
 import com.example.mauri.enums.MatchType;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,11 @@ public class League {
 
     @Enumerated(EnumType.STRING)
     private MatchType leagueType;
+
+    @ManyToOne
+    @JoinColumn(name = ("season_id"))
+    @JsonBackReference
+    private Season season;
 
     @ManyToMany
     @JoinTable(
