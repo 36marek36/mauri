@@ -8,6 +8,7 @@ import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.TeamRepository;
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ public class LeagueServiceBean implements LeagueService {
                 UUID.randomUUID().toString(),
                 createLeagueDTO.getLeagueName(),
                 createLeagueDTO.getLeagueType(),
+                null,
                 new ArrayList<>(),
                 new ArrayList<>());
         return leagueRepository.save(league);
@@ -59,6 +61,7 @@ public class LeagueServiceBean implements LeagueService {
     }
 
     @Override
+    @Transactional
     public League addParticipantToLeague(String leagueId, String participantId) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
