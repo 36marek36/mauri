@@ -15,4 +15,5 @@ public interface MatchService {
     void deleteMatch(@NonNull String id);
     Match addResult (String matchId, MatchResult matchResult);
     List<Match> generateMatchesForLeague(String leagueId);
+    List<Match> getMatchesForLeague(String leagueId);
 }

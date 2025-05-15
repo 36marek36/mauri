@@ -44,7 +44,7 @@ public class LeagueServiceBean implements LeagueService {
     public League createLeague(CreateLeagueDTO createLeagueDTO) {
         League league = new League(
                 UUID.randomUUID().toString(),
-                createLeagueDTO.getLeagueName(),
+                createLeagueDTO.getName(),
                 createLeagueDTO.getLeagueType(),
                 null,
                 new ArrayList<>(),
