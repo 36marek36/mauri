@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateLeagueDTO {
-    private String leagueName;
+    private String name;
     private MatchType leagueType;
 }
