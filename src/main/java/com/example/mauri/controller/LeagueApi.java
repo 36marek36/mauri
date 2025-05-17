@@ -44,6 +44,12 @@ public class LeagueApi {
         return new ResponseEntity<>(matches, HttpStatus.OK);
     }
 
+    @GetMapping("/no-season")
+    public ResponseEntity<List<League>> getNoSeasonLeagues() {
+        List<League> leagues = leagueService.getLeaguesWithoutSeason();
+        return new ResponseEntity<>(leagues, HttpStatus.OK);
+    }
+
     @PostMapping("/create")
     ResponseEntity<League> createLeague(@RequestBody CreateLeagueDTO createLeagueDTO) {
         League createdLeague = leagueService.createLeague(createLeagueDTO);

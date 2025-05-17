@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -33,11 +34,11 @@ public class PlayerApi {
 
     @PostMapping("/create")
     ResponseEntity<Player> createPlayer(@RequestBody Player player) {
-        Player created = playerService.addPlayer(player.getFirstName(), player.getLastName(), player.getEmail(), player.getPhone(), player.getRegistrationDate());
+        Player created = playerService.addPlayer(player.getFirstName(), player.getLastName(), player.getEmail(), player.getPhone(), LocalDate.now());
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     ResponseEntity<Player> deletePlayer(@PathVariable String id) {
         playerService.deletePlayer(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

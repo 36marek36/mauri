@@ -89,4 +89,9 @@ public class LeagueServiceBean implements LeagueService {
         return leagueRepository.save(league);
     }
 
+    @Override
+    public List<League> getLeaguesWithoutSeason() {
+        return leagueRepository.findBySeasonIsNull();
+    }
+
 }

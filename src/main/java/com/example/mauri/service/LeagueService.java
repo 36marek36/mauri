@@ -12,4 +12,5 @@ public interface LeagueService {
     League createLeague(CreateLeagueDTO createLeagueDTO);
     void deleteLeagueById(@NonNull String id);
     League addParticipantToLeague(String leagueId, String participantId);
+    List<League> getLeaguesWithoutSeason();
 }
