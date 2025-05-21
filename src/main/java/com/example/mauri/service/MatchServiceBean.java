@@ -1,5 +1,7 @@
 package com.example.mauri.service;
 
+import com.example.mauri.enums.LeagueStatus;
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateMatchDTO;
@@ -48,6 +50,7 @@ public class MatchServiceBean implements MatchService {
         match.setId(UUID.randomUUID().toString());
         match.setMatchType(createMatchDTO.getMatchType());
         match.setLeagueId(createMatchDTO.getLeagueId());
+        match.setStatus(MatchStatus.CREATED);
 
         switch (createMatchDTO.getMatchType()) {
             case SINGLES -> {
@@ -158,6 +161,7 @@ public class MatchServiceBean implements MatchService {
                     match.setId(UUID.randomUUID().toString());
                     match.setLeagueId(leagueId);
                     match.setMatchType(type);
+                    match.setStatus(MatchStatus.CREATED);
                     match.setHomePlayer(isEven ? p1 : p2);
                     match.setAwayPlayer(isEven ? p2 : p1);
                     matches.add(match);
@@ -175,12 +179,15 @@ public class MatchServiceBean implements MatchService {
                     match.setId(UUID.randomUUID().toString());
                     match.setLeagueId(leagueId);
                     match.setMatchType(type);
+                    match.setStatus(MatchStatus.CREATED);
                     match.setHomeTeam(isEven ? t1 : t2);
                     match.setAwayTeam(isEven ? t2 : t1);
                     matches.add(match);
                 }
             }
         }
+
+        league.setStatus(LeagueStatus.ACTIVE);
 
         matchRepository.saveAll(matches);
 

@@ -1,5 +1,6 @@
 package com.example.mauri.model;
 
+import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -43,5 +44,8 @@ public class League {
             inverseJoinColumns = @JoinColumn(name = ("team_id"))
     )
     private List<Team> teams;
+
+    @Enumerated(EnumType.STRING)
+    private LeagueStatus status;
 
 }

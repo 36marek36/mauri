@@ -1,5 +1,6 @@
 package com.example.mauri.model;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,5 +39,8 @@ public class Match {
 
     @Embedded
     private MatchResult result;
+
+    @Enumerated(EnumType.STRING)
+    private MatchStatus status;
 
 }

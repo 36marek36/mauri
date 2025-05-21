@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateLeagueDTO;
@@ -54,7 +55,8 @@ public class LeagueServiceBean implements LeagueService {
                 createLeagueDTO.getLeagueType(),
                 season,
                 new ArrayList<>(),
-                new ArrayList<>());
+                new ArrayList<>(),
+                LeagueStatus.CREATED);
         return leagueRepository.save(league);
     }
 
