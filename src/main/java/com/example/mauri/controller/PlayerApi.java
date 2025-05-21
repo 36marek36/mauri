@@ -32,6 +32,12 @@ public class PlayerApi {
         return playerService.getPlayer(id);
     }
 
+    @GetMapping("/not-in-any-league")
+    public ResponseEntity<List<Player>> getFreePlayers() {
+        List<Player> freePlayers = playerService.getPlayersNotInAnyLeague();
+        return ResponseEntity.ok(freePlayers);
+    }
+
     @PostMapping("/create")
     ResponseEntity<Player> createPlayer(@RequestBody Player player) {
         Player created = playerService.addPlayer(player.getFirstName(), player.getLastName(), player.getEmail(), player.getPhone(), LocalDate.now());

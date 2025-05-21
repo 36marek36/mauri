@@ -1,13 +1,9 @@
 package com.example.mauri.service;
 
 import com.example.mauri.enums.MatchType;
-import com.example.mauri.model.League;
-import com.example.mauri.model.Player;
-import com.example.mauri.model.Team;
+import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateLeagueDTO;
-import com.example.mauri.repository.LeagueRepository;
-import com.example.mauri.repository.PlayerRepository;
-import com.example.mauri.repository.TeamRepository;
+import com.example.mauri.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -22,11 +18,15 @@ public class LeagueServiceBean implements LeagueService {
     private final LeagueRepository leagueRepository;
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
+    private final MatchRepository matchRepository;
+    private final SeasonRepository seasonRepository;
 
-    public LeagueServiceBean(LeagueRepository leagueRepository, PlayerRepository playerRepository, TeamRepository teamRepository) {
+    public LeagueServiceBean(LeagueRepository leagueRepository, PlayerRepository playerRepository, TeamRepository teamRepository, MatchRepository matchRepository, SeasonRepository seasonRepository) {
         this.leagueRepository = leagueRepository;
         this.playerRepository = playerRepository;
         this.teamRepository = teamRepository;
+        this.matchRepository = matchRepository;
+        this.seasonRepository = seasonRepository;
     }
 
     @Override
@@ -42,51 +42,93 @@ public class LeagueServiceBean implements LeagueService {
 
     @Override
     public League createLeague(CreateLeagueDTO createLeagueDTO) {
+        Season season = null;
+
+        if (createLeagueDTO.getSeasonId() != null && !createLeagueDTO.getSeasonId().isEmpty()) {
+            season = seasonRepository.findById(createLeagueDTO.getSeasonId())
+                    .orElseThrow(()-> new IllegalArgumentException("Season not found with id: " + createLeagueDTO.getSeasonId()));
+        }
         League league = new League(
                 UUID.randomUUID().toString(),
                 createLeagueDTO.getName(),
                 createLeagueDTO.getLeagueType(),
-                null,
+                season,
                 new ArrayList<>(),
                 new ArrayList<>());
         return leagueRepository.save(league);
     }
 
     @Override
+    @Transactional
     public void deleteLeagueById(@NonNull String id) {
-        if (!leagueRepository.existsById(id)) {
-            throw new IllegalArgumentException("No league found with id: " + id);
-        }
+        League league = leagueRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + id));
+
+        List<Match> matches = matchRepository.findByLeagueId(league.getId());
+        matchRepository.deleteAll(matches);
+
+        league.getPlayers().clear();
+        league.getTeams().clear();
+
+        leagueRepository.save(league);
+
         leagueRepository.deleteById(id);
     }
 
     @Override
     @Transactional
-    public League addParticipantToLeague(String leagueId, String participantId) {
+    public League addParticipantsToLeague(String leagueId, List<String> participantIds) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
 
         MatchType type = league.getLeagueType();
 
-        switch (type){
+        switch (type) {
+            case SINGLES -> {
+                List<Player> players = playerRepository.findAllById(participantIds);
+                for (Player player : players) {
+                    if (!league.getPlayers().contains(player)) {
+                        league.getPlayers().add(player);
+                    }
+                }
+            }
+            case DOUBLES -> {
+                List<Team> teams = teamRepository.findAllById(participantIds);
+                for (Team team : teams) {
+                    if (!league.getTeams().contains(team)) {
+                        league.getTeams().add(team);
+                    }
+                }
+            }
+        }
+
+        return leagueRepository.save(league);
+    }
+
+    @Transactional
+    @Override
+    public void removeParticipantFromLeague(String leagueId, String participantId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
+
+        MatchType type = league.getLeagueType();
+
+        switch (type) {
             case SINGLES -> {
                 Player player = playerRepository.findById(participantId)
                         .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + participantId));
 
-                if (!league.getPlayers().contains(player)) {
-                    league.getPlayers().add(player);
-                }
+                league.getPlayers().remove(player); // Bez kontroly, lebo remove nič nespraví ak tam nie je
             }
             case DOUBLES -> {
                 Team team = teamRepository.findById(participantId)
-                        .orElseThrow(()-> new IllegalArgumentException("No team found with id: "+ participantId));
+                        .orElseThrow(() -> new IllegalArgumentException("No team found with id: " + participantId));
 
-                if (!league.getTeams().contains(team)) {
-                    league.getTeams().add(team);
-                }
+                league.getTeams().remove(team);
             }
         }
-        return leagueRepository.save(league);
+
+        leagueRepository.save(league);
     }
 
     @Override

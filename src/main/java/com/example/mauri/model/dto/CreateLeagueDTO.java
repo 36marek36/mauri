@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 public class CreateLeagueDTO {
     private String name;
     private MatchType leagueType;
+    private String seasonId;
 }

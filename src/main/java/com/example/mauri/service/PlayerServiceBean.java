@@ -45,4 +45,9 @@ public class PlayerServiceBean implements PlayerService {
         playerRepository.deleteById(id);
     }
 
+    @Override
+    public List<Player> getPlayersNotInAnyLeague() {
+        return playerRepository.findPlayersNotInAnyLeague();
+    }
+
 }

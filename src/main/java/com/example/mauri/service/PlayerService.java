@@ -15,4 +15,6 @@ public interface PlayerService {
 
     void deletePlayer(@NonNull String id);
 
+    List<Player> getPlayersNotInAnyLeague();
+
 }

@@ -2,7 +2,7 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.League;
 import com.example.mauri.model.Match;
-import com.example.mauri.model.dto.AddParticipantToLeagueDTO;
+import com.example.mauri.model.dto.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
@@ -56,17 +56,27 @@ public class LeagueApi {
         return new ResponseEntity<>(createdLeague, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{leagueId}/addParticipant")
-    ResponseEntity<League> addParticipantToLeague(
-            @PathVariable("leagueId") String leagueId,
-            @RequestBody AddParticipantToLeagueDTO addParticipantToLeagueDTO) {
-        League updateLeague = leagueService.addParticipantToLeague(leagueId, addParticipantToLeagueDTO.getParticipantId());
-        return new ResponseEntity<>(updateLeague, HttpStatus.OK);
+    @PatchMapping("/{leagueId}/addParticipants")
+    public ResponseEntity<League> addParticipantsToLeague(
+            @PathVariable String leagueId,
+            @RequestBody AddParticipantsToLeagueDTO dto) {
+
+        League updatedLeague = leagueService.addParticipantsToLeague(leagueId, dto.getParticipantIds());
+        return new ResponseEntity<>(updatedLeague, HttpStatus.OK);
     }
 
     @DeleteMapping("{id}")
     ResponseEntity<League> deleteLeague(@PathVariable("id") String id) {
         leagueService.deleteLeagueById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping("/{leagueId}/participants/{participantId}")
+    public ResponseEntity<Void> removeParticipantFromLeague(
+            @PathVariable String leagueId,
+            @PathVariable String participantId) {
+
+        leagueService.removeParticipantFromLeague(leagueId, participantId);
+        return ResponseEntity.noContent().build();
     }
 }
