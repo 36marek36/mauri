@@ -35,7 +35,7 @@ public class PlayerApi {
     @GetMapping("/not-in-any-league")
     public ResponseEntity<List<Player>> getFreePlayers() {
         List<Player> freePlayers = playerService.getPlayersNotInAnyLeague();
-        return ResponseEntity.ok(freePlayers);
+        return new ResponseEntity<>(freePlayers, HttpStatus.OK);
     }
 
     @PostMapping("/create")
