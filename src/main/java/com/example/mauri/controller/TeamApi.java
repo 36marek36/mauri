@@ -32,6 +32,12 @@ public class TeamApi {
         return teamService.getTeamById(id);
     }
 
+    @GetMapping("/not-in-any-league")
+    public ResponseEntity<List<Team>> getFreeTeams() {
+        List<Team> freeTeams = teamService.getTeamsNotInAnyLeague();
+        return new ResponseEntity<>(freeTeams, HttpStatus.OK);
+    }
+
     @PostMapping("/create")
     ResponseEntity<Team> createTeam(@RequestBody CreateTeamDTO team) {
         Team created = teamService.createTeam(team.getPlayer1Id(), team.getPlayer2Id());

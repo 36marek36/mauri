@@ -51,4 +51,9 @@ public class TeamServiceBean implements TeamService {
         }
         teamRepository.deleteById(id);
     }
+
+    @Override
+    public List<Team> getTeamsNotInAnyLeague() {
+        return teamRepository.findTeamsNotInAnyLeague();
+    }
 }
