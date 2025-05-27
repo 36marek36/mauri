@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rest/matches")
@@ -32,6 +33,12 @@ public class MatchApi {
     @GetMapping("/{id}")
     Match getMatch(@PathVariable String id) {
         return matchService.getMatch(id);
+    }
+
+    @GetMapping("/{leagueId}/grouped-by-round")
+    public ResponseEntity<Map<Integer, List<Match>>> getMatchesGroupedByRound(@PathVariable String leagueId) {
+        Map<Integer, List<Match>> groupedMatches = matchService.getMatchesGroupedByRound(leagueId);
+        return ResponseEntity.ok(groupedMatches);
     }
 
     @PostMapping("/create")
