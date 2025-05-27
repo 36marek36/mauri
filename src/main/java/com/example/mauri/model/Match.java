@@ -40,6 +40,9 @@ public class Match {
     @Embedded
     private MatchResult result;
 
+    @Column(name = "round_number")
+    private Integer roundNumber;
+
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 

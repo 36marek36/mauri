@@ -21,13 +21,15 @@ public class LeagueServiceBean implements LeagueService {
     private final TeamRepository teamRepository;
     private final MatchRepository matchRepository;
     private final SeasonRepository seasonRepository;
+    private final MatchService matchService;
 
-    public LeagueServiceBean(LeagueRepository leagueRepository, PlayerRepository playerRepository, TeamRepository teamRepository, MatchRepository matchRepository, SeasonRepository seasonRepository) {
+    public LeagueServiceBean(LeagueRepository leagueRepository, PlayerRepository playerRepository, TeamRepository teamRepository, MatchRepository matchRepository, SeasonRepository seasonRepository, MatchService matchService) {
         this.leagueRepository = leagueRepository;
         this.playerRepository = playerRepository;
         this.teamRepository = teamRepository;
         this.matchRepository = matchRepository;
         this.seasonRepository = seasonRepository;
+        this.matchService = matchService;
     }
 
     @Override
@@ -47,7 +49,7 @@ public class LeagueServiceBean implements LeagueService {
 
         if (createLeagueDTO.getSeasonId() != null && !createLeagueDTO.getSeasonId().isEmpty()) {
             season = seasonRepository.findById(createLeagueDTO.getSeasonId())
-                    .orElseThrow(()-> new IllegalArgumentException("Season not found with id: " + createLeagueDTO.getSeasonId()));
+                    .orElseThrow(() -> new IllegalArgumentException("Season not found with id: " + createLeagueDTO.getSeasonId()));
         }
         League league = new League(
                 UUID.randomUUID().toString(),
@@ -107,27 +109,49 @@ public class LeagueServiceBean implements LeagueService {
         return leagueRepository.save(league);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void removeParticipantFromLeague(String leagueId, String participantId) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
 
         MatchType type = league.getLeagueType();
+        List<Match> affectedMatches;
 
         switch (type) {
             case SINGLES -> {
                 Player player = playerRepository.findById(participantId)
                         .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + participantId));
 
-                league.getPlayers().remove(player); // Bez kontroly, lebo remove nič nespraví ak tam nie je
+                affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
+
+                for (Match match : affectedMatches) {
+                    MatchResult result = new MatchResult();
+                    result.setScratchedId(participantId);
+
+                    matchService.addResult(match.getId(), result);
+                }
+
+                league.getPlayers().remove(player);
             }
+
             case DOUBLES -> {
                 Team team = teamRepository.findById(participantId)
                         .orElseThrow(() -> new IllegalArgumentException("No team found with id: " + participantId));
 
+                affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
+
+                for (Match match : affectedMatches) {
+                    MatchResult result = new MatchResult();
+                    result.setScratchedId(participantId);
+
+                    matchService.addResult(match.getId(), result);
+                }
+
                 league.getTeams().remove(team);
             }
+
+            default -> throw new UnsupportedOperationException("Unsupported match type: " + type);
         }
 
         leagueRepository.save(league);

@@ -13,9 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class MatchServiceBean implements MatchService {
@@ -24,14 +23,17 @@ public class MatchServiceBean implements MatchService {
     private final TeamRepository teamRepository;
     private final PlayerRepository playerRepository;
     private final LeagueRepository leagueRepository;
+    private final RoundRobinPlayersService roundRobinPlayersService;
+    private final RoundRobinTeamsService roundRobinTeamsService;
 
-    public MatchServiceBean(MatchRepository matchRepository, TeamRepository teamRepository, PlayerRepository playerRepository, LeagueRepository leagueRepository) {
+    public MatchServiceBean(MatchRepository matchRepository, TeamRepository teamRepository, PlayerRepository playerRepository, LeagueRepository leagueRepository, RoundRobinPlayersService roundRobinPlayersService, RoundRobinTeamsService roundRobinTeamsService) {
         this.matchRepository = matchRepository;
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
         this.leagueRepository = leagueRepository;
+        this.roundRobinPlayersService = roundRobinPlayersService;
+        this.roundRobinTeamsService = roundRobinTeamsService;
     }
-
 
     @Override
     public List<Match> getMatches() {
@@ -83,24 +85,41 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
 
-        String winnerId = null;
-
+        // Ak je skreč, nastavíme sety 6:0, 6:0 pre víťaza
         if (matchResult.getScratchedId() != null) {
-            // Skrečovaný zápas
-            winnerId = switch (match.getMatchType()) {
-                case SINGLES -> matchResult.getScratchedId().equals(match.getHomePlayer().getId())
-                        ? match.getAwayPlayer().getId()
-                        : match.getHomePlayer().getId();
-                case DOUBLES -> matchResult.getScratchedId().equals(match.getHomeTeam().getId())
-                        ? match.getAwayTeam().getId()
-                        : match.getHomeTeam().getId();
-            };
-        } else if (matchResult.getSetScores() != null && !matchResult.getSetScores().isEmpty()) {
-            // Automatické očíslovanie setov
-            for (int i = 0; i < matchResult.getSetScores().size(); i++) {
-                matchResult.getSetScores().get(i).setSetNumber(i + 1); // 1-based index
+            List<SetScore> sets = new ArrayList<>();
+            boolean scratchedIsHome = false;
+
+            switch (match.getMatchType()) {
+                case SINGLES -> scratchedIsHome = matchResult.getScratchedId().equals(match.getHomePlayer().getId());
+                case DOUBLES -> scratchedIsHome = matchResult.getScratchedId().equals(match.getHomeTeam().getId());
             }
-            // Výpočet skóre zo setov
+
+            for (int i = 1; i <= 2; i++) {
+                SetScore set = new SetScore();
+                set.setSetNumber(i);
+                if (scratchedIsHome) {
+                    // Domáci hráč/tím skrečuje, víťaz je hosť
+                    set.setScore1(0);
+                    set.setScore2(6);
+                } else {
+                    // Hosť skrečuje, víťaz je domáci
+                    set.setScore1(6);
+                    set.setScore2(0);
+                }
+                sets.add(set);
+            }
+
+            matchResult.setSetScores(sets);
+        }
+
+        // Ak sú nastavené sety (či už klasické alebo z skreču), vyhodnotíme výsledok
+        if (matchResult.getSetScores() != null && !matchResult.getSetScores().isEmpty()) {
+            // Očíslujeme sety (1-based)
+            for (int i = 0; i < matchResult.getSetScores().size(); i++) {
+                matchResult.getSetScores().get(i).setSetNumber(i + 1);
+            }
+
             int setsWon1 = 0;
             int setsWon2 = 0;
 
@@ -117,21 +136,24 @@ public class MatchServiceBean implements MatchService {
             matchResult.setScore1(setsWon1);
             matchResult.setScore2(setsWon2);
 
+            // Určíme víťaza podľa setov
             if (setsWon1 > setsWon2) {
-                winnerId = switch (match.getMatchType()) {
+                String winnerId = switch (match.getMatchType()) {
                     case SINGLES -> match.getHomePlayer().getId();
                     case DOUBLES -> match.getHomeTeam().getId();
                 };
+                matchResult.setWinnerId(winnerId);
             } else if (setsWon2 > setsWon1) {
-                winnerId = switch (match.getMatchType()) {
+                String winnerId = switch (match.getMatchType()) {
                     case SINGLES -> match.getAwayPlayer().getId();
                     case DOUBLES -> match.getAwayTeam().getId();
                 };
+                matchResult.setWinnerId(winnerId);
             }
         }
 
-        matchResult.setWinnerId(winnerId);
         match.setResult(matchResult);
+        match.setStatus(MatchStatus.FINISHED);
         return matchRepository.save(match);
     }
 
@@ -141,61 +163,37 @@ public class MatchServiceBean implements MatchService {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("No League found with id: " + leagueId));
 
-        if (matchRepository.existsByLeagueId(leagueId)) {
-            throw new IllegalStateException("Matches already exists for League");
-        }
-
         MatchType type = league.getLeagueType();
-        List<Match> matches = new ArrayList<>();
+        List<Match> matches;
+
+        if (matchRepository.existsByLeagueId(leagueId)) {
+            throw new IllegalStateException("Zápasy pre túto ligu už existujú!");
+        }
 
         if (type == MatchType.SINGLES) {
             List<Player> players = league.getPlayers();
-            for (int i = 0; i < players.size(); i++) {
-                for (int j = i + 1; j < players.size(); j++) {
-                    Player p1 = players.get(i);
-                    Player p2 = players.get(j);
-
-                    boolean isEven = (i + j) % 2 == 0;
-
-                    Match match = new Match();
-                    match.setId(UUID.randomUUID().toString());
-                    match.setLeagueId(leagueId);
-                    match.setMatchType(type);
-                    match.setStatus(MatchStatus.CREATED);
-                    match.setHomePlayer(isEven ? p1 : p2);
-                    match.setAwayPlayer(isEven ? p2 : p1);
-                    matches.add(match);
-                }
-
-            }
+            matches = roundRobinPlayersService.generateMatches(new ArrayList<>(players), leagueId, type);
         } else if (type == MatchType.DOUBLES) {
             List<Team> teams = league.getTeams();
-            for (int i = 0; i < teams.size(); i++) {
-                for (int j = i + 1; j < teams.size(); j++) {
-                    Team t1 = teams.get(i);
-                    Team t2 = teams.get(j);
-                    boolean isEven = (i + j) % 2 == 0;
-                    Match match = new Match();
-                    match.setId(UUID.randomUUID().toString());
-                    match.setLeagueId(leagueId);
-                    match.setMatchType(type);
-                    match.setStatus(MatchStatus.CREATED);
-                    match.setHomeTeam(isEven ? t1 : t2);
-                    match.setAwayTeam(isEven ? t2 : t1);
-                    matches.add(match);
-                }
-            }
+            matches = roundRobinTeamsService.generateMatches(new ArrayList<>(teams), leagueId, type);
+        } else {
+            throw new UnsupportedOperationException("Unsupported match type: " + type);
         }
 
         league.setStatus(LeagueStatus.ACTIVE);
-
         matchRepository.saveAll(matches);
-
         return matches;
     }
 
     @Override
     public List<Match> getMatchesForLeague(String leagueId) {
         return matchRepository.findByLeagueId(leagueId);
+    }
+
+    @Override
+    public Map<Integer, List<Match>> getMatchesGroupedByRound(String leagueId) {
+        List<Match> matches = matchRepository.findByLeagueId(leagueId);
+        return matches.stream()
+                .collect(Collectors.groupingBy(Match::getRoundNumber));
     }
 }

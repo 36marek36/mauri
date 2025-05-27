@@ -6,6 +6,7 @@ import com.example.mauri.model.MatchResult;
 import lombok.NonNull;
 
 import java.util.List;
+import java.util.Map;
 
 public interface MatchService {
 
@@ -16,4 +17,5 @@ public interface MatchService {
     Match addResult (String matchId, MatchResult matchResult);
     List<Match> generateMatchesForLeague(String leagueId);
     List<Match> getMatchesForLeague(String leagueId);
+    Map<Integer, List<Match>> getMatchesGroupedByRound(String leagueId);
 }
