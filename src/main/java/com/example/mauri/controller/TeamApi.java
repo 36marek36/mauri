@@ -2,7 +2,9 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.Team;
 import com.example.mauri.model.dto.CreateTeamDTO;
+import com.example.mauri.model.dto.TeamStatsDTO;
 import com.example.mauri.service.TeamService;
+import com.example.mauri.service.TeamStatsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,10 +18,12 @@ import java.util.List;
 @Slf4j
 public class TeamApi {
     private final TeamService teamService;
+    private final TeamStatsService teamStatsService;
 
     @Autowired
-    public TeamApi(TeamService teamService) {
+    public TeamApi(TeamService teamService, TeamStatsService teamStatsService) {
         this.teamService = teamService;
+        this.teamStatsService = teamStatsService;
     }
 
     @GetMapping("/")
@@ -36,6 +40,11 @@ public class TeamApi {
     public ResponseEntity<List<Team>> getFreeTeams() {
         List<Team> freeTeams = teamService.getTeamsNotInAnyLeague();
         return new ResponseEntity<>(freeTeams, HttpStatus.OK);
+    }
+
+    @GetMapping("/{teamId}/leagues/{leagueId}/stats")
+    public ResponseEntity<TeamStatsDTO> getTeamStats(@PathVariable String leagueId, @PathVariable String teamId) {
+        return ResponseEntity.ok(teamStatsService.getTeamStats(leagueId, teamId));
     }
 
     @PostMapping("/create")
