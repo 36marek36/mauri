@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TeamStatsDTO {
     private String teamId;
+    private String teamName;
     private int matches;
     private int wins;
     private int losses;

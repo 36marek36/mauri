@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class PlayerStatsDTO {
 
     private String playerId;
+    private String playerName;
     private int matches;
     private int wins;
     private int losses;
