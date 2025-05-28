@@ -1,0 +1,54 @@
+package com.example.mauri.service;
+
+import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.model.Match;
+import com.example.mauri.model.MatchResult;
+import com.example.mauri.model.dto.PlayerStatsDTO;
+import com.example.mauri.repository.MatchRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class PlayerStatsService {
+
+    private final MatchRepository matchRepository;
+
+    public PlayerStatsService(MatchRepository matchRepository) {
+        this.matchRepository = matchRepository;
+    }
+
+    public PlayerStatsDTO getPlayerStats(String leagueId, String playerId) {
+        List<Match> matches = matchRepository.findByLeagueIdAndPlayer(leagueId, playerId);
+
+        int matchesPlayed = 0;
+        int wins = 0;
+        int losses = 0;
+        int setsWon = 0;
+        int setsLost = 0;
+
+        for (Match match : matches) {
+            if (match.getStatus() != MatchStatus.FINISHED || match.getResult() == null) {
+                continue;
+            }
+
+            MatchResult matchResult = match.getResult();
+
+            boolean isHome = match.getHomePlayer().getId().equals(playerId);
+            int playerSets = isHome ? matchResult.getScore1() : matchResult.getScore2();
+            int opponentSets = isHome ? matchResult.getScore2() : matchResult.getScore1();
+
+            matchesPlayed++;
+            setsWon += playerSets;
+            setsLost += opponentSets;
+
+            if (matchResult.getWinnerId().equals(playerId)) {
+                wins++;
+            } else {
+                losses++;
+            }
+        }
+        return new PlayerStatsDTO(playerId, matchesPlayed, wins, losses, setsWon, setsLost);
+    }
+}
+
