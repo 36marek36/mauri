@@ -4,8 +4,12 @@ import com.example.mauri.model.League;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.CreateLeagueDTO;
+import com.example.mauri.model.dto.PlayerStatsDTO;
+import com.example.mauri.model.dto.TeamStatsDTO;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
+import com.example.mauri.service.PlayerStatsService;
+import com.example.mauri.service.TeamStatsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,11 +25,15 @@ public class LeagueApi {
 
     private final LeagueService leagueService;
     private final MatchService matchService;
+    private final TeamStatsService teamStatsService;
+    private final PlayerStatsService playerStatsService;
 
     @Autowired
-    public LeagueApi(LeagueService leagueService, MatchService matchService) {
+    public LeagueApi(LeagueService leagueService, MatchService matchService, TeamStatsService teamStatsService, PlayerStatsService playerStatsService) {
         this.leagueService = leagueService;
         this.matchService = matchService;
+        this.teamStatsService = teamStatsService;
+        this.playerStatsService = playerStatsService;
     }
 
     @GetMapping("/")
@@ -49,6 +57,27 @@ public class LeagueApi {
         List<League> leagues = leagueService.getLeaguesWithoutSeason();
         return new ResponseEntity<>(leagues, HttpStatus.OK);
     }
+
+    @GetMapping("/{leagueId}/teams/stats")
+    public List<TeamStatsDTO> getTeamStatsForLeague(@PathVariable String leagueId) {
+        return teamStatsService.getAllStatsForLeague(leagueId);
+    }
+
+    @GetMapping("/{leagueId}/teams/{teamId}/stats")
+    public ResponseEntity<TeamStatsDTO> getTeamStats(@PathVariable String leagueId, @PathVariable String teamId) {
+        return ResponseEntity.ok(teamStatsService.getTeamStats(leagueId, teamId));
+    }
+
+    @GetMapping("/{leagueId}/players/stats")
+    public List<PlayerStatsDTO> getPlayerStatsForLeague(@PathVariable String leagueId) {
+        return playerStatsService.getAllStatsForLeague(leagueId);
+    }
+
+    @GetMapping("/{leagueId}/players/{playerId}/stats")
+    public ResponseEntity<PlayerStatsDTO> getPlayerStats(@PathVariable String leagueId, @PathVariable String playerId) {
+        return ResponseEntity.ok(playerStatsService.getPlayerStats(leagueId, playerId));
+    }
+
 
     @PostMapping("/create")
     ResponseEntity<League> createLeague(@RequestBody CreateLeagueDTO createLeagueDTO) {

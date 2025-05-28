@@ -1,25 +1,33 @@
 package com.example.mauri.service;
 
 import com.example.mauri.enums.MatchStatus;
-import com.example.mauri.model.Match;
-import com.example.mauri.model.MatchResult;
+import com.example.mauri.model.*;
 import com.example.mauri.model.dto.PlayerStatsDTO;
+import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class PlayerStatsService {
 
     private final MatchRepository matchRepository;
+    private final LeagueRepository leagueRepository;
+    private final PlayerService playerService;
 
-    public PlayerStatsService(MatchRepository matchRepository) {
+    public PlayerStatsService(MatchRepository matchRepository, LeagueRepository leagueRepository, PlayerService playerService) {
         this.matchRepository = matchRepository;
+        this.leagueRepository = leagueRepository;
+        this.playerService = playerService;
     }
 
     public PlayerStatsDTO getPlayerStats(String leagueId, String playerId) {
         List<Match> matches = matchRepository.findByLeagueIdAndPlayer(leagueId, playerId);
+
+        Player player = playerService.getPlayer(playerId);
+        String playerName = player.getFirstName() + " " + player.getLastName();
 
         int matchesPlayed = 0;
         int wins = 0;
@@ -48,7 +56,22 @@ public class PlayerStatsService {
                 losses++;
             }
         }
-        return new PlayerStatsDTO(playerId, matchesPlayed, wins, losses, setsWon, setsLost);
+        return new PlayerStatsDTO(playerId,playerName, matchesPlayed, wins, losses, setsWon, setsLost);
+    }
+
+    public List<PlayerStatsDTO> getAllStatsForLeague(String leagueId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new IllegalArgumentException("League not found"));
+
+
+        List<Player> players = league.getPlayers();
+        List<PlayerStatsDTO> statsList = new ArrayList<>();
+
+        for (Player player : players) {
+            PlayerStatsDTO stats = getPlayerStats(leagueId, player.getId());
+            statsList.add(stats);
+        }
+        return statsList;
     }
 }
 
