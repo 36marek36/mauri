@@ -8,6 +8,7 @@ import com.example.mauri.repository.MatchRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -73,6 +74,8 @@ public class TeamStatsService {
             TeamStatsDTO stats = getTeamStats(leagueId, team.getId());
             statsList.add(stats);
         }
+
+        statsList.sort(Comparator.comparingInt(TeamStatsDTO::getSetsWon).reversed());
         return statsList;
     }
 }
