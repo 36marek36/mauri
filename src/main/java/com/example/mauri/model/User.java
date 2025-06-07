@@ -1,5 +1,6 @@
 package com.example.mauri.model;
 
+import com.example.mauri.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class User {
 
     private String password;
 
-    private String role;
+    private Role role;
 
 //    @OneToOne(cascade = CascadeType.ALL)
 //    @JoinColumn(name = "player_id")

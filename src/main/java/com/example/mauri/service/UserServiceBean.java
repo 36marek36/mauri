@@ -35,7 +35,7 @@ public class UserServiceBean implements UserService {
         if (!StringUtils.hasText(password)) {
             throw new IllegalArgumentException("Password cannot be empty");
         }
-        var user = new User(UUID.randomUUID().toString(),username,passwordEncoder.encode(password), Role.USER.getRole());
+        var user = new User(UUID.randomUUID().toString(),username,passwordEncoder.encode(password), Role.USER);
 
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username is already in use");
