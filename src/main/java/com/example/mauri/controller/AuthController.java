@@ -2,6 +2,8 @@ package com.example.mauri.controller;
 
 import com.example.mauri.security.dto.LoginRequest;
 import com.example.mauri.security.dto.LoginResponse;
+import com.example.mauri.security.dto.RegisterRequest;
+import com.example.mauri.security.dto.RegisterResponse;
 import com.example.mauri.service.AuthServiceBean;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,4 +22,10 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authServiceBean.authenticate(loginRequest));
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authServiceBean.register(request));
+    }
+
 }
