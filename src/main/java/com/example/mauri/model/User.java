@@ -22,7 +22,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-//    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "player_id")
-//    private Player player;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "player_id")
+    private Player player;
 }

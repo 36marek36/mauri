@@ -1,6 +1,7 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.Player;
+import com.example.mauri.model.dto.CreatePlayerDTO;
 import com.example.mauri.repository.PlayerRepository;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -30,9 +31,8 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
-    public Player addPlayer(String firstName, String lastName, String email, String phone, LocalDate registrationDate) {
-        registrationDate = LocalDate.now();
-        var player = new Player(UUID.randomUUID().toString(), firstName, lastName, email, phone, registrationDate);
+    public Player createPlayer(CreatePlayerDTO createPlayerDTO) {
+        var player = new Player(UUID.randomUUID().toString(), createPlayerDTO.getFirstName(), createPlayerDTO.getLastName(), createPlayerDTO.getEmail(), createPlayerDTO.getPhone(), LocalDate.now());
         playerRepository.save(player);
         return player;
     }

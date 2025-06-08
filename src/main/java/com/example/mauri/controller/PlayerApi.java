@@ -1,14 +1,16 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.Player;
+import com.example.mauri.model.User;
+import com.example.mauri.model.dto.CreatePlayerDTO;
 import com.example.mauri.service.PlayerService;
+import com.example.mauri.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -16,10 +18,12 @@ import java.util.List;
 @Slf4j
 public class PlayerApi {
     private final PlayerService playerService;
+    private final UserService userService;
 
     @Autowired
-    public PlayerApi(PlayerService playerService) {
+    public PlayerApi(PlayerService playerService, UserService userService) {
         this.playerService = playerService;
+        this.userService = userService;
     }
 
     @GetMapping("/")
@@ -38,10 +42,24 @@ public class PlayerApi {
         return new ResponseEntity<>(freePlayers, HttpStatus.OK);
     }
 
-    @PostMapping("/create")
-    ResponseEntity<Player> createPlayer(@RequestBody Player player) {
-        Player created = playerService.addPlayer(player.getFirstName(), player.getLastName(), player.getEmail(), player.getPhone(), LocalDate.now());
+    @PostMapping("/admin/create")
+    ResponseEntity<Player> createPlayer(@RequestBody CreatePlayerDTO createPlayerDTO) {
+        Player created = playerService.createPlayer(createPlayerDTO);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/user/create")
+    public ResponseEntity<Player> createAndAssignPlayerForCurrentUser(@RequestBody CreatePlayerDTO createPlayerDTO) {
+        User user = userService.getAuthenticatedUser();
+
+        if (user.getPlayer() != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // Už má hráča
+        }
+
+        Player player = playerService.createPlayer(createPlayerDTO);
+        userService.assignPlayerToUser(player.getId(), user.getId());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(player);
     }
 
     @DeleteMapping("/{id}")
