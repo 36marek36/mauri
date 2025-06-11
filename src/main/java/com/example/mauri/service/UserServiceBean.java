@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.repository.PlayerRepository;
@@ -35,18 +36,19 @@ public class UserServiceBean implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         log.info("username {}", username);
+
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Transactional
     @Override
     public void assignPlayerToUser(String playerId, String userId) {
         Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new RuntimeException("Player not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getPlayer()!=null) {
             throw new IllegalStateException("User already has a player assigned");
