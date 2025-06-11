@@ -14,16 +14,16 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePlayerDTO {
-    @NotBlank
+    @NotBlank(message = "Meno je povinné")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Priezvisko je povinné")
     private String lastName;
 
-    @Email
+    @Email(message = "Nesprávny formát emailovej adresy")
     private String email;
 
-    @Pattern(regexp = "^[0-9+ ]{7,15}$", message = "Invalid phone number")
+    @Pattern(regexp = "^$|^[0-9+ ]{7,15}$", message = "Nesprávny formát telefónneho čísla")
     private String phone;
 
     private LocalDate registrationDate;

@@ -6,6 +6,7 @@ import com.example.mauri.model.dto.AssignPlayerDTO;
 import com.example.mauri.model.dto.CreatePlayerDTO;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,7 +45,7 @@ public class PlayerApi {
     }
 
     @PostMapping("/admin/create")
-    ResponseEntity<Player> createPlayer(@RequestBody CreatePlayerDTO createPlayerDTO) {
+    ResponseEntity<Player> createPlayer(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
         Player created = playerService.createPlayer(createPlayerDTO);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
@@ -64,9 +65,9 @@ public class PlayerApi {
     }
 
     @PatchMapping("/assignToUser/{userId}")
-    public ResponseEntity<String> assignPlayerToUser (@PathVariable String userId,
-                                                      @RequestBody AssignPlayerDTO assignPlayer) {
-     userService.assignPlayerToUser(assignPlayer.getPlayerId(), userId);
+    public ResponseEntity<String> assignPlayerToUser(@PathVariable String userId,
+                                                     @RequestBody AssignPlayerDTO assignPlayer) {
+        userService.assignPlayerToUser(assignPlayer.getPlayerId(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("Player assigned to user");
     }
 
@@ -74,11 +75,5 @@ public class PlayerApi {
     ResponseEntity<Player> deletePlayer(@PathVariable String id) {
         playerService.deletePlayer(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Player> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error("handleIllegalArgumentException: {}", e.getMessage());
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
