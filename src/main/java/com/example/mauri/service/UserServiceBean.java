@@ -4,6 +4,7 @@ import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -38,6 +39,7 @@ public class UserServiceBean implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    @Transactional
     @Override
     public void assignPlayerToUser(String playerId, String userId) {
         Player player = playerRepository.findById(playerId)
