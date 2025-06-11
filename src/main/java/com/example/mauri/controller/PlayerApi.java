@@ -2,6 +2,7 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
+import com.example.mauri.model.dto.AssignPlayerDTO;
 import com.example.mauri.model.dto.CreatePlayerDTO;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
@@ -48,18 +49,25 @@ public class PlayerApi {
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    @PostMapping("/user/create")
+    @PostMapping("/user/createPlayer")
     public ResponseEntity<Player> createAndAssignPlayerForCurrentUser(@RequestBody CreatePlayerDTO createPlayerDTO) {
         User user = userService.getAuthenticatedUser();
 
         if (user.getPlayer() != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // Už má hráča
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         Player player = playerService.createPlayer(createPlayerDTO);
         userService.assignPlayerToUser(player.getId(), user.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(player);
+    }
+
+    @PatchMapping("/assignToUser/{userId}")
+    public ResponseEntity<String> assignPlayerToUser (@PathVariable String userId,
+                                                      @RequestBody AssignPlayerDTO assignPlayer) {
+     userService.assignPlayerToUser(assignPlayer.getPlayerId(), userId);
+        return ResponseEntity.status(HttpStatus.OK).body("Player assigned to user");
     }
 
     @DeleteMapping("/{id}")
