@@ -14,4 +14,5 @@ public interface LeagueService {
     League addParticipantsToLeague(String leagueId, List<String> participantIds);
     void removeParticipantFromLeague(String leagueId, String participantId);
     List<League> getLeaguesWithoutSeason();
+    int progress(String leagueId);
 }

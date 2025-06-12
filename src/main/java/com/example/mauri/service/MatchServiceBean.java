@@ -196,4 +196,9 @@ public class MatchServiceBean implements MatchService {
         return matches.stream()
                 .collect(Collectors.groupingBy(Match::getRoundNumber));
     }
+
+    @Override
+    public List<Match> getPlayedMatchesForLeague(String leagueId) {
+        return matchRepository.findAllPlayedLeagueMatches(leagueId);
+    }
 }

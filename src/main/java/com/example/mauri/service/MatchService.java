@@ -18,4 +18,5 @@ public interface MatchService {
     List<Match> generateMatchesForLeague(String leagueId);
     List<Match> getMatchesForLeague(String leagueId);
     Map<Integer, List<Match>> getMatchesGroupedByRound(String leagueId);
+    List<Match> getPlayedMatchesForLeague(String leagueId);
 }
