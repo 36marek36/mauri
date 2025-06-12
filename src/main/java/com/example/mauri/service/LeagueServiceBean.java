@@ -162,4 +162,14 @@ public class LeagueServiceBean implements LeagueService {
         return leagueRepository.findBySeasonIsNull();
     }
 
+    @Override
+    public int progress(String leagueId) {
+        int played = matchService.getPlayedMatchesForLeague(leagueId).size();
+        int total = matchService.getMatchesForLeague(leagueId).size();
+
+        if (total == 0) return 0;
+
+        return (int) ((double) played / total * 100);
+    }
+
 }

@@ -78,6 +78,12 @@ public class LeagueApi {
         return ResponseEntity.ok(playerStatsService.getPlayerStats(leagueId, playerId));
     }
 
+    @GetMapping("/{leagueId}/progress")
+    public ResponseEntity<Integer> getLeagueProgress(@PathVariable String leagueId) {
+        int progress = leagueService.progress(leagueId);
+        return ResponseEntity.ok(progress);
+    }
+
 
     @PostMapping("/create")
     ResponseEntity<League> createLeague(@RequestBody CreateLeagueDTO createLeagueDTO) {
@@ -108,4 +114,6 @@ public class LeagueApi {
         leagueService.removeParticipantFromLeague(leagueId, participantId);
         return ResponseEntity.noContent().build();
     }
+
+
 }
