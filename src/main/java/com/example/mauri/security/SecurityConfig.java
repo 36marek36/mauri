@@ -3,6 +3,7 @@ package com.example.mauri.security;
 import com.example.mauri.enums.Role;
 import com.example.mauri.model.User;
 import com.example.mauri.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,15 +36,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain restSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\": \"Unauthorized: " + authException.getMessage() + "\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\": \"Forbidden: " + accessDeniedException.getMessage() + "\"}");
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/rest/auth/**").permitAll()
-                        .requestMatchers("/rest/users/**").hasRole("ADMIN")
-//                        .anyRequest().permitAll()
-//                        .anyRequest().authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/rest/users/me").authenticated()  // každý prihlásený používateľ
+                        .requestMatchers("/rest/users/**").hasRole("ADMIN") // ostatné užívateľské endpointy len pre admina
+                        .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService);
 
@@ -68,7 +79,7 @@ public class SecurityConfig {
             String username = "admin";
             String password = "admin";
             if (!userRepository.existsByUsername(username)) {
-                User user = new User(UUID.randomUUID().toString(), username, passwordEncoder().encode(password), Role.ADMIN,null);
+                User user = new User(UUID.randomUUID().toString(), username, passwordEncoder().encode(password), Role.ADMIN, null);
                 userRepository.save(user);
             }
         };
