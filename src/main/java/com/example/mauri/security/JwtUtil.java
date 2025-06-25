@@ -6,12 +6,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+//    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+private final Key key = Keys.hmacShaKeyFor("moja-super-tajna-a-dlhaa-256bitova-klucova-hodnota!".getBytes(StandardCharsets.UTF_8));
     private final long jwtExpirationMs = 3600000; // 1 hodina  3600000
 
     public String generateToken(String username) {
