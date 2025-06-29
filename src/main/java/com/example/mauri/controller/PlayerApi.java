@@ -4,6 +4,8 @@ import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.AssignPlayerDTO;
 import com.example.mauri.model.dto.CreatePlayerDTO;
+import com.example.mauri.model.dto.LeagueDTO;
+import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
 import jakarta.validation.Valid;
@@ -21,11 +23,13 @@ import java.util.List;
 public class PlayerApi {
     private final PlayerService playerService;
     private final UserService userService;
+    private final LeagueService leagueService;
 
     @Autowired
-    public PlayerApi(PlayerService playerService, UserService userService) {
+    public PlayerApi(PlayerService playerService, UserService userService, LeagueService leagueService) {
         this.playerService = playerService;
         this.userService = userService;
+        this.leagueService = leagueService;
     }
 
     @GetMapping("/")
@@ -43,8 +47,13 @@ public class PlayerApi {
         List<Player> freePlayers = playerService.getPlayersNotInAnyLeague();
         return new ResponseEntity<>(freePlayers, HttpStatus.OK);
     }
+    @GetMapping("/{playerId}/leagues")
+    public ResponseEntity<List<LeagueDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
+        List<LeagueDTO> leagues = leagueService.getLeaguesForPlayer(playerId);
+        return ResponseEntity.ok(leagues);
+    }
 
-    @PostMapping("/admin/create")
+    @PostMapping("/admin/createPlayer")
     ResponseEntity<Player> createPlayer(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
         Player created = playerService.createPlayer(createPlayerDTO);
         return new ResponseEntity<>(created, HttpStatus.CREATED);

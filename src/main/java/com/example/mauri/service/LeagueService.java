@@ -2,6 +2,7 @@ package com.example.mauri.service;
 
 import com.example.mauri.model.League;
 import com.example.mauri.model.dto.CreateLeagueDTO;
+import com.example.mauri.model.dto.LeagueDTO;
 import lombok.NonNull;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface LeagueService {
     void removeParticipantFromLeague(String leagueId, String participantId);
     List<League> getLeaguesWithoutSeason();
     int progress(String leagueId);
+    List<LeagueDTO> getLeaguesForPlayer(String playerId);
 }

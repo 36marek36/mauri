@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/rest/auth/**").permitAll()
                         .requestMatchers("/rest/users/me").authenticated()  // každý prihlásený používateľ
-                        .requestMatchers("/rest/users/**").hasRole("ADMIN") // ostatné užívateľské endpointy len pre admina
+                        .requestMatchers("/rest/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService);
