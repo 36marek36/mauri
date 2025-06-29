@@ -9,6 +9,7 @@ import lombok.Data;
 public class UserDTO {
     private String username;
     private String role;
+    private String playerId;
     private String playerName;
 
     public UserDTO(User user) {
@@ -16,8 +17,10 @@ public class UserDTO {
         this.role = user.getRole().name();
         Player player = user.getPlayer();
         if (player != null) {
+            this.playerId = player.getId();
             this.playerName = player.getFirstName() + " " + player.getLastName();
         } else {
+            this.playerId = null;
             this.playerName = null;
         }
     }

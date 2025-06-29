@@ -4,6 +4,7 @@ import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateLeagueDTO;
+import com.example.mauri.model.dto.LeagueDTO;
 import com.example.mauri.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
@@ -170,6 +171,24 @@ public class LeagueServiceBean implements LeagueService {
         if (total == 0) return 0;
 
         return (int) ((double) played / total * 100);
+    }
+    @Override
+    public List<LeagueDTO> getLeaguesForPlayer(String playerId) {
+        List<League> leagues = leagueRepository.findLeaguesByPlayerId(playerId);
+        List<LeagueDTO> result = new ArrayList<>();
+
+        for (League league : leagues) {
+            String name = league.getName();
+            Integer year = null;
+
+            if (league.getSeason() != null) {
+                year = league.getSeason().getYear();
+            }
+
+            result.add(new LeagueDTO(name, year));
+        }
+
+        return result;
     }
 
 }
