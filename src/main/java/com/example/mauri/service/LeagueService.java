@@ -17,4 +17,5 @@ public interface LeagueService {
     List<League> getLeaguesWithoutSeason();
     int progress(String leagueId);
     List<LeagueDTO> getLeaguesForPlayer(String playerId);
+    void finishLeague(String leagueId);
 }

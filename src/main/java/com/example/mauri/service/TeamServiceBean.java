@@ -53,7 +53,7 @@ public class TeamServiceBean implements TeamService {
     }
 
     @Override
-    public List<Team> getTeamsNotInAnyLeague() {
-        return teamRepository.findTeamsNotInAnyLeague();
+    public List<Team> getTeamsNotInAnyActiveLeague() {
+        return teamRepository.findTeamsNotInAnyActiveLeague();
     }
 }

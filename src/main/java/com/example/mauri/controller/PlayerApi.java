@@ -42,9 +42,9 @@ public class PlayerApi {
         return playerService.getPlayer(id);
     }
 
-    @GetMapping("/not-in-any-league")
+    @GetMapping("/not-in-any-active-league")
     public ResponseEntity<List<Player>> getFreePlayers() {
-        List<Player> freePlayers = playerService.getPlayersNotInAnyLeague();
+        List<Player> freePlayers = playerService.getPlayersNotInAnyActiveLeague();
         return new ResponseEntity<>(freePlayers, HttpStatus.OK);
     }
     @GetMapping("/{playerId}/leagues")

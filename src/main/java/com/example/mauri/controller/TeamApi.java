@@ -32,9 +32,9 @@ public class TeamApi {
         return teamService.getTeamById(id);
     }
 
-    @GetMapping("/not-in-any-league")
+    @GetMapping("/not-in-any-active-league")
     public ResponseEntity<List<Team>> getFreeTeams() {
-        List<Team> freeTeams = teamService.getTeamsNotInAnyLeague();
+        List<Team> freeTeams = teamService.getTeamsNotInAnyActiveLeague();
         return new ResponseEntity<>(freeTeams, HttpStatus.OK);
     }
 

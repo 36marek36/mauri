@@ -172,6 +172,7 @@ public class LeagueServiceBean implements LeagueService {
 
         return (int) ((double) played / total * 100);
     }
+
     @Override
     public List<LeagueDTO> getLeaguesForPlayer(String playerId) {
         List<League> leagues = leagueRepository.findLeaguesByPlayerId(playerId);
@@ -191,4 +192,15 @@ public class LeagueServiceBean implements LeagueService {
         return result;
     }
 
+    @Override
+    public void finishLeague(String leagueId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
+
+        if (league.getStatus().equals(LeagueStatus.FINISHED)) {
+            throw new IllegalStateException("League already finished");
+        }
+        league.setStatus(LeagueStatus.FINISHED);
+        leagueRepository.save(league);
+    }
 }

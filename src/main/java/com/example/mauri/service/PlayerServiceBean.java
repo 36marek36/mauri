@@ -1,8 +1,10 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.Player;
+import com.example.mauri.model.User;
 import com.example.mauri.model.dto.CreatePlayerDTO;
 import com.example.mauri.repository.PlayerRepository;
+import com.example.mauri.repository.UserRepository;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +16,11 @@ import java.util.UUID;
 public class PlayerServiceBean implements PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final UserRepository userRepository;
 
-    public PlayerServiceBean(PlayerRepository playerRepository) {
+    public PlayerServiceBean(PlayerRepository playerRepository, UserRepository userRepository) {
         this.playerRepository = playerRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -42,12 +46,19 @@ public class PlayerServiceBean implements PlayerService {
         if (!playerRepository.existsById(id)) {
             throw new IllegalArgumentException("No player found with id: " + id);
         }
+        List<User> usersWithPlayer = userRepository.findByPlayerId(id);
+
+        for (User user : usersWithPlayer) {
+            user.setPlayer(null);
+        }
+        userRepository.saveAll(usersWithPlayer);
+
         playerRepository.deleteById(id);
     }
 
     @Override
-    public List<Player> getPlayersNotInAnyLeague() {
-        return playerRepository.findPlayersNotInAnyLeague();
+    public List<Player> getPlayersNotInAnyActiveLeague() {
+        return playerRepository.findPlayersNotInAnyActiveLeague();
     }
 
 }
