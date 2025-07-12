@@ -100,6 +100,17 @@ public class LeagueApi {
         return new ResponseEntity<>(updatedLeague, HttpStatus.OK);
     }
 
+    @PatchMapping("/{leagueId}/finish")
+    public ResponseEntity<String> finishLeague(@PathVariable String leagueId) {
+        log.info("league finished");
+        try {
+            leagueService.finishLeague(leagueId);
+            return ResponseEntity.ok("league finished");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @DeleteMapping("{id}")
     ResponseEntity<League> deleteLeague(@PathVariable("id") String id) {
         leagueService.deleteLeagueById(id);

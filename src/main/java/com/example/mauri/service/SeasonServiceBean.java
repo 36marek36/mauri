@@ -18,10 +18,12 @@ public class SeasonServiceBean implements SeasonService {
 
     private final SeasonRepository seasonRepository;
     private final LeagueRepository leagueRepository;
+    private final LeagueService leagueService;
 
-    public SeasonServiceBean(SeasonRepository seasonRepository, LeagueRepository leagueRepository) {
+    public SeasonServiceBean(SeasonRepository seasonRepository, LeagueRepository leagueRepository, LeagueService leagueService) {
         this.seasonRepository = seasonRepository;
         this.leagueRepository = leagueRepository;
+        this.leagueService = leagueService;
     }
 
     @Override
@@ -44,10 +46,16 @@ public class SeasonServiceBean implements SeasonService {
         return seasonRepository.save(season);
     }
 
+    @Transactional
     @Override
     public void deleteSeason(@NonNull String id) {
-        if (!seasonRepository.existsById(id)) {
-            throw new IllegalArgumentException("No season found with id: " + id);
+        Season season = seasonRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + id));
+
+        List<League> leagues = season.getLeagues();
+
+        for (League league : leagues) {
+            leagueService.deleteLeagueById(league.getId());
         }
         seasonRepository.deleteById(id);
     }
