@@ -1,7 +1,9 @@
 package com.example.mauri.service;
 
 import com.example.mauri.enums.Role;
+import com.example.mauri.exception.InvalidOldPasswordException;
 import com.example.mauri.model.User;
+import com.example.mauri.model.dto.ChangePasswordDTO;
 import com.example.mauri.repository.UserRepository;
 import com.example.mauri.security.JwtUtil;
 import com.example.mauri.security.dto.LoginRequest;
@@ -59,5 +61,16 @@ public class AuthServiceBean {
 
         // 3. Vráť len správu, že používateľ bol vytvorený
         return new RegisterResponse("Užívateľ bol úspešne vytvorený");
+    }
+
+    public void changePassword(String currentUsername, ChangePasswordDTO request) {
+        var user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new InvalidOldPasswordException("Old password doesn't match");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }
