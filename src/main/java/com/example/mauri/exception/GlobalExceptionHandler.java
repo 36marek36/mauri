@@ -43,6 +43,11 @@ public class GlobalExceptionHandler {
         return buildException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred");
     }
 
+    @ExceptionHandler(InvalidOldPasswordException.class)
+    public ResponseEntity<Object> handleInvalidOldPassword(InvalidOldPasswordException ex, WebRequest request) {
+        return buildException(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     private ResponseEntity<Object> buildException(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
@@ -52,5 +57,4 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(body, status);
     }
-
 }
