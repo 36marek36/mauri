@@ -69,6 +69,12 @@ public class MatchApi {
         }
     }
 
+    @PatchMapping("/{matchId}/cancel-result")
+    ResponseEntity<?> cancelMatchResult(@PathVariable String matchId) {
+        matchService.cancelResult(matchId);
+        return ResponseEntity.ok().body("Match cancelled");
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Match> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("handleIllegalArgumentException: {}", e.getMessage());
