@@ -19,4 +19,5 @@ public interface MatchService {
     List<Match> getMatchesForLeague(String leagueId);
     Map<Integer, List<Match>> getMatchesGroupedByRound(String leagueId);
     List<Match> getPlayedMatchesForLeague(String leagueId);
+    void cancelResult(String matchId);
 }

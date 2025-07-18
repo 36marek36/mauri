@@ -201,4 +201,15 @@ public class MatchServiceBean implements MatchService {
     public List<Match> getPlayedMatchesForLeague(String leagueId) {
         return matchRepository.findAllPlayedLeagueMatches(leagueId);
     }
+
+    @Transactional
+    @Override
+    public void cancelResult(String matchId) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
+
+        match.setStatus(MatchStatus.CREATED);
+        match.setResult(null);
+        matchRepository.save(match);
+    }
 }
