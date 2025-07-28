@@ -9,8 +9,8 @@ import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +19,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/rest/players")
+@RequiredArgsConstructor
 @Slf4j
-public class PlayerApi {
+public class PlayerController {
     private final PlayerService playerService;
     private final UserService userService;
     private final LeagueService leagueService;
-
-    @Autowired
-    public PlayerApi(PlayerService playerService, UserService userService, LeagueService leagueService) {
-        this.playerService = playerService;
-        this.userService = userService;
-        this.leagueService = leagueService;
-    }
 
     @GetMapping("/")
     List<Player> getPlayers() {

@@ -3,6 +3,7 @@ package com.example.mauri.controller;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.UserDTO;
 import com.example.mauri.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,13 +11,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/rest/users")
-public class UserApi {
+@RequiredArgsConstructor
+public class UserController {
 
     private final UserService userService;
 
-    public UserApi(UserService userService) {
-        this.userService = userService;
-    }
 
     @GetMapping("/")
     List<User> getAllUsers() {

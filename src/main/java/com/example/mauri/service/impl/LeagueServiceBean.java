@@ -1,4 +1,4 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;
@@ -6,8 +6,11 @@ import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.model.dto.LeagueDTO;
 import com.example.mauri.repository.*;
+import com.example.mauri.service.LeagueService;
+import com.example.mauri.service.MatchService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class LeagueServiceBean implements LeagueService {
 
     private final LeagueRepository leagueRepository;
@@ -24,14 +28,6 @@ public class LeagueServiceBean implements LeagueService {
     private final SeasonRepository seasonRepository;
     private final MatchService matchService;
 
-    public LeagueServiceBean(LeagueRepository leagueRepository, PlayerRepository playerRepository, TeamRepository teamRepository, MatchRepository matchRepository, SeasonRepository seasonRepository, MatchService matchService) {
-        this.leagueRepository = leagueRepository;
-        this.playerRepository = playerRepository;
-        this.teamRepository = teamRepository;
-        this.matchRepository = matchRepository;
-        this.seasonRepository = seasonRepository;
-        this.matchService = matchService;
-    }
 
     @Override
     public List<League> getAllLeagues() {

@@ -1,13 +1,14 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.UserRepository;
+import com.example.mauri.service.UserService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -15,16 +16,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class UserServiceBean implements UserService {
     private final UserRepository userRepository;
     private final PlayerRepository playerRepository;
 
-    @Autowired
-    public UserServiceBean(UserRepository userRepository, PlayerRepository playerRepository) {
-        this.userRepository = userRepository;
-        this.playerRepository = playerRepository;
-    }
 
     @Override
     public List<User> getUsers() {
