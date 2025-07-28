@@ -47,4 +47,9 @@ public class SeasonController {
         Season season = seasonService.addLeagueToSeason(addLeagueToSeasonDTO.getLeagueId(), seasonId);
         return new ResponseEntity<>(season, HttpStatus.OK);
     }
+    @PatchMapping("/{seasonId}/start")
+    public ResponseEntity<String> startSeason(@PathVariable String seasonId) {
+        String message = seasonService.startSeason(seasonId);
+        return ResponseEntity.ok(message);
+    }
 }
