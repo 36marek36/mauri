@@ -1,11 +1,13 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.CreatePlayerDTO;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.UserRepository;
+import com.example.mauri.service.PlayerService;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,15 +15,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PlayerServiceBean implements PlayerService {
 
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;
 
-    public PlayerServiceBean(PlayerRepository playerRepository, UserRepository userRepository) {
-        this.playerRepository = playerRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public List<Player> getPlayers() {

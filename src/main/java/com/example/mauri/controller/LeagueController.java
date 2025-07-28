@@ -6,12 +6,9 @@ import com.example.mauri.model.dto.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.model.dto.PlayerStatsDTO;
 import com.example.mauri.model.dto.TeamStatsDTO;
-import com.example.mauri.service.LeagueService;
-import com.example.mauri.service.MatchService;
-import com.example.mauri.service.PlayerStatsService;
-import com.example.mauri.service.TeamStatsService;
+import com.example.mauri.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,21 +17,14 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/rest/leagues")
+@RequiredArgsConstructor
 @Slf4j
-public class LeagueApi {
+public class LeagueController {
 
     private final LeagueService leagueService;
     private final MatchService matchService;
     private final TeamStatsService teamStatsService;
     private final PlayerStatsService playerStatsService;
-
-    @Autowired
-    public LeagueApi(LeagueService leagueService, MatchService matchService, TeamStatsService teamStatsService, PlayerStatsService playerStatsService) {
-        this.leagueService = leagueService;
-        this.matchService = matchService;
-        this.teamStatsService = teamStatsService;
-        this.playerStatsService = playerStatsService;
-    }
 
     @GetMapping("/")
     public List<League> getLeagues() {

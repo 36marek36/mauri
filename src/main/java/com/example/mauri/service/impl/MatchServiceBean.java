@@ -1,4 +1,4 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchStatus;
@@ -9,14 +9,19 @@ import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.TeamRepository;
+import com.example.mauri.service.MatchService;
+import com.example.mauri.service.RoundRobinPlayersService;
+import com.example.mauri.service.RoundRobinTeamsService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class MatchServiceBean implements MatchService {
 
     private final MatchRepository matchRepository;
@@ -25,15 +30,6 @@ public class MatchServiceBean implements MatchService {
     private final LeagueRepository leagueRepository;
     private final RoundRobinPlayersService roundRobinPlayersService;
     private final RoundRobinTeamsService roundRobinTeamsService;
-
-    public MatchServiceBean(MatchRepository matchRepository, TeamRepository teamRepository, PlayerRepository playerRepository, LeagueRepository leagueRepository, RoundRobinPlayersService roundRobinPlayersService, RoundRobinTeamsService roundRobinTeamsService) {
-        this.matchRepository = matchRepository;
-        this.teamRepository = teamRepository;
-        this.playerRepository = playerRepository;
-        this.leagueRepository = leagueRepository;
-        this.roundRobinPlayersService = roundRobinPlayersService;
-        this.roundRobinTeamsService = roundRobinTeamsService;
-    }
 
     @Override
     public List<Match> getMatches() {

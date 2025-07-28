@@ -1,25 +1,23 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.TeamRepository;
+import com.example.mauri.service.TeamService;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class TeamServiceBean implements TeamService {
 
     private final TeamRepository teamRepository;
     private final PlayerRepository playerRepository;
-
-    public TeamServiceBean(TeamRepository teamRepository, PlayerRepository playerRepository) {
-        this.teamRepository = teamRepository;
-        this.playerRepository = playerRepository;
-    }
 
 
     @Override

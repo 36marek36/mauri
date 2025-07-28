@@ -4,8 +4,8 @@ import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.CreateSeasonDTO;
 import com.example.mauri.service.SeasonService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,15 +14,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/rest/seasons")
+@RequiredArgsConstructor
 @Slf4j
-public class SeasonApi {
+public class SeasonController {
 
     private final SeasonService seasonService;
-
-    @Autowired
-    public SeasonApi(SeasonService seasonService) {
-        this.seasonService = seasonService;
-    }
 
     @GetMapping("/")
     public List<Season> getSeasons() {

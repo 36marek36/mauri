@@ -1,4 +1,4 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.Role;
 import com.example.mauri.exception.InvalidOldPasswordException;
@@ -10,6 +10,7 @@ import com.example.mauri.security.dto.LoginRequest;
 import com.example.mauri.security.dto.LoginResponse;
 import com.example.mauri.security.dto.RegisterRequest;
 import com.example.mauri.security.dto.RegisterResponse;
+import com.example.mauri.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceBean {
+public class AuthServiceBean implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;

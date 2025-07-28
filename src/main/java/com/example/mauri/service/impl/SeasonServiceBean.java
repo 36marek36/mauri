@@ -1,12 +1,15 @@
-package com.example.mauri.service;
+package com.example.mauri.service.impl;
 
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.CreateSeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.SeasonRepository;
+import com.example.mauri.service.LeagueService;
+import com.example.mauri.service.SeasonService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,17 +17,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class SeasonServiceBean implements SeasonService {
 
     private final SeasonRepository seasonRepository;
     private final LeagueRepository leagueRepository;
     private final LeagueService leagueService;
 
-    public SeasonServiceBean(SeasonRepository seasonRepository, LeagueRepository leagueRepository, LeagueService leagueService) {
-        this.seasonRepository = seasonRepository;
-        this.leagueRepository = leagueRepository;
-        this.leagueService = leagueService;
-    }
 
     @Override
     public List<Season> getSeasons() {

@@ -4,8 +4,8 @@ import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
 import com.example.mauri.service.MatchService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,15 +15,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/rest/matches")
+@RequiredArgsConstructor
 @Slf4j
-public class MatchApi {
+public class MatchController {
 
     private final MatchService matchService;
 
-    @Autowired
-    public MatchApi(MatchService matchService) {
-        this.matchService = matchService;
-    }
 
     @GetMapping("/")
     List<Match> getMatches() {
