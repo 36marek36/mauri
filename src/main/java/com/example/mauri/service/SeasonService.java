@@ -12,4 +12,5 @@ public interface SeasonService {
     Season createSeason(CreateSeasonDTO createSeasonDTO);
     void deleteSeason(@NonNull String id);
     Season addLeagueToSeason(@NonNull String leagueId, @NonNull String seasonId);
+    String startSeason(String seasonId);
 }

@@ -16,4 +16,6 @@ public interface LeagueRepository extends JpaRepository<League, String> {
     @Query("SELECT l FROM leagues l JOIN l.players p WHERE p.id = :playerId")
     List<League> findLeaguesByPlayerId(@Param("playerId") String playerId);
 
+    List<League> findAllBySeasonId(String seasonId);
+
 }

@@ -1,11 +1,14 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.LeagueStatus;
+import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.CreateSeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.SeasonRepository;
 import com.example.mauri.service.LeagueService;
+import com.example.mauri.service.MatchService;
 import com.example.mauri.service.SeasonService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
@@ -23,6 +26,7 @@ public class SeasonServiceBean implements SeasonService {
     private final SeasonRepository seasonRepository;
     private final LeagueRepository leagueRepository;
     private final LeagueService leagueService;
+    private final MatchService matchService;
 
 
     @Override
@@ -41,7 +45,8 @@ public class SeasonServiceBean implements SeasonService {
         Season season = new Season(
                 UUID.randomUUID().toString(),
                 createSeasonDTO.getYear(),
-                new ArrayList<>());
+                new ArrayList<>(),
+                SeasonStatus.CREATED);
         return seasonRepository.save(season);
     }
 
@@ -76,4 +81,37 @@ public class SeasonServiceBean implements SeasonService {
         return season;
     }
 
+    @Override
+    @Transactional
+    public String startSeason(String seasonId) {
+        Season season = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new IllegalArgumentException("Sezóna s ID " + seasonId + " neexistuje."));
+
+        if (season.getStatus() != SeasonStatus.CREATED) {
+            throw new IllegalStateException("Sezónu možno spustiť len ak je v stave CREATED.");
+        }
+
+        List<League> leagues = leagueRepository.findAllBySeasonId(seasonId);
+
+        for (League league : leagues) {
+            LeagueStatus status = league.getStatus();
+
+            if (status == LeagueStatus.ACTIVE || status == LeagueStatus.FINISHED) {
+                continue;
+            }
+
+            if (status == LeagueStatus.CREATED) {
+                try {
+                    matchService.generateMatchesForLeague(league.getId());
+                } catch (IllegalStateException e) {
+                    System.out.println("Zápasy už existujú pre ligu: " + league.getName());
+                }
+            }
+        }
+
+        season.setStatus(SeasonStatus.ACTIVE);
+        seasonRepository.save(season);
+
+        return "Sezóna " + season.getYear() + " bola úspešne odštartovaná.";
+    }
 }
