@@ -13,4 +13,5 @@ public interface SeasonService {
     void deleteSeason(@NonNull String id);
     Season addLeagueToSeason(@NonNull String leagueId, @NonNull String seasonId);
     String startSeason(String seasonId);
+    String finishSeason(String seasonId);
 }
