@@ -114,4 +114,28 @@ public class SeasonServiceBean implements SeasonService {
 
         return "Sezóna " + season.getYear() + " bola úspešne odštartovaná.";
     }
+
+    @Override
+    @Transactional
+    public String finishSeason(String seasonId) {
+        Season season = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + seasonId));
+
+        if (season.getStatus() == SeasonStatus.FINISHED) {
+            throw new IllegalStateException("Season already finished");
+        }
+
+        List<League> leagues = leagueRepository.findAllBySeasonId(seasonId);
+
+        for (League league : leagues) {
+            // Preskočí už ukončené ligy
+            if (league.getStatus() != LeagueStatus.FINISHED) {
+                leagueService.finishLeague(league.getId());
+            }
+        }
+
+        season.setStatus(SeasonStatus.FINISHED);
+        seasonRepository.save(season);
+        return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
+    }
 }
