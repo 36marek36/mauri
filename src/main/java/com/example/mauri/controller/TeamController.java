@@ -46,10 +46,4 @@ public class TeamController {
         teamService.deleteTeam(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Team> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error("handleIllegalArgumentException: {}", e.getMessage());
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
 }

@@ -1,5 +1,6 @@
 package com.example.mauri.controller;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
@@ -38,6 +39,24 @@ public class MatchController {
         return ResponseEntity.ok(groupedMatches);
     }
 
+    @GetMapping("/player/{playerId}/status/{status}")
+    public ResponseEntity<List<Match>> getMatchesByPlayerInActiveSeason(
+            @PathVariable String playerId,
+            @PathVariable MatchStatus status) {
+
+        List<Match> matches = matchService.getMatchesForPlayerInActiveSeason(playerId, status);
+        return ResponseEntity.ok(matches);
+    }
+
+    @GetMapping("/team/{teamId}/status/{status}")
+    public ResponseEntity<List<Match>> getMatchesByTeamInActiveSeason(
+            @PathVariable String teamId,
+            @PathVariable MatchStatus status) {
+
+        List<Match> matches = matchService.getMatchesForTeamInActiveSeason(teamId, status);
+        return ResponseEntity.ok(matches);
+    }
+
     @PostMapping("/create")
     ResponseEntity<Match> createMatch(@RequestBody CreateMatchDTO createMatchDTO) {
         Match created = matchService.createMatch(createMatchDTO);
@@ -72,9 +91,4 @@ public class MatchController {
         return ResponseEntity.ok().body("Match cancelled");
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Match> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error("handleIllegalArgumentException: {}", e.getMessage());
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
 }

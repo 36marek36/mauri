@@ -3,12 +3,10 @@ package com.example.mauri.service.impl;
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
+import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateMatchDTO;
-import com.example.mauri.repository.LeagueRepository;
-import com.example.mauri.repository.MatchRepository;
-import com.example.mauri.repository.PlayerRepository;
-import com.example.mauri.repository.TeamRepository;
+import com.example.mauri.repository.*;
 import com.example.mauri.service.MatchService;
 import com.example.mauri.service.RoundRobinPlayersService;
 import com.example.mauri.service.RoundRobinTeamsService;
@@ -30,6 +28,7 @@ public class MatchServiceBean implements MatchService {
     private final LeagueRepository leagueRepository;
     private final RoundRobinPlayersService roundRobinPlayersService;
     private final RoundRobinTeamsService roundRobinTeamsService;
+    private final SeasonRepository seasonRepository;
 
     @Override
     public List<Match> getMatches() {
@@ -207,5 +206,37 @@ public class MatchServiceBean implements MatchService {
         match.setStatus(MatchStatus.CREATED);
         match.setResult(null);
         matchRepository.save(match);
+    }
+
+    @Override
+    public List<Match> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status) {
+        List<String> leagueIds = getActiveSeasonLeagueIds();
+        if (leagueIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return matchRepository.findByPlayerStatusAndLeagueIds(playerId, status, leagueIds);
+    }
+
+    @Override
+    public List<Match> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status) {
+        List<String> leagueIds = getActiveSeasonLeagueIds();
+        if (leagueIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return matchRepository.findByTeamStatusAndLeagueIds(teamId, status, leagueIds);
+    }
+
+    private List<String> getActiveSeasonLeagueIds() {
+        Season activeSeason = seasonRepository.findByStatus(SeasonStatus.ACTIVE).orElse(null);
+
+        if (activeSeason == null) {
+            return new ArrayList<>();
+        }
+
+        List<String> leagueIds = new ArrayList<>();
+        for (League league : activeSeason.getLeagues()) {
+            leagueIds.add(league.getId());
+        }
+        return leagueIds;
     }
 }
