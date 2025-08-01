@@ -1,5 +1,6 @@
 package com.example.mauri.repository;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.Match;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,23 @@ public interface MatchRepository extends JpaRepository<Match, String> {
 
     @Query("select m from matches m where m.leagueId =:leagueId and m.result is not null")
     List<Match> findAllPlayedLeagueMatches(@Param("leagueId") String leagueId);
+
+    @Query("select m from matches m " +
+            "where (m.homeTeam.id = :teamId or m.awayTeam.id = :teamId) " +
+            "and m.status = :status " +
+            "and m.leagueId in :leagueIds " +
+            "order by m.roundNumber asc")
+    List<Match> findByTeamStatusAndLeagueIds(@Param("teamId") String teamId,
+                                             @Param("status") MatchStatus status,
+                                             @Param("leagueIds") List<String> leagueIds);
+
+
+    @Query("select m from matches m " +
+            "where (m.homePlayer.id = :playerId or m.awayPlayer.id = :playerId) " +
+            "and m.status = :status " +
+            "and m.leagueId in :leagueIds " +
+            "order by m.roundNumber asc")
+    List<Match> findByPlayerStatusAndLeagueIds(@Param("playerId") String playerId,
+                                               @Param("status") MatchStatus status,
+                                               @Param("leagueIds") List<String> leagueIds);
 }

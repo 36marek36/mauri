@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
@@ -20,4 +21,6 @@ public interface MatchService {
     Map<Integer, List<Match>> getMatchesGroupedByRound(String leagueId);
     List<Match> getPlayedMatchesForLeague(String leagueId);
     void cancelResult(String matchId);
+    List<Match> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status);
+    List<Match> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status);
 }
