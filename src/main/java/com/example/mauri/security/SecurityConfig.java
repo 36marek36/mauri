@@ -52,7 +52,14 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/rest/auth/**").permitAll()
-                        .requestMatchers("/rest/users/me").authenticated()  // každý prihlásený používateľ
+                        .requestMatchers("/rest/leagues/**").permitAll()
+                        .requestMatchers("/rest/matches/**").permitAll()
+                        .requestMatchers("/rest/seasons/**").permitAll()
+                        .requestMatchers("/rest/players/").permitAll()
+                        .requestMatchers("/rest/teams/").permitAll()
+                        .requestMatchers("/rest/users/me").authenticated()
+                        .requestMatchers("/rest/players/**").authenticated()
+                        .requestMatchers("/rest/teams/**").authenticated()
                         .requestMatchers("/rest/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
