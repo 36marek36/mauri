@@ -4,6 +4,7 @@ import com.example.mauri.model.User;
 import com.example.mauri.model.dto.UserDTO;
 import com.example.mauri.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,5 +27,11 @@ public class UserController {
     public ResponseEntity<UserDTO> getCurrentUser() {
         User user = userService.getAuthenticatedUser();
         return ResponseEntity.ok(new UserDTO(user));
+    }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<User> deleteUser(@PathVariable String id) {
+        userService.deleteUser(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

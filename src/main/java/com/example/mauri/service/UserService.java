@@ -8,4 +8,5 @@ public interface UserService {
     List<User> getUsers();
     User getAuthenticatedUser();
     void assignPlayerToUser(String playerId, String userId);
+    void deleteUser(String userId);
 }
