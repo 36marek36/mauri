@@ -21,6 +21,7 @@ public class Season {
     private int year;
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("leagueType DESC, name ASC")
     @JsonManagedReference
     private List<League> leagues;
 

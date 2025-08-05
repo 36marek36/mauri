@@ -75,7 +75,7 @@ public class PlayerController {
     }
 
     @DeleteMapping("/{id}")
-    ResponseEntity<Player> deletePlayer(@PathVariable String id) {
+    ResponseEntity<Void> deletePlayer(@PathVariable String id) {
         playerService.deletePlayer(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
