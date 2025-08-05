@@ -57,8 +57,11 @@ public class UserServiceBean implements UserService {
 
     @Override
     public void deleteUser(String userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getPlayer()!=null) {
+            user.setPlayer(null);
+            userRepository.save(user);
         }
         userRepository.deleteById(userId);
     }
