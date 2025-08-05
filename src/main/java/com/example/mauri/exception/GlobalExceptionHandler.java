@@ -47,6 +47,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleInvalidOldPassword(InvalidOldPasswordException ex, WebRequest request) {
         return buildException(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<Object> handleUsernameExists(UsernameAlreadyExistsException ex) {
+        return buildException(HttpStatus.CONFLICT, ex.getMessage());
+    }
 
     private ResponseEntity<Object> buildException(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();
