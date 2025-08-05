@@ -2,6 +2,7 @@ package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.Role;
 import com.example.mauri.exception.InvalidOldPasswordException;
+import com.example.mauri.exception.UsernameAlreadyExistsException;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.ChangePasswordDTO;
 import com.example.mauri.repository.UserRepository;
@@ -48,7 +49,7 @@ public class AuthServiceBean implements AuthService {
     public RegisterResponse register(RegisterRequest request) {
         // 1. Skontroluj, či užívateľ neexistuje
         if (userRepository.existsByUsername(request.username())) {
-            throw new RuntimeException("Používateľ s týmto menom už existuje");
+            throw new UsernameAlreadyExistsException("Používateľ s týmto menom už existuje");
         }
 
         // 2. Vytvor používateľa
