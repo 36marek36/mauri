@@ -3,6 +3,7 @@ package com.example.mauri.controller;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.CreateSeasonDTO;
+import com.example.mauri.model.dto.SeasonDTO;
 import com.example.mauri.service.SeasonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,13 +22,18 @@ public class SeasonController {
     private final SeasonService seasonService;
 
     @GetMapping("/")
-    public List<Season> getSeasons() {
+    public List<SeasonDTO> getSeasons() {
         return seasonService.getSeasons();
     }
 
-    @GetMapping("/{seasonId}")
-    public Season getSeasonById(@PathVariable String seasonId) {
-        return seasonService.getSeason(seasonId);
+//    @GetMapping("/{seasonId}")
+//    public Season getSeasonById(@PathVariable String seasonId) {
+//        return seasonService.getSeason(seasonId);
+//    }
+
+    @GetMapping("/{seasonId}/stats")
+    public SeasonDTO getSeasonStats(@PathVariable("seasonId") String seasonId) {
+        return seasonService.getSeasonStats(seasonId);
     }
 
     @PostMapping("/create")

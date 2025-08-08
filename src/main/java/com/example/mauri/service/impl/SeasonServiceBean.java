@@ -1,10 +1,13 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.LeagueStatus;
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.CreateSeasonDTO;
+import com.example.mauri.model.dto.LeagueDTO;
+import com.example.mauri.model.dto.SeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.SeasonRepository;
 import com.example.mauri.service.LeagueService;
@@ -30,15 +33,51 @@ public class SeasonServiceBean implements SeasonService {
 
 
     @Override
-    public List<Season> getSeasons() {
-        return seasonRepository.findAll().stream().toList();
+    public List<SeasonDTO> getSeasons() {
+        List<Season> seasons = seasonRepository.findAll();
+        List<SeasonDTO> seasonDTOs = new ArrayList<>();
+
+        for (Season season : seasons) {
+            List<LeagueDTO> leagueDTOs = new ArrayList<>();
+            long totalPlayers = 0;
+            long totalTeams = 0;
+
+            for (League league : season.getLeagues()) {
+                int playersCount = league.getPlayers() != null ? league.getPlayers().size() : 0;
+                int teamsCount = league.getTeams() != null ? league.getTeams().size() : 0;
+
+                totalPlayers += playersCount;
+                totalTeams += teamsCount;
+
+                leagueDTOs.add(new LeagueDTO(
+                        league.getId(),
+                        league.getName(),
+                        season.getYear(),
+                        league.getLeagueType(),
+                        league.getStatus(),
+                        playersCount,
+                        teamsCount
+                ));
+            }
+
+            seasonDTOs.add(new SeasonDTO(
+                    season.getId(),
+                    season.getYear(),
+                    season.getStatus(),
+                    leagueDTOs,
+                    totalPlayers,
+                    totalTeams
+            ));
+        }
+
+        return seasonDTOs;
     }
 
-    @Override
-    public Season getSeason(@NonNull String id) {
-        return seasonRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + id));
-    }
+//    @Override
+//    public Season getSeason(@NonNull String id) {
+//        return seasonRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + id));
+//    }
 
     @Override
     public Season createSeason(CreateSeasonDTO createSeasonDTO) {
@@ -137,5 +176,35 @@ public class SeasonServiceBean implements SeasonService {
         season.setStatus(SeasonStatus.FINISHED);
         seasonRepository.save(season);
         return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
+    }
+
+    @Override
+    public SeasonDTO getSeasonStats(String seasonId) {
+        Season season = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new RuntimeException("Season not found with id: " + seasonId));
+
+        long totalPlayers = leagueRepository.countPlayersBySeasonId(seasonId);
+        long totalTeams = leagueRepository.countTeamsBySeasonId(seasonId);
+
+        List<LeagueDTO> leagueDTOs = new ArrayList<>();
+
+        for (League league : season.getLeagues()) {
+            String id = league.getId();
+            String name = league.getName();
+            Integer year = null;
+            if (league.getSeason() != null) {
+                year = league.getSeason().getYear();
+            }
+            MatchType leagueType = league.getLeagueType();
+            LeagueStatus status = league.getStatus();
+
+            int playersCount = (league.getPlayers() != null) ? league.getPlayers().size() : 0;
+            int teamsCount = (league.getTeams() != null) ? league.getTeams().size() : 0;
+
+            LeagueDTO dto = new LeagueDTO(id, name, year, leagueType, status,playersCount, teamsCount);
+            leagueDTOs.add(dto);
+        }
+
+        return new SeasonDTO(season.getId(), season.getYear(),season.getStatus(),leagueDTOs, totalPlayers, totalTeams);
     }
 }
