@@ -49,6 +49,12 @@ public class SeasonServiceBean implements SeasonService {
                 totalPlayers += playersCount;
                 totalTeams += teamsCount;
 
+                String winner = null;
+
+                if (league.getStatus() == LeagueStatus.FINISHED) {
+                    winner = leagueService.getLeagueWinnerName(league.getId(), league.getLeagueType());
+                }
+
                 leagueDTOs.add(new LeagueDTO(
                         league.getId(),
                         league.getName(),
@@ -56,7 +62,8 @@ public class SeasonServiceBean implements SeasonService {
                         league.getLeagueType(),
                         league.getStatus(),
                         playersCount,
-                        teamsCount
+                        teamsCount,
+                        winner
                 ));
             }
 
@@ -201,7 +208,13 @@ public class SeasonServiceBean implements SeasonService {
             int playersCount = (league.getPlayers() != null) ? league.getPlayers().size() : 0;
             int teamsCount = (league.getTeams() != null) ? league.getTeams().size() : 0;
 
-            LeagueDTO dto = new LeagueDTO(id, name, year, leagueType, status,playersCount, teamsCount);
+            String winner = null;
+
+            if (status == LeagueStatus.FINISHED) {
+                winner = leagueService.getLeagueWinnerName(id, league.getLeagueType());
+            }
+
+            LeagueDTO dto = new LeagueDTO(id, name, year, leagueType, status,playersCount, teamsCount,winner);
             leagueDTOs.add(dto);
         }
 

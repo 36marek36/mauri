@@ -17,4 +17,5 @@ public class LeagueDTO {
     private LeagueStatus leagueStatus;
     private int totalPlayers;
     private int totalTeams;
+    private String winner;
 }

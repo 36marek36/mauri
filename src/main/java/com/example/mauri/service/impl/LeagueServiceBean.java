@@ -6,9 +6,13 @@ import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.model.dto.LeagueDTO;
+import com.example.mauri.model.dto.PlayerStatsDTO;
+import com.example.mauri.model.dto.TeamStatsDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
+import com.example.mauri.service.PlayerStatsService;
+import com.example.mauri.service.TeamStatsService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,8 @@ public class LeagueServiceBean implements LeagueService {
     private final MatchRepository matchRepository;
     private final SeasonRepository seasonRepository;
     private final MatchService matchService;
+    private final PlayerStatsService playerStatsService;
+    private final TeamStatsService teamStatsService;
 
 
     @Override
@@ -180,10 +186,32 @@ public class LeagueServiceBean implements LeagueService {
             int totalPlayers = (league.getPlayers() != null) ? league.getPlayers().size() : 0;
             int totalTeams = (league.getTeams() != null) ? league.getTeams().size() : 0;
 
-            result.add(new LeagueDTO(id, name, year, leagueType, status, totalPlayers, totalTeams));
+            String winner = null;
+
+            if (status == LeagueStatus.FINISHED) {
+                winner = getLeagueWinnerName(id, league.getLeagueType());
+            }
+
+            result.add(new LeagueDTO(id, name, year, leagueType, status, totalPlayers, totalTeams,winner));
         }
 
         return result;
+    }
+
+    @Override
+    public String getLeagueWinnerName(String leagueId, MatchType leagueType) {
+        if (leagueType == MatchType.SINGLES) {
+            List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(leagueId);
+            if (!stats.isEmpty()) {
+                return stats.getFirst().getPlayerName();
+            }
+        } else if (leagueType == MatchType.DOUBLES) {
+            List<TeamStatsDTO> stats = teamStatsService.getAllStatsForLeague(leagueId);
+            if (!stats.isEmpty()) {
+                return stats.getFirst().getTeamName();
+            }
+        }
+        return null;
     }
 
     @Override
