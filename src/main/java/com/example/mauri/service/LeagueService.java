@@ -14,7 +14,6 @@ public interface LeagueService {
     void deleteLeagueById(@NonNull String id);
     League addParticipantsToLeague(String leagueId, List<String> participantIds);
     void removeParticipantFromLeague(String leagueId, String participantId);
-    List<League> getLeaguesWithoutSeason();
     int progress(String leagueId);
     List<LeagueDTO> getLeaguesForPlayer(String playerId);
     void finishLeague(String leagueId);
