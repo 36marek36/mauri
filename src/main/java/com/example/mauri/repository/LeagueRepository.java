@@ -11,11 +11,17 @@ import java.util.List;
 @Repository
 public interface LeagueRepository extends JpaRepository<League, String> {
 
-    List<League> findBySeasonIsNull();
-
     @Query("SELECT l FROM leagues l JOIN l.players p WHERE p.id = :playerId")
     List<League> findLeaguesByPlayerId(@Param("playerId") String playerId);
 
     List<League> findAllBySeasonId(String seasonId);
+
+    @Query("""
+            select count (distinct p.id) from leagues l join l.players p where l.season.id = :seasonId""")
+    long countPlayersBySeasonId(@Param("seasonId") String seasonId);
+
+    @Query("""
+            select count (distinct t.id) from leagues l join l.teams t where l.season.id = :seasonId""")
+    long countTeamsBySeasonId(@Param("seasonId") String seasonId);
 
 }

@@ -156,11 +156,6 @@ public class LeagueServiceBean implements LeagueService {
     }
 
     @Override
-    public List<League> getLeaguesWithoutSeason() {
-        return leagueRepository.findBySeasonIsNull();
-    }
-
-    @Override
     public int progress(String leagueId) {
         int played = matchService.getPlayedMatchesForLeague(leagueId).size();
         int total = matchService.getMatchesForLeague(leagueId).size();
@@ -176,14 +171,16 @@ public class LeagueServiceBean implements LeagueService {
         List<LeagueDTO> result = new ArrayList<>();
 
         for (League league : leagues) {
+            String id = league.getId();
             String name = league.getName();
-            Integer year = null;
+            Integer year = (league.getSeason() != null) ? league.getSeason().getYear() : null;
+            MatchType leagueType = league.getLeagueType();
+            LeagueStatus status = league.getStatus();
 
-            if (league.getSeason() != null) {
-                year = league.getSeason().getYear();
-            }
+            int totalPlayers = (league.getPlayers() != null) ? league.getPlayers().size() : 0;
+            int totalTeams = (league.getTeams() != null) ? league.getTeams().size() : 0;
 
-            result.add(new LeagueDTO(name, year));
+            result.add(new LeagueDTO(id, name, year, leagueType, status, totalPlayers, totalTeams));
         }
 
         return result;

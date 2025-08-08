@@ -42,12 +42,6 @@ public class LeagueController {
         return new ResponseEntity<>(matches, HttpStatus.OK);
     }
 
-    @GetMapping("/no-season")
-    public ResponseEntity<List<League>> getNoSeasonLeagues() {
-        List<League> leagues = leagueService.getLeaguesWithoutSeason();
-        return new ResponseEntity<>(leagues, HttpStatus.OK);
-    }
-
     @GetMapping("/{leagueId}/teams/stats")
     public List<TeamStatsDTO> getTeamStatsForLeague(@PathVariable String leagueId) {
         return teamStatsService.getAllStatsForLeague(leagueId);
