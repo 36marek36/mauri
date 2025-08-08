@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.League;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.model.dto.LeagueDTO;
@@ -16,5 +17,6 @@ public interface LeagueService {
     void removeParticipantFromLeague(String leagueId, String participantId);
     int progress(String leagueId);
     List<LeagueDTO> getLeaguesForPlayer(String playerId);
+    String getLeagueWinnerName(String leagueId, MatchType leagueType);
     void finishLeague(String leagueId);
 }
