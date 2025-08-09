@@ -7,6 +7,7 @@ import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.model.dto.PlayerStatsDTO;
 import com.example.mauri.model.dto.TeamStatsDTO;
 import com.example.mauri.service.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -70,7 +71,7 @@ public class LeagueController {
 
 
     @PostMapping("/create")
-    ResponseEntity<League> createLeague(@RequestBody CreateLeagueDTO createLeagueDTO) {
+    ResponseEntity<League> createLeague(@RequestBody @Valid CreateLeagueDTO createLeagueDTO) {
         League createdLeague = leagueService.createLeague(createLeagueDTO);
         return new ResponseEntity<>(createdLeague, HttpStatus.CREATED);
     }

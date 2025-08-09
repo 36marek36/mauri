@@ -18,7 +18,7 @@ public class Season {
     @Id
     private String id;
 
-    private int year;
+    private Integer year;
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("leagueType DESC, name ASC")

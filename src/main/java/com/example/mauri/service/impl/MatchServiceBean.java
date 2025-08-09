@@ -162,14 +162,20 @@ public class MatchServiceBean implements MatchService {
         List<Match> matches;
 
         if (matchRepository.existsByLeagueId(leagueId)) {
-            throw new IllegalStateException("Zápasy pre túto ligu už existujú!");
+            throw new IllegalStateException("Zápasy pre ligu '" + league.getName() + "' už existujú!");
         }
 
         if (type == MatchType.SINGLES) {
             List<Player> players = league.getPlayers();
+            if (players.size() < 2) {
+                throw new IllegalStateException("Liga '" + league.getName() + "' musí obsahovať aspoň 2 hráčov.");
+            }
             matches = roundRobinPlayersService.generateMatches(new ArrayList<>(players), leagueId, type);
         } else if (type == MatchType.DOUBLES) {
             List<Team> teams = league.getTeams();
+            if (teams.size() < 2) {
+                throw new IllegalStateException("Liga '" + league.getName() + "' musí obsahovať aspoň 2 tímy.");
+            }
             matches = roundRobinTeamsService.generateMatches(new ArrayList<>(teams), leagueId, type);
         } else {
             throw new UnsupportedOperationException("Unsupported match type: " + type);

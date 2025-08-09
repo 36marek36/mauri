@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,5 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateSeasonDTO {
-    private int year;
+
+    @NotNull(message = "Zadaj rok sezóny!")
+    private Integer year;
 }

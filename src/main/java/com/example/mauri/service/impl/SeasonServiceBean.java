@@ -134,10 +134,20 @@ public class SeasonServiceBean implements SeasonService {
                 .orElseThrow(() -> new IllegalArgumentException("Sezóna s ID " + seasonId + " neexistuje."));
 
         if (season.getStatus() != SeasonStatus.CREATED) {
+            if (season.getStatus() == SeasonStatus.ACTIVE) {
+                throw new IllegalStateException("Sezóna " + season.getYear() + " je už spustená.");
+            }
+            if (season.getStatus() == SeasonStatus.FINISHED) {
+                throw new IllegalStateException("Sezóna " + season.getYear() + " bola už ukončená.");
+            }
             throw new IllegalStateException("Sezónu možno spustiť len ak je v stave CREATED.");
         }
 
         List<League> leagues = leagueRepository.findAllBySeasonId(seasonId);
+
+        if (leagues.isEmpty()) {
+            throw new IllegalStateException("Sezóna nemá žiadne ligy. Nie je možné ju spustiť.");
+        }
 
         for (League league : leagues) {
             LeagueStatus status = league.getStatus();
@@ -147,11 +157,7 @@ public class SeasonServiceBean implements SeasonService {
             }
 
             if (status == LeagueStatus.CREATED) {
-                try {
-                    matchService.generateMatchesForLeague(league.getId());
-                } catch (IllegalStateException e) {
-                    System.out.println("Zápasy už existujú pre ligu: " + league.getName());
-                }
+               matchService.generateMatchesForLeague(league.getId());
             }
         }
 

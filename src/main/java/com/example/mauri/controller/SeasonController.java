@@ -5,6 +5,7 @@ import com.example.mauri.model.dto.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.CreateSeasonDTO;
 import com.example.mauri.model.dto.SeasonDTO;
 import com.example.mauri.service.SeasonService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class SeasonController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Season> createSeason(@RequestBody CreateSeasonDTO createSeasonDTO) {
+    public ResponseEntity<Season> createSeason(@RequestBody @Valid CreateSeasonDTO createSeasonDTO) {
         Season season = seasonService.createSeason(createSeasonDTO);
         return new ResponseEntity<>(season, HttpStatus.CREATED);
     }
