@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/rest/leagues/**").permitAll()
                         .requestMatchers("/rest/matches/**").permitAll()
                         .requestMatchers("/rest/seasons/**").permitAll()
+                        .requestMatchers("/rest/players/without-user").hasRole("ADMIN")
                         .requestMatchers("/rest/players/").permitAll()
                         .requestMatchers("/rest/teams/").permitAll()
                         .requestMatchers("/rest/users/me").authenticated()

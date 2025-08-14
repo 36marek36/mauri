@@ -27,8 +27,13 @@ public class PlayerController {
     private final LeagueService leagueService;
 
     @GetMapping("/")
-    List<Player> getPlayers() {
-        return playerService.getPlayers();
+    List<Player> getActivePlayers() {
+        return playerService.getActivePlayers();
+    }
+
+    @GetMapping("/inactive")
+    List<Player> getInactivePlayers() {
+        return playerService.getInactivePlayers();
     }
 
     @GetMapping("/{id}")
@@ -45,6 +50,12 @@ public class PlayerController {
     public ResponseEntity<List<LeagueDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
         List<LeagueDTO> leagues = leagueService.getLeaguesForPlayer(playerId);
         return ResponseEntity.ok(leagues);
+    }
+
+    @GetMapping("/without-user")
+    public ResponseEntity<List<Player>> getPlayersWithoutUser() {
+        List<Player> players = playerService.getPlayersWithoutUser();
+        return ResponseEntity.ok(players);
     }
 
     @PostMapping("/admin/createPlayer")

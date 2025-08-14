@@ -35,6 +35,9 @@ public class SeasonServiceBean implements SeasonService {
     @Override
     public List<SeasonDTO> getSeasons() {
         List<Season> seasons = seasonRepository.findAll();
+        // Zoradíme podľa roku zostupne (najnovšia sezóna prvá)
+        seasons.sort((s1, s2) -> Integer.compare(s2.getYear(), s1.getYear()));
+
         List<SeasonDTO> seasonDTOs = new ArrayList<>();
 
         for (Season season : seasons) {
@@ -157,7 +160,7 @@ public class SeasonServiceBean implements SeasonService {
             }
 
             if (status == LeagueStatus.CREATED) {
-               matchService.generateMatchesForLeague(league.getId());
+                matchService.generateMatchesForLeague(league.getId());
             }
         }
 
@@ -220,10 +223,10 @@ public class SeasonServiceBean implements SeasonService {
                 winner = leagueService.getLeagueWinnerName(id, league.getLeagueType());
             }
 
-            LeagueDTO dto = new LeagueDTO(id, name, year, leagueType, status,playersCount, teamsCount,winner);
+            LeagueDTO dto = new LeagueDTO(id, name, year, leagueType, status, playersCount, teamsCount, winner);
             leagueDTOs.add(dto);
         }
 
-        return new SeasonDTO(season.getId(), season.getYear(),season.getStatus(),leagueDTOs, totalPlayers, totalTeams);
+        return new SeasonDTO(season.getId(), season.getYear(), season.getStatus(), leagueDTOs, totalPlayers, totalTeams);
     }
 }

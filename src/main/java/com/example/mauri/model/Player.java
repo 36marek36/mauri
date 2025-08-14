@@ -22,5 +22,7 @@ public class Player {
     private String email;
     private String phone;
     private LocalDate registrationDate;
+    private LocalDate deletedDate;
+    private boolean active;
 
 }
