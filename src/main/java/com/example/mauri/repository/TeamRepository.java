@@ -24,4 +24,6 @@ public interface TeamRepository extends JpaRepository<Team, String> {
             )
         """)
     List<Team> findTeamsNotInAnyActiveLeague();
+
+    boolean existsByPlayer1IdOrPlayer2Id(String player1Id, String player2Id);
 }

@@ -7,7 +7,9 @@ import lombok.NonNull;
 import java.util.List;
 
 public interface PlayerService {
-    List<Player> getPlayers();
+    List<Player> getActivePlayers();
+
+    List<Player> getInactivePlayers();
 
     Player getPlayer(@NonNull String id);
 
@@ -16,5 +18,9 @@ public interface PlayerService {
     void deletePlayer(@NonNull String id);
 
     List<Player> getPlayersNotInAnyActiveLeague();
+
+    List<Player> getPlayersWithoutUser();
+
+    void deactivatePlayer(String playerId);
 
 }
