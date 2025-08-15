@@ -49,4 +49,6 @@ public interface MatchRepository extends JpaRepository<Match, String> {
                                                @Param("leagueIds") List<String> leagueIds);
 
     boolean existsByHomePlayerIdOrAwayPlayerId(String homePlayerId, String awayPlayerId);
+
+    boolean existsByHomeTeamIdOrAwayTeamId(String homeTeamId, String awayTeamId);
 }

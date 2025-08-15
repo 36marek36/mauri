@@ -13,17 +13,23 @@ public interface TeamRepository extends JpaRepository<Team, String> {
 //    @Query("select t from teams t where t not in (select ts from leagues l join l.teams ts)")
 //    List<Team> findTeamsNotInAnyLeague();
 
-    @Query("""
-            SELECT t
-            FROM teams t
-            WHERE t NOT IN (
-                SELECT ts
-                FROM leagues l
-                JOIN l.teams ts
-                WHERE l.status = 'ACTIVE' or l.status = 'CREATED'
-            )
-        """)
-    List<Team> findTeamsNotInAnyActiveLeague();
+//    @Query("""
+//            SELECT t
+//            FROM teams t
+//            WHERE t NOT IN (
+//                SELECT ts
+//                FROM leagues l
+//                JOIN l.teams ts
+//                WHERE l.status = 'ACTIVE' or l.status = 'CREATED'
+//            )
+//        """)
+//    List<Team> findTeamsNotInAnyActiveLeague();
+
+    @Query("select t from teams t where  t.active = true and  t.id not in (select ts.id from leagues l join l.teams ts where l.status ='CREATED' or l.status = 'ACTIVE')")
+    List<Team> findActiveTeamsWithoutActiveLeague();
 
     boolean existsByPlayer1IdOrPlayer2Id(String player1Id, String player2Id);
+
+    List<Team> findByActiveTrue();
+    List<Team> findByActiveFalse();
 }

@@ -43,7 +43,7 @@ public class PlayerController {
 
     @GetMapping("/not-in-any-active-league")
     public ResponseEntity<List<Player>> getFreePlayers() {
-        List<Player> freePlayers = playerService.getPlayersNotInAnyActiveLeague();
+        List<Player> freePlayers = playerService.getActivePlayersNotInAnyActiveLeague();
         return new ResponseEntity<>(freePlayers, HttpStatus.OK);
     }
     @GetMapping("/{playerId}/leagues")
