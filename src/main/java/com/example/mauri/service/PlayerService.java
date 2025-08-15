@@ -15,7 +15,7 @@ public interface PlayerService {
 
     Player createPlayer(CreatePlayerDTO createPlayerDTO);
 
-    void deletePlayer(@NonNull String id);
+    String deletePlayer(@NonNull String id);
 
     List<Player> getActivePlayersNotInAnyActiveLeague();
 

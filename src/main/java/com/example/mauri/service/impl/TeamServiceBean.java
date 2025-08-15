@@ -1,7 +1,6 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.exception.ResourceNotFoundException;
-import com.example.mauri.model.League;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
 import com.example.mauri.repository.LeagueRepository;
@@ -29,7 +28,8 @@ public class TeamServiceBean implements TeamService {
 
     @Override
     public List<Team> getActiveTeams() {
-        return teamRepository.findByActiveTrue();}
+        return teamRepository.findByActiveTrue();
+    }
 
     @Override
     public List<Team> getInactiveTeams() {
@@ -39,34 +39,35 @@ public class TeamServiceBean implements TeamService {
     @Override
     public Team getTeamById(@NonNull String id) {
         return teamRepository.findById(id)
-                .orElseThrow(()-> new IllegalArgumentException("No team found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("No team found with id: " + id));
     }
 
     @Override
     public Team createTeam(String player1Id, String player2Id) {
         Player player1 = playerRepository.findById(player1Id)
-                .orElseThrow(()-> new IllegalArgumentException("No player found with id: " + player1Id));
+                .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + player1Id));
         Player player2 = playerRepository.findById(player2Id)
-                .orElseThrow(()-> new IllegalArgumentException("No player found with id: " + player2Id));
+                .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + player2Id));
 
-        Team team = new Team(UUID.randomUUID().toString(), player1, player2,null,true);
+        Team team = new Team(UUID.randomUUID().toString(), player1, player2, null, true);
         teamRepository.save(team);
         return team;
     }
+
     @Override
-    public void deleteTeam(@NonNull String id) {
+    public String deleteTeam(String id) {
         Team team = teamRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("No team found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + id));
 
-        List<League> leagues = leagueRepository.findLeaguesByTeamId(id);
-        boolean isInLeagues = !leagues.isEmpty();
-
+        boolean isInLeagues = !leagueRepository.findLeaguesByTeamId(id).isEmpty();
         boolean isInMatch = matchRepository.existsByHomeTeamIdOrAwayTeamId(id, id);
 
         if (isInLeagues || isInMatch) {
             deactivateTeam(id);
-        }else {
+            return "deactivated";
+        } else {
             teamRepository.delete(team);
+            return "deleted";
         }
     }
 
@@ -78,7 +79,7 @@ public class TeamServiceBean implements TeamService {
     @Override
     public void deactivateTeam(@NonNull String id) {
         Team team = teamRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("No team found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + id));
         team.setDeletedDate(LocalDate.now());
         team.setActive(false);
         teamRepository.save(team);

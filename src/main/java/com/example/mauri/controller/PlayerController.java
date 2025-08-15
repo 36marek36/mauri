@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rest/players")
@@ -86,8 +87,10 @@ public class PlayerController {
     }
 
     @DeleteMapping("/{id}")
-    ResponseEntity<Void> deletePlayer(@PathVariable String id) {
-        playerService.deletePlayer(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Map<String,String>> deletePlayer(@PathVariable String id) {
+        String status = playerService.deletePlayer(id);
+
+        Map<String,String> response = Map.of("status", status);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

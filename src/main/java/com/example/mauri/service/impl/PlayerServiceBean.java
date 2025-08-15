@@ -1,7 +1,6 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.exception.ResourceNotFoundException;
-import com.example.mauri.model.League;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.CreatePlayerDTO;
@@ -44,29 +43,29 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public Player createPlayer(CreatePlayerDTO createPlayerDTO) {
-        var player = new Player(UUID.randomUUID().toString(), createPlayerDTO.getFirstName(), createPlayerDTO.getLastName(), createPlayerDTO.getEmail(), createPlayerDTO.getPhone(), LocalDate.now(),null, true);
+        var player = new Player(UUID.randomUUID().toString(), createPlayerDTO.getFirstName(), createPlayerDTO.getLastName(), createPlayerDTO.getEmail(), createPlayerDTO.getPhone(), LocalDate.now(), null, true);
         playerRepository.save(player);
         return player;
     }
 
     @Override
-    public void deletePlayer(@NonNull String id) {
+    public String deletePlayer(@NonNull String id) {
         Player player = playerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
 
         detachPlayerFromUsers(player.getId());
 
         boolean isInTeam = teamRepository.existsByPlayer1IdOrPlayer2Id(id, id);
-
-        List<League> leagues = leagueRepository.findLeaguesByPlayerId(id);
-        boolean isInLeague = !leagues.isEmpty();
-
+        boolean isInLeague = !leagueRepository.findLeaguesByPlayerId(id).isEmpty();
         boolean isInMatch = matchRepository.existsByHomePlayerIdOrAwayPlayerId(id, id);
 
         if (isInTeam || isInLeague || isInMatch) {
             deactivatePlayer(id);
+            if (isInTeam) return "deactivated_player_in_team";
+            return "deactivated";
         } else {
             playerRepository.delete(player);
+            return "deleted";
         }
     }
 

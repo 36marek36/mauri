@@ -11,7 +11,8 @@ public interface TeamService {
     List<Team> getInactiveTeams();
     Team getTeamById(@NonNull String id);
     Team createTeam(String player1Id, String player2Id);
-    void deleteTeam(@NonNull String id);
+    String deleteTeam(String id);
     List<Team> getActiveTeamsNotInAnyActiveLeague();
     void deactivateTeam(@NonNull String id);
+
 }
