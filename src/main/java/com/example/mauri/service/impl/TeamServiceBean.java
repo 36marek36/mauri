@@ -1,7 +1,11 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.exception.ResourceNotFoundException;
+import com.example.mauri.model.League;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
+import com.example.mauri.repository.LeagueRepository;
+import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.TeamRepository;
 import com.example.mauri.service.TeamService;
@@ -9,6 +13,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,11 +23,17 @@ public class TeamServiceBean implements TeamService {
 
     private final TeamRepository teamRepository;
     private final PlayerRepository playerRepository;
+    private final LeagueRepository leagueRepository;
+    private final MatchRepository matchRepository;
 
 
     @Override
-    public List<Team> getTeams() {
-        return teamRepository.findAll().stream().toList();
+    public List<Team> getActiveTeams() {
+        return teamRepository.findByActiveTrue();}
+
+    @Override
+    public List<Team> getInactiveTeams() {
+        return teamRepository.findByActiveFalse();
     }
 
     @Override
@@ -38,20 +49,39 @@ public class TeamServiceBean implements TeamService {
         Player player2 = playerRepository.findById(player2Id)
                 .orElseThrow(()-> new IllegalArgumentException("No player found with id: " + player2Id));
 
-        Team team = new Team(UUID.randomUUID().toString(), player1, player2);
+        Team team = new Team(UUID.randomUUID().toString(), player1, player2,null,true);
         teamRepository.save(team);
         return team;
     }
     @Override
     public void deleteTeam(@NonNull String id) {
-        if (!teamRepository.existsById(id)) {
-            throw new IllegalArgumentException("No team found with id: " + id);
+        Team team = teamRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("No team found with id: " + id));
+
+        List<League> leagues = leagueRepository.findLeaguesByTeamId(id);
+        boolean isInLeagues = !leagues.isEmpty();
+
+        boolean isInMatch = matchRepository.existsByHomeTeamIdOrAwayTeamId(id, id);
+
+        if (isInLeagues || isInMatch) {
+            deactivateTeam(id);
+        }else {
+            teamRepository.delete(team);
         }
-        teamRepository.deleteById(id);
     }
 
     @Override
-    public List<Team> getTeamsNotInAnyActiveLeague() {
-        return teamRepository.findTeamsNotInAnyActiveLeague();
+    public List<Team> getActiveTeamsNotInAnyActiveLeague() {
+        return teamRepository.findActiveTeamsWithoutActiveLeague();
     }
+
+    @Override
+    public void deactivateTeam(@NonNull String id) {
+        Team team = teamRepository.findById(id)
+                .orElseThrow(()-> new ResourceNotFoundException("No team found with id: " + id));
+        team.setDeletedDate(LocalDate.now());
+        team.setActive(false);
+        teamRepository.save(team);
+    }
+
 }

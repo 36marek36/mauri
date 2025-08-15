@@ -7,9 +7,11 @@ import java.util.List;
 
 public interface TeamService {
 
-    List<Team> getTeams();
+    List<Team> getActiveTeams();
+    List<Team> getInactiveTeams();
     Team getTeamById(@NonNull String id);
     Team createTeam(String player1Id, String player2Id);
     void deleteTeam(@NonNull String id);
-    List<Team> getTeamsNotInAnyActiveLeague();
+    List<Team> getActiveTeamsNotInAnyActiveLeague();
+    void deactivateTeam(@NonNull String id);
 }

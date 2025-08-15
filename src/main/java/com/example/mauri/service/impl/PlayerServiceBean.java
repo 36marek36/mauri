@@ -71,8 +71,8 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
-    public List<Player> getPlayersNotInAnyActiveLeague() {
-        return playerRepository.findPlayersNotInAnyActiveLeague();
+    public List<Player> getActivePlayersNotInAnyActiveLeague() {
+        return playerRepository.findActivePlayersWithoutActiveLeague();
     }
 
     @Override

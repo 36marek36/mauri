@@ -20,8 +20,13 @@ public class TeamController {
 
 
     @GetMapping("/")
-    List<Team> getAllTeams() {
-        return teamService.getTeams();
+    List<Team> getActiveTeams() {
+        return teamService.getActiveTeams();
+    }
+
+    @GetMapping("/inactive")
+    List<Team> getInactiveTeams() {
+        return teamService.getInactiveTeams();
     }
 
     @GetMapping("/{id}")
@@ -31,7 +36,7 @@ public class TeamController {
 
     @GetMapping("/not-in-any-active-league")
     public ResponseEntity<List<Team>> getFreeTeams() {
-        List<Team> freeTeams = teamService.getTeamsNotInAnyActiveLeague();
+        List<Team> freeTeams = teamService.getActiveTeamsNotInAnyActiveLeague();
         return new ResponseEntity<>(freeTeams, HttpStatus.OK);
     }
 

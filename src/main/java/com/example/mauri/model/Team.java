@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity(name = "teams")
 @Data
 @NoArgsConstructor
@@ -24,4 +26,7 @@ public class Team {
     @ManyToOne
     @JoinColumn(name = ("player2_id"))
     private Player player2;
+
+    private LocalDate deletedDate;
+    private boolean active;
 }
