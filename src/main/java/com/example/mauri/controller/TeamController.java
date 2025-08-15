@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rest/teams")
@@ -47,8 +47,11 @@ public class TeamController {
     }
 
     @DeleteMapping("/{id}")
-    ResponseEntity<Void> deleteTeam(@PathVariable String id) {
-        teamService.deleteTeam(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Map<String, String>> deleteTeam(@PathVariable String id) {
+        String status = teamService.deleteTeam(id);
+
+        Map<String,String> response = Map.of("status", status);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
