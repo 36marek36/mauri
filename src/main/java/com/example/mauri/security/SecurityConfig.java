@@ -87,7 +87,7 @@ public class SecurityConfig {
             String username = "admin";
             String password = "admin";
             if (!userRepository.existsByUsername(username)) {
-                User user = new User(UUID.randomUUID().toString(), username, passwordEncoder().encode(password), Role.ADMIN, null);
+                User user = new User(UUID.randomUUID().toString(), username, passwordEncoder().encode(password), Role.ADMIN, null,null);
                 userRepository.save(user);
             }
         };
