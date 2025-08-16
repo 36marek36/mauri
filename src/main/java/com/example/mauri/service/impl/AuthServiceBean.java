@@ -2,6 +2,7 @@ package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.Role;
 import com.example.mauri.exception.InvalidOldPasswordException;
+import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.exception.UsernameAlreadyExistsException;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.ChangePasswordDTO;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -42,6 +44,13 @@ public class AuthServiceBean implements AuthService {
         }
 
         var userDetails = userDetailsService.loadUserByUsername(request.username());
+
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+
         var token = jwtUtil.generateToken(userDetails.getUsername());
         return new LoginResponse(token);
     }
