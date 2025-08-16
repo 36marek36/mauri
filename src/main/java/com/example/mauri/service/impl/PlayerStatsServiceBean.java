@@ -55,7 +55,15 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 losses++;
             }
         }
-        return new PlayerStatsDTO(playerId,playerName, matchesPlayed, wins, losses, setsWon, setsLost);
+        return PlayerStatsDTO.builder()
+                .playerId(playerId)
+                .playerName(playerName)
+                .matches(matchesPlayed)
+                .wins(wins)
+                .losses(losses)
+                .setsWon(setsWon)
+                .setsLost(setsLost)
+                .build();
     }
 
     public List<PlayerStatsDTO> getAllStatsForLeague(String leagueId) {

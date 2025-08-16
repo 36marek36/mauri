@@ -57,7 +57,15 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 losses++;
             }
         }
-        return new TeamStatsDTO(teamId, teamName,matchesPlayed, wins, losses, setsWon, setsLost);
+        return TeamStatsDTO.builder()
+                .teamId(teamId)
+                .teamName(teamName)
+                .matches(matchesPlayed)
+                .wins(wins)
+                .losses(losses)
+                .setsWon(setsWon)
+                .setsLost(setsLost)
+                .build();
     }
 
     public List<TeamStatsDTO> getAllStatsForLeague(String leagueId) {

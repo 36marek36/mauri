@@ -43,11 +43,11 @@ public class MatchServiceBean implements MatchService {
 
     @Override
     public Match createMatch(CreateMatchDTO createMatchDTO) {
-        Match match = new Match();
-        match.setId(UUID.randomUUID().toString());
-        match.setMatchType(createMatchDTO.getMatchType());
-        match.setLeagueId(createMatchDTO.getLeagueId());
-        match.setStatus(MatchStatus.CREATED);
+        Match match = Match.builder()
+                .id(UUID.randomUUID().toString())
+                .matchType(createMatchDTO.getMatchType())
+                .leagueId(createMatchDTO.getLeagueId())
+                .build();
 
         switch (createMatchDTO.getMatchType()) {
             case SINGLES -> {

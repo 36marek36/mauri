@@ -49,7 +49,11 @@ public class TeamServiceBean implements TeamService {
         Player player2 = playerRepository.findById(player2Id)
                 .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + player2Id));
 
-        Team team = new Team(UUID.randomUUID().toString(), player1, player2, null, true);
+        Team team = Team.builder()
+                .id(UUID.randomUUID().toString())
+                .player1(player1)
+                .player2(player2)
+                .build();
         teamRepository.save(team);
         return team;
     }

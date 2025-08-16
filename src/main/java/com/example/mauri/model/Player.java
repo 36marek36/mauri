@@ -2,7 +2,9 @@ package com.example.mauri.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +14,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Player {
 
     @Id
@@ -24,5 +27,11 @@ public class Player {
     private LocalDate registrationDate;
     private LocalDate deletedDate;
     private boolean active;
+
+    @PrePersist
+    protected void onRegister() {
+        registrationDate = LocalDate.now();
+        active = true;
+    }
 
 }

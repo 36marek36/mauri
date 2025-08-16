@@ -58,26 +58,29 @@ public class SeasonServiceBean implements SeasonService {
                     winner = leagueService.getLeagueWinnerName(league.getId(), league.getLeagueType());
                 }
 
-                leagueDTOs.add(new LeagueDTO(
-                        league.getId(),
-                        league.getName(),
-                        season.getYear(),
-                        league.getLeagueType(),
-                        league.getStatus(),
-                        playersCount,
-                        teamsCount,
-                        winner
-                ));
+                leagueDTOs.add(LeagueDTO.builder()
+                        .leagueId(league.getId())
+                        .leagueName(league.getName())
+                        .seasonYear(season.getYear())
+                        .leagueType(league.getLeagueType())
+                        .leagueStatus(league.getStatus())
+                        .totalPlayers(playersCount)
+                        .totalTeams(teamsCount)
+                        .winner(winner)
+                        .build());
             }
 
-            seasonDTOs.add(new SeasonDTO(
-                    season.getId(),
-                    season.getYear(),
-                    season.getStatus(),
-                    leagueDTOs,
-                    totalPlayers,
-                    totalTeams
-            ));
+            seasonDTOs.add(SeasonDTO.builder()
+                    .id(season.getId())
+                    .year(season.getYear())
+                    .status(season.getStatus())
+                    .leagues(leagueDTOs)
+                    .totalPlayers(totalPlayers)
+                    .totalTeams(totalTeams)
+                    .createdAt(season.getCreatedAt())
+                    .startDate(season.getStartDate())
+                    .endDate(season.getEndDate())
+                    .build());
         }
 
         return seasonDTOs;
@@ -91,11 +94,10 @@ public class SeasonServiceBean implements SeasonService {
 
     @Override
     public Season createSeason(CreateSeasonDTO createSeasonDTO) {
-        Season season = new Season(
-                UUID.randomUUID().toString(),
-                createSeasonDTO.getYear(),
-                new ArrayList<>(),
-                SeasonStatus.CREATED);
+        Season season = Season.builder()
+                .id(UUID.randomUUID().toString())
+                .year(createSeasonDTO.getYear())
+                .build();
         return seasonRepository.save(season);
     }
 
@@ -227,6 +229,16 @@ public class SeasonServiceBean implements SeasonService {
             leagueDTOs.add(dto);
         }
 
-        return new SeasonDTO(season.getId(), season.getYear(), season.getStatus(), leagueDTOs, totalPlayers, totalTeams);
+        return SeasonDTO.builder()
+                .id(season.getId())
+                .year(season.getYear())
+                .status(season.getStatus())
+                .leagues(leagueDTOs)
+                .totalPlayers(totalPlayers)
+                .totalTeams(totalTeams)
+                .createdAt(season.getCreatedAt())
+                .startDate(season.getStartDate())
+                .endDate(season.getEndDate())
+                .build();
     }
 }

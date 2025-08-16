@@ -55,14 +55,13 @@ public class LeagueServiceBean implements LeagueService {
             season = seasonRepository.findById(createLeagueDTO.getSeasonId())
                     .orElseThrow(() -> new IllegalArgumentException("Season not found with id: " + createLeagueDTO.getSeasonId()));
         }
-        League league = new League(
-                UUID.randomUUID().toString(),
-                createLeagueDTO.getName(),
-                createLeagueDTO.getLeagueType(),
-                season,
-                new ArrayList<>(),
-                new ArrayList<>(),
-                LeagueStatus.CREATED);
+
+        League league = League.builder()
+                .id(UUID.randomUUID().toString())
+                .leagueType(createLeagueDTO.getLeagueType())
+                .name(createLeagueDTO.getName())
+                .season(season)
+                .build();
         return leagueRepository.save(league);
     }
 
