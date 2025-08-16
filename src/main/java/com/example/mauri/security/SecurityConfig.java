@@ -4,6 +4,7 @@ import com.example.mauri.enums.Role;
 import com.example.mauri.model.User;
 import com.example.mauri.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.util.UUID;
 
+@Slf4j
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -87,8 +89,16 @@ public class SecurityConfig {
             String username = "admin";
             String password = "admin";
             if (!userRepository.existsByUsername(username)) {
-                User user = new User(UUID.randomUUID().toString(), username, passwordEncoder().encode(password), Role.ADMIN, null,null);
+                User user = User.builder()
+                        .id(UUID.randomUUID().toString())
+                        .username(username)
+                        .password(passwordEncoder().encode(password))
+                        .role(Role.ADMIN)
+                        .build();
                 userRepository.save(user);
+                log.info("Admin account created with username '{}' and default password.", username);
+            } else {
+                log.info("Admin account already exists.");
             }
         };
     }

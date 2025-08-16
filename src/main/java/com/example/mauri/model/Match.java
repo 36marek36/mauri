@@ -4,6 +4,7 @@ import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Match {
 
     @Id
@@ -45,5 +47,10 @@ public class Match {
 
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
+
+    @PrePersist
+    protected void onCreate() {
+        status = MatchStatus.CREATED;
+    }
 
 }

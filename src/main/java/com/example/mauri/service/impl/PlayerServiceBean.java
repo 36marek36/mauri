@@ -43,7 +43,13 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public Player createPlayer(CreatePlayerDTO createPlayerDTO) {
-        var player = new Player(UUID.randomUUID().toString(), createPlayerDTO.getFirstName(), createPlayerDTO.getLastName(), createPlayerDTO.getEmail(), createPlayerDTO.getPhone(), LocalDate.now(), null, true);
+        Player player = Player.builder()
+                .id(UUID.randomUUID().toString())
+                .firstName(createPlayerDTO.getFirstName())
+                .lastName(createPlayerDTO.getLastName())
+                .email(createPlayerDTO.getEmail())
+                .phone(createPlayerDTO.getPhone())
+                .build();
         playerRepository.save(player);
         return player;
     }

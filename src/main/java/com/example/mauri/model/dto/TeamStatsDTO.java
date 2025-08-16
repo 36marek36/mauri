@@ -1,12 +1,14 @@
 package com.example.mauri.model.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class TeamStatsDTO {
     private String teamId;
     private String teamName;

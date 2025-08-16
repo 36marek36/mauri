@@ -1,6 +1,5 @@
 package com.example.mauri.service.impl;
 
-import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.Team;
@@ -132,15 +131,22 @@ public class RoundRobinTeamsServiceBean implements RoundRobinTeamsService {
     }
 
     private Match createMatch(Team home, Team away, int round, String leagueId, MatchType matchType) {
-        Match match = new Match();
-        match.setId(UUID.randomUUID().toString());
-        match.setLeagueId(leagueId);
-        match.setMatchType(matchType);
-        match.setStatus(MatchStatus.CREATED);
-        match.setRoundNumber(round);
-        match.setHomeTeam(home);
-        match.setAwayTeam(away);
-        return match;
+        //        Match match = new Match();
+//        match.setId(UUID.randomUUID().toString());
+//        match.setLeagueId(leagueId);
+//        match.setMatchType(matchType);
+//        match.setStatus(MatchStatus.CREATED);
+//        match.setRoundNumber(round);
+//        match.setHomeTeam(home);
+//        match.setAwayTeam(away);
+        return Match.builder()
+                .id(UUID.randomUUID().toString())
+                .leagueId(leagueId)
+                .matchType(matchType)
+                .roundNumber(round)
+                .homeTeam(home)
+                .awayTeam(away)
+                .build();
     }
 
     private static class Pair {

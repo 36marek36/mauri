@@ -62,11 +62,12 @@ public class AuthServiceBean implements AuthService {
         }
 
         // 2. Vytvor používateľa
-        var user = new User();
-        user.setId(UUID.randomUUID().toString());
-        user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(Role.USER);
+        User user = User.builder()
+                .id(UUID.randomUUID().toString())
+                .username(request.username())
+                .password(passwordEncoder.encode(request.password()))
+                .role(Role.USER)
+                .build();
 
         userRepository.save(user); // ulož do DB
 

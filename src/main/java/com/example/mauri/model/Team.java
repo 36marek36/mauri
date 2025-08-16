@@ -1,10 +1,8 @@
 package com.example.mauri.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +12,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Team {
 
     @Id
@@ -27,6 +26,13 @@ public class Team {
     @JoinColumn(name = ("player2_id"))
     private Player player2;
 
+    private LocalDate createdAt;
     private LocalDate deletedDate;
     private boolean active;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDate.now();
+        active = true;
+    }
 }
