@@ -3,6 +3,7 @@ package com.example.mauri.service.impl;
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.enums.SeasonStatus;
+import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.CreateSeasonDTO;
@@ -106,7 +107,7 @@ public class SeasonServiceBean implements SeasonService {
     @Override
     public void deleteSeason(@NonNull String id) {
         Season season = seasonRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No season found with id: " + id));
 
         List<League> leagues = season.getLeagues();
 
@@ -120,10 +121,10 @@ public class SeasonServiceBean implements SeasonService {
     @Transactional
     public Season addLeagueToSeason(@NonNull String leagueId, @NonNull String seasonId) {
         Season season = seasonRepository.findById(seasonId)
-                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + seasonId));
+                .orElseThrow(() -> new ResourceNotFoundException("No season found with id: " + seasonId));
 
         League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
         if (!season.getLeagues().contains(league)) {
             league.setSeason(season);              // nastavíme väzbu
@@ -137,7 +138,7 @@ public class SeasonServiceBean implements SeasonService {
     @Transactional
     public String startSeason(String seasonId) {
         Season season = seasonRepository.findById(seasonId)
-                .orElseThrow(() -> new IllegalArgumentException("Sezóna s ID " + seasonId + " neexistuje."));
+                .orElseThrow(() -> new ResourceNotFoundException("Sezóna s ID " + seasonId + " neexistuje."));
 
         if (season.getStatus() != SeasonStatus.CREATED) {
             if (season.getStatus() == SeasonStatus.ACTIVE) {
@@ -178,7 +179,7 @@ public class SeasonServiceBean implements SeasonService {
     @Transactional
     public String finishSeason(String seasonId) {
         Season season = seasonRepository.findById(seasonId)
-                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + seasonId));
+                .orElseThrow(() -> new ResourceNotFoundException("No season found with id: " + seasonId));
 
         if (season.getStatus() == SeasonStatus.FINISHED) {
             throw new IllegalStateException("Season already finished");
@@ -202,7 +203,7 @@ public class SeasonServiceBean implements SeasonService {
     @Override
     public SeasonDTO getSeasonStats(String seasonId) {
         Season season = seasonRepository.findById(seasonId)
-                .orElseThrow(() -> new RuntimeException("Season not found with id: " + seasonId));
+                .orElseThrow(() -> new ResourceNotFoundException("Season not found with id: " + seasonId));
 
         long totalPlayers = leagueRepository.countPlayersBySeasonId(seasonId);
         long totalTeams = leagueRepository.countTeamsBySeasonId(seasonId);

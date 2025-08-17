@@ -1,6 +1,7 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.PlayerStatsDTO;
 import com.example.mauri.repository.LeagueRepository;
@@ -68,7 +69,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
 
     public List<PlayerStatsDTO> getAllStatsForLeague(String leagueId) {
         League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("League not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("League not found"));
 
 
         List<Player> players = league.getPlayers();

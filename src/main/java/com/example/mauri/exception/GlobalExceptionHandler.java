@@ -51,6 +51,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleUsernameExists(UsernameAlreadyExistsException ex) {
         return buildException(HttpStatus.CONFLICT, ex.getMessage());
     }
+    @ExceptionHandler(InvalidMatchResultException.class)
+    public ResponseEntity<Object> handleInvalidMatchResultException(InvalidMatchResultException ex) {
+        return buildException(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         return buildException(HttpStatus.BAD_REQUEST, "Neplatný vstup.");

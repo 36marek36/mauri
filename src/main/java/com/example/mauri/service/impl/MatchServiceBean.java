@@ -4,6 +4,7 @@ import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.enums.SeasonStatus;
+import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateMatchDTO;
 import com.example.mauri.repository.*;
@@ -40,7 +41,7 @@ public class MatchServiceBean implements MatchService {
     @Override
     public Match getMatch(@NonNull String id) {
         return matchRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + id));
     }
 
     @Override
@@ -54,15 +55,15 @@ public class MatchServiceBean implements MatchService {
         switch (createMatchDTO.getMatchType()) {
             case SINGLES -> {
                 match.setHomePlayer(playerRepository.findById(createMatchDTO.getPlayer1Id())
-                        .orElseThrow(() -> new IllegalArgumentException("No Player found with id: " + createMatchDTO.getPlayer1Id())));
+                        .orElseThrow(() -> new ResourceNotFoundException("No Player found with id: " + createMatchDTO.getPlayer1Id())));
                 match.setAwayPlayer(playerRepository.findById(createMatchDTO.getPlayer2Id())
-                        .orElseThrow(() -> new IllegalArgumentException("No Player found with id: " + createMatchDTO.getPlayer2Id())));
+                        .orElseThrow(() -> new ResourceNotFoundException("No Player found with id: " + createMatchDTO.getPlayer2Id())));
             }
             case DOUBLES -> {
                 match.setHomeTeam(teamRepository.findById(createMatchDTO.getTeam1Id())
-                        .orElseThrow(() -> new IllegalArgumentException("No Team found with id: " + createMatchDTO.getTeam1Id())));
+                        .orElseThrow(() -> new ResourceNotFoundException("No Team found with id: " + createMatchDTO.getTeam1Id())));
                 match.setAwayTeam(teamRepository.findById(createMatchDTO.getTeam2Id())
-                        .orElseThrow(() -> new IllegalArgumentException("No Team found with id: " + createMatchDTO.getTeam2Id())));
+                        .orElseThrow(() -> new ResourceNotFoundException("No Team found with id: " + createMatchDTO.getTeam2Id())));
             }
             default -> throw new IllegalArgumentException("Unsupported MatchType: " + createMatchDTO.getMatchType());
         }
@@ -72,7 +73,7 @@ public class MatchServiceBean implements MatchService {
     @Override
     public void deleteMatch(@NonNull String id) {
         if (!matchRepository.existsById(id)) {
-            throw new IllegalArgumentException("No Match found with id: " + id);
+            throw new ResourceNotFoundException("No Match found with id: " + id);
         }
         matchRepository.deleteById(id);
     }
@@ -80,7 +81,7 @@ public class MatchServiceBean implements MatchService {
     @Override
     public Match addResult(String matchId, MatchResult matchResult) {
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
+                .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
 
         MatchResult finalResult = matchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
@@ -92,7 +93,7 @@ public class MatchServiceBean implements MatchService {
     @Transactional
     public List<Match> generateMatchesForLeague(String leagueId) {
         League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("No League found with id: " + leagueId));
+                .orElseThrow(() -> new ResourceNotFoundException("No League found with id: " + leagueId));
 
         MatchType type = league.getLeagueType();
         List<Match> matches;
@@ -143,7 +144,7 @@ public class MatchServiceBean implements MatchService {
     @Override
     public void cancelResult(String matchId) {
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
+                .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
 
         match.setStatus(MatchStatus.CREATED);
         match.setResult(null);

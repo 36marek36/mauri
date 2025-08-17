@@ -39,15 +39,15 @@ public class TeamServiceBean implements TeamService {
     @Override
     public Team getTeamById(@NonNull String id) {
         return teamRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No team found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + id));
     }
 
     @Override
     public Team createTeam(String player1Id, String player2Id) {
         Player player1 = playerRepository.findById(player1Id)
-                .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + player1Id));
+                .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + player1Id));
         Player player2 = playerRepository.findById(player2Id)
-                .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + player2Id));
+                .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + player2Id));
 
         Team team = Team.builder()
                 .id(UUID.randomUUID().toString())
