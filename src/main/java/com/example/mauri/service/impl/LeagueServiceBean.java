@@ -3,6 +3,7 @@ package com.example.mauri.service.impl;
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
+import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateLeagueDTO;
 import com.example.mauri.model.dto.LeagueDTO;
@@ -44,7 +45,7 @@ public class LeagueServiceBean implements LeagueService {
     @Override
     public League getLeagueById(@NonNull String id) {
         return leagueRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + id));
     }
 
     @Override
@@ -53,7 +54,7 @@ public class LeagueServiceBean implements LeagueService {
 
         if (createLeagueDTO.getSeasonId() != null && !createLeagueDTO.getSeasonId().isEmpty()) {
             season = seasonRepository.findById(createLeagueDTO.getSeasonId())
-                    .orElseThrow(() -> new IllegalArgumentException("Season not found with id: " + createLeagueDTO.getSeasonId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Season not found with id: " + createLeagueDTO.getSeasonId()));
         }
 
         League league = League.builder()
@@ -69,7 +70,7 @@ public class LeagueServiceBean implements LeagueService {
     @Transactional
     public void deleteLeagueById(@NonNull String id) {
         League league = leagueRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + id));
 
         List<Match> matches = matchRepository.findByLeagueId(league.getId());
         matchRepository.deleteAll(matches);
@@ -86,7 +87,7 @@ public class LeagueServiceBean implements LeagueService {
     @Transactional
     public League addParticipantsToLeague(String leagueId, List<String> participantIds) {
         League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
         MatchType type = league.getLeagueType();
 
@@ -116,7 +117,7 @@ public class LeagueServiceBean implements LeagueService {
     @Transactional
     public void removeParticipantFromLeague(String leagueId, String participantId) {
         League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
         MatchType type = league.getLeagueType();
         List<Match> affectedMatches;
@@ -124,7 +125,7 @@ public class LeagueServiceBean implements LeagueService {
         switch (type) {
             case SINGLES -> {
                 Player player = playerRepository.findById(participantId)
-                        .orElseThrow(() -> new IllegalArgumentException("No player found with id: " + participantId));
+                        .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + participantId));
 
                 affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
 
@@ -140,7 +141,7 @@ public class LeagueServiceBean implements LeagueService {
 
             case DOUBLES -> {
                 Team team = teamRepository.findById(participantId)
-                        .orElseThrow(() -> new IllegalArgumentException("No team found with id: " + participantId));
+                        .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + participantId));
 
                 affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
 
@@ -216,7 +217,7 @@ public class LeagueServiceBean implements LeagueService {
     @Override
     public void finishLeague(String leagueId) {
         League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("No league found with id: " + leagueId));
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
         if (league.getStatus().equals(LeagueStatus.FINISHED)) {
             throw new IllegalStateException("League already finished");

@@ -1,5 +1,6 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.exception.InvalidMatchResultException;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.MatchResult;
 import com.example.mauri.model.SetScore;
@@ -54,7 +55,7 @@ public class MatchResultServiceBean implements MatchResultService {
 
     private void validateSetScores(List<SetScore> setScores) {
         if (setScores == null || setScores.isEmpty()) {
-            throw new IllegalArgumentException("Musíte zadať aspoň jeden set.");
+            throw new InvalidMatchResultException("Musíte zadať aspoň jeden set.");
         }
 
         for (SetScore set : setScores) {
@@ -62,21 +63,21 @@ public class MatchResultServiceBean implements MatchResultService {
             Integer s2 = set.getScore2();
 
             if (s1 == null || s2 == null) {
-                throw new IllegalArgumentException("Set nemá vyplnené skóre.");
+                throw new InvalidMatchResultException("Set nemá vyplnené skóre.");
             }
 
             if (s1 < 0 || s2 < 0 || s1 > 30 || s2 > 30) {
-                throw new IllegalArgumentException("Skóre musí byť v rozsahu 0–30.");
+                throw new InvalidMatchResultException("Skóre musí byť v rozsahu 0–30.");
             }
 
             if (s1.equals(s2)) {
-                throw new IllegalArgumentException("Set nemôže skončiť remízou.");
+                throw new InvalidMatchResultException("Set nemôže skončiť remízou.");
             }
 
             int diff = Math.abs(s1 - s2);
             boolean tiebreak = (s1 == 7 && s2 == 6) || (s1 == 6 && s2 == 7);
             if (diff < 2 && !tiebreak) {
-                throw new IllegalArgumentException("Rozdiel v skóre musí byť aspoň 2 body, okrem tiebreaku.");
+                throw new InvalidMatchResultException("Rozdiel v skóre musí byť aspoň 2 body, okrem tiebreaku.");
             }
         }
     }
@@ -104,18 +105,25 @@ public class MatchResultServiceBean implements MatchResultService {
     }
 
     private void determineWinner(Match match, MatchResult matchResult) {
-        if (matchResult.getScore1() > matchResult.getScore2()) {
-            String winnerId = switch (match.getMatchType()) {
+        int score1 = matchResult.getScore1();
+        int score2 = matchResult.getScore2();
+
+        if (score1 == score2) {
+            throw new InvalidMatchResultException("Zápas nemôže skončiť remízou – musíte zadať rozhodujúci set.");
+        }
+
+        String winnerId;
+        if (score1 > score2) {
+            winnerId = switch (match.getMatchType()) {
                 case SINGLES -> match.getHomePlayer().getId();
                 case DOUBLES -> match.getHomeTeam().getId();
             };
-            matchResult.setWinnerId(winnerId);
-        } else if (matchResult.getScore2() > matchResult.getScore1()) {
-            String winnerId = switch (match.getMatchType()) {
+        } else {
+            winnerId = switch (match.getMatchType()) {
                 case SINGLES -> match.getAwayPlayer().getId();
                 case DOUBLES -> match.getAwayTeam().getId();
             };
-            matchResult.setWinnerId(winnerId);
         }
+        matchResult.setWinnerId(winnerId);
     }
 }
