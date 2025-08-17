@@ -18,6 +18,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -167,6 +168,7 @@ public class SeasonServiceBean implements SeasonService {
         }
 
         season.setStatus(SeasonStatus.ACTIVE);
+        season.setStartDate(LocalDate.now());
         seasonRepository.save(season);
 
         return "Sezóna " + season.getYear() + " bola úspešne odštartovaná.";
@@ -192,6 +194,7 @@ public class SeasonServiceBean implements SeasonService {
         }
 
         season.setStatus(SeasonStatus.FINISHED);
+        season.setEndDate(LocalDate.now());
         seasonRepository.save(season);
         return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
     }
