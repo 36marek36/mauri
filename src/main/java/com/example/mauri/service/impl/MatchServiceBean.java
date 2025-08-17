@@ -7,6 +7,7 @@ import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.CreateMatchDTO;
 import com.example.mauri.repository.*;
+import com.example.mauri.service.MatchResultService;
 import com.example.mauri.service.MatchService;
 import com.example.mauri.service.RoundRobinPlayersService;
 import com.example.mauri.service.RoundRobinTeamsService;
@@ -29,6 +30,7 @@ public class MatchServiceBean implements MatchService {
     private final RoundRobinPlayersService roundRobinPlayersService;
     private final RoundRobinTeamsService roundRobinTeamsService;
     private final SeasonRepository seasonRepository;
+    private final MatchResultService matchResultService;
 
     @Override
     public List<Match> getMatches() {
@@ -80,74 +82,8 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("No Match found with id: " + matchId));
 
-        // Ak je skreč, nastavíme sety 6:0, 6:0 pre víťaza
-        if (matchResult.getScratchedId() != null) {
-            List<SetScore> sets = new ArrayList<>();
-            boolean scratchedIsHome = false;
-
-            switch (match.getMatchType()) {
-                case SINGLES -> scratchedIsHome = matchResult.getScratchedId().equals(match.getHomePlayer().getId());
-                case DOUBLES -> scratchedIsHome = matchResult.getScratchedId().equals(match.getHomeTeam().getId());
-            }
-
-            for (int i = 1; i <= 2; i++) {
-                SetScore set = new SetScore();
-                set.setSetNumber(i);
-                if (scratchedIsHome) {
-                    // Domáci hráč/tím skrečuje, víťaz je hosť
-                    set.setScore1(0);
-                    set.setScore2(6);
-                } else {
-                    // Hosť skrečuje, víťaz je domáci
-                    set.setScore1(6);
-                    set.setScore2(0);
-                }
-                sets.add(set);
-            }
-
-            matchResult.setSetScores(sets);
-        }
-
-        // Ak sú nastavené sety (či už klasické alebo z skreču), vyhodnotíme výsledok
-        if (matchResult.getSetScores() != null && !matchResult.getSetScores().isEmpty()) {
-            // Očíslujeme sety (1-based)
-            for (int i = 0; i < matchResult.getSetScores().size(); i++) {
-                matchResult.getSetScores().get(i).setSetNumber(i + 1);
-            }
-
-            int setsWon1 = 0;
-            int setsWon2 = 0;
-
-            for (SetScore set : matchResult.getSetScores()) {
-                if (set.getScore1() != null && set.getScore2() != null) {
-                    if (set.getScore1() > set.getScore2()) {
-                        setsWon1++;
-                    } else if (set.getScore2() > set.getScore1()) {
-                        setsWon2++;
-                    }
-                }
-            }
-
-            matchResult.setScore1(setsWon1);
-            matchResult.setScore2(setsWon2);
-
-            // Určíme víťaza podľa setov
-            if (setsWon1 > setsWon2) {
-                String winnerId = switch (match.getMatchType()) {
-                    case SINGLES -> match.getHomePlayer().getId();
-                    case DOUBLES -> match.getHomeTeam().getId();
-                };
-                matchResult.setWinnerId(winnerId);
-            } else if (setsWon2 > setsWon1) {
-                String winnerId = switch (match.getMatchType()) {
-                    case SINGLES -> match.getAwayPlayer().getId();
-                    case DOUBLES -> match.getAwayTeam().getId();
-                };
-                matchResult.setWinnerId(winnerId);
-            }
-        }
-
-        match.setResult(matchResult);
+        MatchResult finalResult = matchResultService.processResult(match, matchResult);
+        match.setResult(finalResult);
         match.setStatus(MatchStatus.FINISHED);
         return matchRepository.save(match);
     }
