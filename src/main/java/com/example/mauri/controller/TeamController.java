@@ -3,6 +3,7 @@ package com.example.mauri.controller;
 import com.example.mauri.model.Team;
 import com.example.mauri.model.dto.CreateTeamDTO;
 import com.example.mauri.service.TeamService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ public class TeamController {
     }
 
     @PostMapping("/create")
-    ResponseEntity<Team> createTeam(@RequestBody CreateTeamDTO team) {
+    ResponseEntity<Team> createTeam(@Valid @RequestBody CreateTeamDTO team) {
         Team created = teamService.createTeam(team.getPlayer1Id(), team.getPlayer2Id());
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
