@@ -2,7 +2,7 @@ package com.example.mauri.service;
 
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.Match;
-import com.example.mauri.model.dto.CreateMatchDTO;
+import com.example.mauri.model.dto.create.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
 import lombok.NonNull;
 

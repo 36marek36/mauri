@@ -1,7 +1,7 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.Team;
-import com.example.mauri.model.dto.CreateTeamDTO;
+import com.example.mauri.model.dto.create.CreateTeamDTO;
 import com.example.mauri.service.TeamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

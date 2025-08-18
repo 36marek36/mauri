@@ -3,7 +3,8 @@ package com.example.mauri.service.impl;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
-import com.example.mauri.model.dto.CreatePlayerDTO;
+import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.PlayerService;
 import lombok.NonNull;
@@ -95,6 +96,26 @@ public class PlayerServiceBean implements PlayerService {
 
         player.setActive(false);
         playerRepository.save(player);
+    }
+
+    @Override
+    public Player updatePlayer(String playerId, UpdatePlayerDTO updatedPlayer) {
+        Player existingPlayer = playerRepository.findById(playerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
+
+        if (updatedPlayer.getFirstName() != null) {
+            existingPlayer.setFirstName(updatedPlayer.getFirstName());
+        }
+        if (updatedPlayer.getLastName() != null) {
+            existingPlayer.setLastName(updatedPlayer.getLastName());
+        }
+        if (updatedPlayer.getEmail() != null) {
+            existingPlayer.setEmail(updatedPlayer.getEmail());
+        }
+        if (updatedPlayer.getPhone() != null) {
+            existingPlayer.setPhone(updatedPlayer.getPhone());
+        }
+        return playerRepository.save(existingPlayer);
     }
 
     private void detachPlayerFromUsers(String playerId) {

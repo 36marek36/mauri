@@ -1,7 +1,7 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.User;
-import com.example.mauri.model.dto.UserDTO;
+import com.example.mauri.model.dto.response.UserDTO;
 import com.example.mauri.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

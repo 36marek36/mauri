@@ -1,4 +1,4 @@
-package com.example.mauri.model.dto;
+package com.example.mauri.model.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
