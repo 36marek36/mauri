@@ -51,6 +51,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleUsernameExists(UsernameAlreadyExistsException ex) {
         return buildException(HttpStatus.CONFLICT, ex.getMessage());
     }
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Object> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return buildException(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
     @ExceptionHandler(InvalidMatchResultException.class)
     public ResponseEntity<Object> handleInvalidMatchResultException(InvalidMatchResultException ex) {
         return buildException(HttpStatus.BAD_REQUEST, ex.getMessage());

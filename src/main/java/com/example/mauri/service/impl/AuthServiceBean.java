@@ -1,6 +1,7 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.Role;
+import com.example.mauri.exception.InvalidCredentialsException;
 import com.example.mauri.exception.InvalidOldPasswordException;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.exception.UsernameAlreadyExistsException;
@@ -40,7 +41,7 @@ public class AuthServiceBean implements AuthService {
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
             );
         } catch (AuthenticationException e) {
-            throw new RuntimeException("Invalid username/password");
+            throw new InvalidCredentialsException("Neplatné prihlasovacie údaje");
         }
 
         var userDetails = userDetailsService.loadUserByUsername(request.username());
