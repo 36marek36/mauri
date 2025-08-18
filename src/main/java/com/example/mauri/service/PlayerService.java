@@ -1,7 +1,8 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.Player;
-import com.example.mauri.model.dto.CreatePlayerDTO;
+import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import lombok.NonNull;
 
 import java.util.List;
@@ -22,5 +23,7 @@ public interface PlayerService {
     List<Player> getPlayersWithoutUser();
 
     void deactivatePlayer(String playerId);
+
+    Player updatePlayer(String playerId, UpdatePlayerDTO updatedPlayer);
 
 }

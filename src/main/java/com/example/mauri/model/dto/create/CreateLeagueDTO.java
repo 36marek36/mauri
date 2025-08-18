@@ -1,4 +1,4 @@
-package com.example.mauri.model.dto;
+package com.example.mauri.model.dto.create;
 
 import com.example.mauri.enums.MatchType;
 import jakarta.validation.constraints.NotBlank;

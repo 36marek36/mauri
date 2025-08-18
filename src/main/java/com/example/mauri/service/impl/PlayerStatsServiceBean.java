@@ -3,7 +3,7 @@ package com.example.mauri.service.impl;
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
-import com.example.mauri.model.dto.PlayerStatsDTO;
+import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.service.PlayerService;

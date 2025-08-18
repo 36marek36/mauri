@@ -2,8 +2,8 @@ package com.example.mauri.service;
 
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.League;
-import com.example.mauri.model.dto.CreateLeagueDTO;
-import com.example.mauri.model.dto.LeagueDTO;
+import com.example.mauri.model.dto.create.CreateLeagueDTO;
+import com.example.mauri.model.dto.response.LeagueDTO;
 import lombok.NonNull;
 
 import java.util.List;

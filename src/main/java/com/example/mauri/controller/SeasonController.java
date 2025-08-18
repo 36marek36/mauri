@@ -1,9 +1,9 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.Season;
-import com.example.mauri.model.dto.AddLeagueToSeasonDTO;
-import com.example.mauri.model.dto.CreateSeasonDTO;
-import com.example.mauri.model.dto.SeasonDTO;
+import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
+import com.example.mauri.model.dto.create.CreateSeasonDTO;
+import com.example.mauri.model.dto.response.SeasonDTO;
 import com.example.mauri.service.SeasonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

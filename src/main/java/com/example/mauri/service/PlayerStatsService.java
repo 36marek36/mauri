@@ -1,6 +1,6 @@
 package com.example.mauri.service;
 
-import com.example.mauri.model.dto.PlayerStatsDTO;
+import com.example.mauri.model.dto.response.PlayerStatsDTO;
 
 import java.util.List;
 

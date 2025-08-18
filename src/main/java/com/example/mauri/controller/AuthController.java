@@ -1,6 +1,6 @@
 package com.example.mauri.controller;
 
-import com.example.mauri.model.dto.ChangePasswordDTO;
+import com.example.mauri.model.dto.request.ChangePasswordDTO;
 import com.example.mauri.security.dto.LoginRequest;
 import com.example.mauri.security.dto.LoginResponse;
 import com.example.mauri.security.dto.RegisterRequest;

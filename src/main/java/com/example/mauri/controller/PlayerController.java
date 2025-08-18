@@ -2,9 +2,10 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
-import com.example.mauri.model.dto.AssignPlayerDTO;
-import com.example.mauri.model.dto.CreatePlayerDTO;
-import com.example.mauri.model.dto.LeagueDTO;
+import com.example.mauri.model.dto.request.AssignPlayerDTO;
+import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.response.LeagueDTO;
+import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
@@ -84,6 +85,11 @@ public class PlayerController {
                                                      @RequestBody AssignPlayerDTO assignPlayer) {
         userService.assignPlayerToUser(assignPlayer.getPlayerId(), userId);
         return ResponseEntity.status(HttpStatus.OK).body("Player assigned to user");
+    }
+
+    @PatchMapping("/{id}")
+    public Player updatePlayer(@PathVariable String id,@RequestBody UpdatePlayerDTO updatedPlayer) {
+        return playerService.updatePlayer(id, updatedPlayer);
     }
 
     @DeleteMapping("/{id}")

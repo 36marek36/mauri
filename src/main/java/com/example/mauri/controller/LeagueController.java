@@ -2,10 +2,10 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.League;
 import com.example.mauri.model.Match;
-import com.example.mauri.model.dto.AddParticipantsToLeagueDTO;
-import com.example.mauri.model.dto.CreateLeagueDTO;
-import com.example.mauri.model.dto.PlayerStatsDTO;
-import com.example.mauri.model.dto.TeamStatsDTO;
+import com.example.mauri.model.dto.request.AddParticipantsToLeagueDTO;
+import com.example.mauri.model.dto.create.CreateLeagueDTO;
+import com.example.mauri.model.dto.response.PlayerStatsDTO;
+import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

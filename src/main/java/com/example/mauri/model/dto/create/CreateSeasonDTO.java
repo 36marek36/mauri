@@ -1,4 +1,4 @@
-package com.example.mauri.model.dto;
+package com.example.mauri.model.dto.create;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

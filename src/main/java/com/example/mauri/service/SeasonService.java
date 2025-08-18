@@ -1,8 +1,8 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.Season;
-import com.example.mauri.model.dto.CreateSeasonDTO;
-import com.example.mauri.model.dto.SeasonDTO;
+import com.example.mauri.model.dto.create.CreateSeasonDTO;
+import com.example.mauri.model.dto.response.SeasonDTO;
 import lombok.NonNull;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.mauri.model.dto;
+package com.example.mauri.model.dto.response;
 
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;

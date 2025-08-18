@@ -6,7 +6,7 @@ import com.example.mauri.exception.InvalidOldPasswordException;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.exception.UsernameAlreadyExistsException;
 import com.example.mauri.model.User;
-import com.example.mauri.model.dto.ChangePasswordDTO;
+import com.example.mauri.model.dto.request.ChangePasswordDTO;
 import com.example.mauri.repository.UserRepository;
 import com.example.mauri.security.JwtUtil;
 import com.example.mauri.security.dto.LoginRequest;

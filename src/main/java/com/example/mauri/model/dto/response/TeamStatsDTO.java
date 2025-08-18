@@ -1,4 +1,4 @@
-package com.example.mauri.model.dto;
+package com.example.mauri.model.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
