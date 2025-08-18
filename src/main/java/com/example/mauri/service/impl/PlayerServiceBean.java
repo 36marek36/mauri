@@ -4,9 +4,11 @@ import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.PlayerService;
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,23 +29,35 @@ public class PlayerServiceBean implements PlayerService {
 
 
     @Override
-    public List<Player> getActivePlayers() {
-        return playerRepository.findByActiveTrue();
+    public List<PlayerResponseDTO> getActivePlayers() {
+        List<Player> players = playerRepository.findByActiveTrue();
+
+        return players.stream()
+                .map(this::mapToResponseDTO) // každý Player sa zmení na PlayerResponseDTO
+                .toList();                   // a všetky sa uložia do zoznamu
     }
 
     @Override
-    public List<Player> getInactivePlayers() {
-        return playerRepository.findByActiveFalse();
+    public List<PlayerResponseDTO> getInactivePlayers() {
+        List<Player> players = playerRepository.findByActiveFalse();
+        return players.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     @Override
     public Player getPlayer(@NonNull String id) {
-        return playerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + id));
+        return getPlayerOrThrow(id);
     }
 
     @Override
-    public Player createPlayer(CreatePlayerDTO createPlayerDTO) {
+    public PlayerResponseDTO getPlayerResponseById(String id) {
+        Player player = getPlayer(id);
+        return mapToResponseDTO(player);
+    }
+
+    @Override
+    public PlayerResponseDTO createPlayer(CreatePlayerDTO createPlayerDTO) {
         Player player = Player.builder()
                 .id(UUID.randomUUID().toString())
                 .firstName(createPlayerDTO.getFirstName())
@@ -51,14 +65,14 @@ public class PlayerServiceBean implements PlayerService {
                 .email(createPlayerDTO.getEmail())
                 .phone(createPlayerDTO.getPhone())
                 .build();
-        playerRepository.save(player);
-        return player;
+        Player saved = playerRepository.save(player);
+        return mapToResponseDTO(saved);
     }
 
+    @Transactional
     @Override
     public String deletePlayer(@NonNull String id) {
-        Player player = playerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
+        Player player = getPlayerOrThrow(id);
 
         detachPlayerFromUsers(player.getId());
 
@@ -77,19 +91,26 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
-    public List<Player> getActivePlayersNotInAnyActiveLeague() {
-        return playerRepository.findActivePlayersWithoutActiveLeague();
+    public List<PlayerResponseDTO> getActivePlayersNotInAnyActiveLeague() {
+        List<Player> freePlayers = playerRepository.findActivePlayersWithoutActiveLeague();
+
+        return freePlayers.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     @Override
-    public List<Player> getPlayersWithoutUser() {
-        return playerRepository.findActivePlayersWithoutUser();
+    public List<PlayerResponseDTO> getPlayersWithoutUser() {
+        List<Player> players = playerRepository.findActivePlayersWithoutUser();
+        return players.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
+    @Transactional
     @Override
     public void deactivatePlayer(String playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
+        Player player = getPlayerOrThrow(playerId);
 
         detachPlayerFromUsers(playerId);
         player.setDeletedDate(LocalDate.now());
@@ -99,9 +120,8 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
-    public Player updatePlayer(String playerId, UpdatePlayerDTO updatedPlayer) {
-        Player existingPlayer = playerRepository.findById(playerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
+    public PlayerResponseDTO updatePlayer(String playerId, UpdatePlayerDTO updatedPlayer) {
+        Player existingPlayer = getPlayerOrThrow(playerId);
 
         if (updatedPlayer.getFirstName() != null) {
             existingPlayer.setFirstName(updatedPlayer.getFirstName());
@@ -115,7 +135,13 @@ public class PlayerServiceBean implements PlayerService {
         if (updatedPlayer.getPhone() != null) {
             existingPlayer.setPhone(updatedPlayer.getPhone());
         }
-        return playerRepository.save(existingPlayer);
+        Player saved = playerRepository.save(existingPlayer);
+        return mapToResponseDTO(saved);
+    }
+
+    private Player getPlayerOrThrow(String id) {
+        return playerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Player not found with id: " + id));
     }
 
     private void detachPlayerFromUsers(String playerId) {
@@ -124,5 +150,18 @@ public class PlayerServiceBean implements PlayerService {
             user.setPlayer(null);
             userRepository.save(user);
         }
+    }
+
+    private PlayerResponseDTO mapToResponseDTO(Player player) {
+        return PlayerResponseDTO.builder()
+                .id(player.getId())
+                .firstName(player.getFirstName())
+                .lastName(player.getLastName())
+                .email(player.getEmail())
+                .phone(player.getPhone())
+                .registrationDate(player.getRegistrationDate())
+                .deletedDate(player.getDeletedDate())
+                .active(player.isActive())
+                .build();
     }
 }

@@ -1,10 +1,10 @@
 package com.example.mauri.controller;
 
-import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.request.AssignPlayerDTO;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
 import com.example.mauri.model.dto.response.LeagueDTO;
+import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.PlayerService;
@@ -29,24 +29,27 @@ public class PlayerController {
     private final LeagueService leagueService;
 
     @GetMapping("/")
-    List<Player> getActivePlayers() {
-        return playerService.getActivePlayers();
+    public ResponseEntity<List<PlayerResponseDTO>> getActivePlayers() {
+        List<PlayerResponseDTO> players = playerService.getActivePlayers();
+        return ResponseEntity.ok(players);
     }
 
     @GetMapping("/inactive")
-    List<Player> getInactivePlayers() {
-        return playerService.getInactivePlayers();
+    public ResponseEntity<List<PlayerResponseDTO>> getInactivePlayers() {
+        List<PlayerResponseDTO> players = playerService.getInactivePlayers();
+        return ResponseEntity.ok(players);
     }
 
     @GetMapping("/{id}")
-    Player getPlayer(@PathVariable String id) {
-        return playerService.getPlayer(id);
+    public ResponseEntity<PlayerResponseDTO> getPlayer(@PathVariable String id) {
+        PlayerResponseDTO player = playerService.getPlayerResponseById(id);
+        return ResponseEntity.ok(player);
     }
 
     @GetMapping("/not-in-any-active-league")
-    public ResponseEntity<List<Player>> getFreePlayers() {
-        List<Player> freePlayers = playerService.getActivePlayersNotInAnyActiveLeague();
-        return new ResponseEntity<>(freePlayers, HttpStatus.OK);
+    public ResponseEntity<List<PlayerResponseDTO>> getFreePlayers() {
+        List<PlayerResponseDTO> freePlayersDTO = playerService.getActivePlayersNotInAnyActiveLeague();
+        return ResponseEntity.ok(freePlayersDTO);
     }
     @GetMapping("/{playerId}/leagues")
     public ResponseEntity<List<LeagueDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
@@ -55,26 +58,26 @@ public class PlayerController {
     }
 
     @GetMapping("/without-user")
-    public ResponseEntity<List<Player>> getPlayersWithoutUser() {
-        List<Player> players = playerService.getPlayersWithoutUser();
+    public ResponseEntity<List<PlayerResponseDTO>> getPlayersWithoutUser() {
+        List<PlayerResponseDTO> players = playerService.getPlayersWithoutUser();
         return ResponseEntity.ok(players);
     }
 
     @PostMapping("/admin/createPlayer")
-    ResponseEntity<Player> createPlayer(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
-        Player created = playerService.createPlayer(createPlayerDTO);
+    ResponseEntity<PlayerResponseDTO> createPlayer(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
+        PlayerResponseDTO created = playerService.createPlayer(createPlayerDTO);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @PostMapping("/user/createPlayer")
-    public ResponseEntity<Player> createAndAssignPlayerForCurrentUser(@RequestBody CreatePlayerDTO createPlayerDTO) {
+    public ResponseEntity<PlayerResponseDTO> createAndAssignPlayerForCurrentUser(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
         User user = userService.getAuthenticatedUser();
 
         if (user.getPlayer() != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
-        Player player = playerService.createPlayer(createPlayerDTO);
+        PlayerResponseDTO player = playerService.createPlayer(createPlayerDTO);
         userService.assignPlayerToUser(player.getId(), user.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(player);
@@ -88,8 +91,10 @@ public class PlayerController {
     }
 
     @PatchMapping("/{id}")
-    public Player updatePlayer(@PathVariable String id,@RequestBody UpdatePlayerDTO updatedPlayer) {
-        return playerService.updatePlayer(id, updatedPlayer);
+    public ResponseEntity<PlayerResponseDTO> updatePlayer(@PathVariable String id,
+                                                          @RequestBody UpdatePlayerDTO updatedPlayer) {
+        PlayerResponseDTO updated = playerService.updatePlayer(id, updatedPlayer);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
