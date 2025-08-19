@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LeagueDTO {
+public class LeagueResponseDTO {
     private String leagueId;
     private String leagueName;
     private Integer seasonYear;

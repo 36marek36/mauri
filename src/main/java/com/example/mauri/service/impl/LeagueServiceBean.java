@@ -6,7 +6,7 @@ import com.example.mauri.enums.MatchType;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
-import com.example.mauri.model.dto.response.LeagueDTO;
+import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.repository.*;
@@ -172,9 +172,9 @@ public class LeagueServiceBean implements LeagueService {
     }
 
     @Override
-    public List<LeagueDTO> getLeaguesForPlayer(String playerId) {
+    public List<LeagueResponseDTO> getLeaguesForPlayer(String playerId) {
         List<League> leagues = leagueRepository.findLeaguesByPlayerId(playerId);
-        List<LeagueDTO> result = new ArrayList<>();
+        List<LeagueResponseDTO> result = new ArrayList<>();
 
         for (League league : leagues) {
             String id = league.getId();
@@ -192,7 +192,7 @@ public class LeagueServiceBean implements LeagueService {
                 winner = getLeagueWinnerName(id, league.getLeagueType());
             }
 
-            result.add(new LeagueDTO(id, name, year, leagueType, status, totalPlayers, totalTeams,winner));
+            result.add(new LeagueResponseDTO(id, name, year, leagueType, status, totalPlayers, totalTeams,winner));
         }
 
         return result;

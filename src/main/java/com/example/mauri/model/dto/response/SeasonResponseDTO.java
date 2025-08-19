@@ -13,11 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class SeasonDTO {
+public class SeasonResponseDTO {
     private String id;
     private int year;
     private SeasonStatus status;
-    private List<LeagueDTO> leagues;
+    private List<LeagueResponseDTO> leagues;
 
     private long totalPlayers;
     private long totalTeams;

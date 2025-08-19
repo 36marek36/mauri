@@ -7,8 +7,8 @@ import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.response.LeagueDTO;
-import com.example.mauri.model.dto.response.SeasonDTO;
+import com.example.mauri.model.dto.response.LeagueResponseDTO;
+import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.SeasonRepository;
 import com.example.mauri.service.LeagueService;
@@ -17,6 +17,7 @@ import com.example.mauri.service.SeasonService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SeasonServiceBean implements SeasonService {
 
     private final SeasonRepository seasonRepository;
@@ -35,73 +37,38 @@ public class SeasonServiceBean implements SeasonService {
 
 
     @Override
-    public List<SeasonDTO> getSeasons() {
+    public List<SeasonResponseDTO> getSeasons() {
         List<Season> seasons = seasonRepository.findAll();
+
         // Zoradíme podľa roku zostupne (najnovšia sezóna prvá)
         seasons.sort((s1, s2) -> Integer.compare(s2.getYear(), s1.getYear()));
 
-        List<SeasonDTO> seasonDTOs = new ArrayList<>();
-
+        List<SeasonResponseDTO> seasonDTOs = new ArrayList<>();
         for (Season season : seasons) {
-            List<LeagueDTO> leagueDTOs = new ArrayList<>();
-            long totalPlayers = 0;
-            long totalTeams = 0;
-
-            for (League league : season.getLeagues()) {
-                int playersCount = league.getPlayers() != null ? league.getPlayers().size() : 0;
-                int teamsCount = league.getTeams() != null ? league.getTeams().size() : 0;
-
-                totalPlayers += playersCount;
-                totalTeams += teamsCount;
-
-                String winner = null;
-
-                if (league.getStatus() == LeagueStatus.FINISHED) {
-                    winner = leagueService.getLeagueWinnerName(league.getId(), league.getLeagueType());
-                }
-
-                leagueDTOs.add(LeagueDTO.builder()
-                        .leagueId(league.getId())
-                        .leagueName(league.getName())
-                        .seasonYear(season.getYear())
-                        .leagueType(league.getLeagueType())
-                        .leagueStatus(league.getStatus())
-                        .totalPlayers(playersCount)
-                        .totalTeams(teamsCount)
-                        .winner(winner)
-                        .build());
-            }
-
-            seasonDTOs.add(SeasonDTO.builder()
-                    .id(season.getId())
-                    .year(season.getYear())
-                    .status(season.getStatus())
-                    .leagues(leagueDTOs)
-                    .totalPlayers(totalPlayers)
-                    .totalTeams(totalTeams)
-                    .createdAt(season.getCreatedAt())
-                    .startDate(season.getStartDate())
-                    .endDate(season.getEndDate())
-                    .build());
+            seasonDTOs.add(mapSeasonToDTO(season, true));
         }
 
         return seasonDTOs;
     }
 
-//    @Override
-//    public Season getSeason(@NonNull String id) {
-//        return seasonRepository.findById(id)
-//                .orElseThrow(() -> new IllegalArgumentException("No season found with id: " + id));
-//    }
+    @Override
+    public SeasonResponseDTO getSeasonStats(String seasonId) {
+        Season season = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Season not found with id: " + seasonId));
+
+        return mapSeasonToDTO(season, true);
+    }
 
     @Override
-    public Season createSeason(CreateSeasonDTO createSeasonDTO) {
+    public SeasonResponseDTO createSeason(CreateSeasonDTO createSeasonDTO) {
         Season season = Season.builder()
                 .id(UUID.randomUUID().toString())
                 .year(createSeasonDTO.getYear())
                 .build();
-        return seasonRepository.save(season);
+        season = seasonRepository.save(season);
+        return mapSeasonToDTO(season, false);
     }
+
 
     @Transactional
     @Override
@@ -119,7 +86,7 @@ public class SeasonServiceBean implements SeasonService {
 
     @Override
     @Transactional
-    public Season addLeagueToSeason(@NonNull String leagueId, @NonNull String seasonId) {
+    public String addLeagueToSeason(@NonNull String leagueId, @NonNull String seasonId) {
         Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("No season found with id: " + seasonId));
 
@@ -127,11 +94,11 @@ public class SeasonServiceBean implements SeasonService {
                 .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
         if (!season.getLeagues().contains(league)) {
-            league.setSeason(season);              // nastavíme väzbu
-            season.getLeagues().add(league);       // bidirectional
+            league.setSeason(season);
+            season.getLeagues().add(league);
         }
 
-        return season;
+        return "Liga " + league.getName() + " bola úspešne priradená k sezóne " + season.getYear() + ".";
     }
 
     @Override
@@ -200,40 +167,21 @@ public class SeasonServiceBean implements SeasonService {
         return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
     }
 
-    @Override
-    public SeasonDTO getSeasonStats(String seasonId) {
-        Season season = seasonRepository.findById(seasonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Season not found with id: " + seasonId));
+    private SeasonResponseDTO mapSeasonToDTO(Season season, boolean includeLeagues) {
+        List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
+        long totalPlayers = 0;
+        long totalTeams = 0;
 
-        long totalPlayers = leagueRepository.countPlayersBySeasonId(seasonId);
-        long totalTeams = leagueRepository.countTeamsBySeasonId(seasonId);
-
-        List<LeagueDTO> leagueDTOs = new ArrayList<>();
-
-        for (League league : season.getLeagues()) {
-            String id = league.getId();
-            String name = league.getName();
-            Integer year = null;
-            if (league.getSeason() != null) {
-                year = league.getSeason().getYear();
+        if (includeLeagues && season.getLeagues() != null) {
+            for (League league : season.getLeagues()) {
+                LeagueResponseDTO leagueDTO = mapLeagueToDTO(league);
+                leagueDTOs.add(leagueDTO);
+                totalPlayers += leagueDTO.getTotalPlayers();
+                totalTeams += leagueDTO.getTotalTeams();
             }
-            MatchType leagueType = league.getLeagueType();
-            LeagueStatus status = league.getStatus();
-
-            int playersCount = (league.getPlayers() != null) ? league.getPlayers().size() : 0;
-            int teamsCount = (league.getTeams() != null) ? league.getTeams().size() : 0;
-
-            String winner = null;
-
-            if (status == LeagueStatus.FINISHED) {
-                winner = leagueService.getLeagueWinnerName(id, league.getLeagueType());
-            }
-
-            LeagueDTO dto = new LeagueDTO(id, name, year, leagueType, status, playersCount, teamsCount, winner);
-            leagueDTOs.add(dto);
         }
 
-        return SeasonDTO.builder()
+        return SeasonResponseDTO.builder()
                 .id(season.getId())
                 .year(season.getYear())
                 .status(season.getStatus())
@@ -243,6 +191,36 @@ public class SeasonServiceBean implements SeasonService {
                 .createdAt(season.getCreatedAt())
                 .startDate(season.getStartDate())
                 .endDate(season.getEndDate())
+                .build();
+    }
+
+    private LeagueResponseDTO mapLeagueToDTO(League league) {
+        String id = league.getId();
+        String name = league.getName();
+        Integer year = league.getSeason() != null ? league.getSeason().getYear() : null;
+        MatchType leagueType = league.getLeagueType();
+        LeagueStatus status = league.getStatus();
+
+        int playersCount = league.getPlayers() != null ? league.getPlayers().size() : 0;
+        int teamsCount = league.getTeams() != null ? league.getTeams().size() : 0;
+
+        String winner = null;
+        if (status == LeagueStatus.FINISHED) {
+            try {
+                winner = leagueService.getLeagueWinnerName(id, leagueType);
+            } catch (Exception e) {
+                log.warn("Získanie víťaza ligy {} zlyhalo: {}", id, e.getMessage());
+            }
+        }
+        return LeagueResponseDTO.builder()
+                .leagueId(id)
+                .leagueName(name)
+                .seasonYear(year)
+                .leagueType(leagueType)
+                .leagueStatus(status)
+                .totalPlayers(playersCount)
+                .totalTeams(teamsCount)
+                .winner(winner)
                 .build();
     }
 }
