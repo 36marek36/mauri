@@ -3,7 +3,7 @@ package com.example.mauri.controller;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.response.SeasonDTO;
+import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.service.SeasonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,23 +23,23 @@ public class SeasonController {
     private final SeasonService seasonService;
 
     @GetMapping("/")
-    public List<SeasonDTO> getSeasons() {
-        return seasonService.getSeasons();
+    public ResponseEntity<List<SeasonResponseDTO>> getSeasons() {
+        List<SeasonResponseDTO> seasons = seasonService.getSeasons();
+        if (seasons.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(seasons);
     }
 
-//    @GetMapping("/{seasonId}")
-//    public Season getSeasonById(@PathVariable String seasonId) {
-//        return seasonService.getSeason(seasonId);
-//    }
-
     @GetMapping("/{seasonId}/stats")
-    public SeasonDTO getSeasonStats(@PathVariable("seasonId") String seasonId) {
-        return seasonService.getSeasonStats(seasonId);
+    public ResponseEntity<SeasonResponseDTO> getSeasonStats(@PathVariable String seasonId) {
+        SeasonResponseDTO seasonStats = seasonService.getSeasonStats(seasonId);
+        return ResponseEntity.ok(seasonStats);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Season> createSeason(@RequestBody @Valid CreateSeasonDTO createSeasonDTO) {
-        Season season = seasonService.createSeason(createSeasonDTO);
+    public ResponseEntity<SeasonResponseDTO> createSeason(@Valid @RequestBody CreateSeasonDTO createSeasonDTO) {
+        SeasonResponseDTO season = seasonService.createSeason(createSeasonDTO);
         return new ResponseEntity<>(season, HttpStatus.CREATED);
     }
 
@@ -50,9 +50,12 @@ public class SeasonController {
     }
 
     @PatchMapping("/{seasonId}/addLeague")
-    public ResponseEntity<Season> addLeagueToSeason(@PathVariable String seasonId, @RequestBody AddLeagueToSeasonDTO addLeagueToSeasonDTO) {
-        Season season = seasonService.addLeagueToSeason(addLeagueToSeasonDTO.getLeagueId(), seasonId);
-        return new ResponseEntity<>(season, HttpStatus.OK);
+    public ResponseEntity<String> addLeagueToSeason(
+            @PathVariable String seasonId,
+            @RequestBody AddLeagueToSeasonDTO addLeagueToSeasonDTO) {
+
+        String message = seasonService.addLeagueToSeason(addLeagueToSeasonDTO.getLeagueId(), seasonId);
+        return ResponseEntity.ok(message);
     }
 
     @PatchMapping("/{seasonId}/start")

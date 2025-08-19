@@ -3,7 +3,7 @@ package com.example.mauri.controller;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.request.AssignPlayerDTO;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
-import com.example.mauri.model.dto.response.LeagueDTO;
+import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.service.LeagueService;
@@ -52,8 +52,8 @@ public class PlayerController {
         return ResponseEntity.ok(freePlayersDTO);
     }
     @GetMapping("/{playerId}/leagues")
-    public ResponseEntity<List<LeagueDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
-        List<LeagueDTO> leagues = leagueService.getLeaguesForPlayer(playerId);
+    public ResponseEntity<List<LeagueResponseDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
+        List<LeagueResponseDTO> leagues = leagueService.getLeaguesForPlayer(playerId);
         return ResponseEntity.ok(leagues);
     }
 

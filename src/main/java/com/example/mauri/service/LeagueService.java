@@ -3,7 +3,7 @@ package com.example.mauri.service;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.League;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
-import com.example.mauri.model.dto.response.LeagueDTO;
+import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import lombok.NonNull;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface LeagueService {
     League addParticipantsToLeague(String leagueId, List<String> participantIds);
     void removeParticipantFromLeague(String leagueId, String participantId);
     int progress(String leagueId);
-    List<LeagueDTO> getLeaguesForPlayer(String playerId);
+    List<LeagueResponseDTO> getLeaguesForPlayer(String playerId);
     String getLeagueWinnerName(String leagueId, MatchType leagueType);
     void finishLeague(String leagueId);
 }
