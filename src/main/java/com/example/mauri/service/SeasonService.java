@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface SeasonService {
     List<SeasonResponseDTO> getSeasons();
-//    Season getSeason(@NonNull String id);
     SeasonResponseDTO createSeason(CreateSeasonDTO createSeasonDTO);
     void deleteSeason(@NonNull String id);
     String addLeagueToSeason(@NonNull String leagueId, @NonNull String seasonId);

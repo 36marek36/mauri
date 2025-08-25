@@ -4,6 +4,7 @@ import com.example.mauri.model.League;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.request.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
+import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.service.*;
@@ -28,13 +29,15 @@ public class LeagueController {
     private final PlayerStatsService playerStatsService;
 
     @GetMapping("/")
-    public List<League> getLeagues() {
-        return leagueService.getAllLeagues();
+    public ResponseEntity<List<LeagueResponseDTO>> getAllLeagues() {
+        List<LeagueResponseDTO> leagues = leagueService.getAllLeagues();
+        return ResponseEntity.ok(leagues);
     }
 
-    @GetMapping("/{id}")
-    public League getLeagueById(@PathVariable("id") String id) {
-        return leagueService.getLeagueById(id);
+    @GetMapping("/{leagueId}")
+    public ResponseEntity<LeagueResponseDTO> getLeagueById(@PathVariable String leagueId) {
+        LeagueResponseDTO leagueDTO = leagueService.getLeagueById(leagueId);
+        return ResponseEntity.ok(leagueDTO);
     }
 
     @GetMapping("/{leagueId}/matches")
@@ -71,18 +74,18 @@ public class LeagueController {
 
 
     @PostMapping("/create")
-    ResponseEntity<League> createLeague(@RequestBody @Valid CreateLeagueDTO createLeagueDTO) {
-        League createdLeague = leagueService.createLeague(createLeagueDTO);
+    public ResponseEntity<LeagueResponseDTO> createLeague(@RequestBody @Valid CreateLeagueDTO createLeagueDTO) {
+        LeagueResponseDTO createdLeague = leagueService.createLeague(createLeagueDTO);
         return new ResponseEntity<>(createdLeague, HttpStatus.CREATED);
     }
 
     @PatchMapping("/{leagueId}/addParticipants")
-    public ResponseEntity<League> addParticipantsToLeague(
+    public ResponseEntity<String> addParticipantsToLeague(
             @PathVariable String leagueId,
             @RequestBody AddParticipantsToLeagueDTO dto) {
 
-        League updatedLeague = leagueService.addParticipantsToLeague(leagueId, dto.getParticipantIds());
-        return new ResponseEntity<>(updatedLeague, HttpStatus.OK);
+        String message = leagueService.addParticipantsToLeague(leagueId, dto.getParticipantIds());
+        return ResponseEntity.ok(message);
     }
 
     @PatchMapping("/{leagueId}/finish")

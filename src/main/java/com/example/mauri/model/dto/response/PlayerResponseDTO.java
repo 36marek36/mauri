@@ -15,6 +15,7 @@ public class PlayerResponseDTO {
     private String id;
     private String firstName;
     private String lastName;
+    private String name;
     private String email;
     private String phone;
     private LocalDate registrationDate;

@@ -157,6 +157,7 @@ public class PlayerServiceBean implements PlayerService {
                 .id(player.getId())
                 .firstName(player.getFirstName())
                 .lastName(player.getLastName())
+                .name(player.getFirstName() + " " + player.getLastName())
                 .email(player.getEmail())
                 .phone(player.getPhone())
                 .registrationDate(player.getRegistrationDate())
