@@ -6,6 +6,7 @@ import com.example.mauri.enums.MatchType;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
+import com.example.mauri.model.dto.request.ParticipantDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
@@ -17,7 +18,9 @@ import com.example.mauri.service.TeamStatsService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LeagueServiceBean implements LeagueService {
 
     private final LeagueRepository leagueRepository;
@@ -38,21 +42,35 @@ public class LeagueServiceBean implements LeagueService {
 
 
     @Override
-    public List<League> getAllLeagues() {
-        return leagueRepository.findAll().stream().toList();
+    public List<LeagueResponseDTO> getAllLeagues() {
+        List<League> leagues = leagueRepository.findAll();
+
+//        return leagues.stream()
+//                .map(this::mapLeagueToDTO)
+//                .toList();
+
+        List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
+        for (League league : leagues) {
+            LeagueResponseDTO dto = mapLeagueToDTO(league);
+            leagueDTOs.add(dto);
+        }
+
+        return leagueDTOs;
     }
 
     @Override
-    public League getLeagueById(@NonNull String id) {
-        return leagueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + id));
+    public LeagueResponseDTO getLeagueById(String leagueId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
+
+        return mapLeagueToDTO(league);
     }
 
     @Override
-    public League createLeague(CreateLeagueDTO createLeagueDTO) {
+    public LeagueResponseDTO createLeague(CreateLeagueDTO createLeagueDTO) {
         Season season = null;
 
-        if (createLeagueDTO.getSeasonId() != null && !createLeagueDTO.getSeasonId().isEmpty()) {
+        if (StringUtils.hasText(createLeagueDTO.getSeasonId())) {
             season = seasonRepository.findById(createLeagueDTO.getSeasonId())
                     .orElseThrow(() -> new ResourceNotFoundException("Season not found with id: " + createLeagueDTO.getSeasonId()));
         }
@@ -63,7 +81,9 @@ public class LeagueServiceBean implements LeagueService {
                 .name(createLeagueDTO.getName())
                 .season(season)
                 .build();
-        return leagueRepository.save(league);
+
+        league = leagueRepository.save(league);
+        return mapLeagueToDTO(league);
     }
 
     @Override
@@ -78,14 +98,12 @@ public class LeagueServiceBean implements LeagueService {
         league.getPlayers().clear();
         league.getTeams().clear();
 
-        leagueRepository.save(league);
-
-        leagueRepository.deleteById(id);
+        leagueRepository.delete(league);
     }
 
     @Override
     @Transactional
-    public League addParticipantsToLeague(String leagueId, List<String> participantIds) {
+    public String addParticipantsToLeague(String leagueId, List<String> participantIds) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
@@ -110,7 +128,8 @@ public class LeagueServiceBean implements LeagueService {
             }
         }
 
-        return leagueRepository.save(league);
+        leagueRepository.save(league);
+        return "Účastníci boli úspešne pridaní do ligy.";
     }
 
     @Override
@@ -177,22 +196,8 @@ public class LeagueServiceBean implements LeagueService {
         List<LeagueResponseDTO> result = new ArrayList<>();
 
         for (League league : leagues) {
-            String id = league.getId();
-            String name = league.getName();
-            Integer year = (league.getSeason() != null) ? league.getSeason().getYear() : null;
-            MatchType leagueType = league.getLeagueType();
-            LeagueStatus status = league.getStatus();
-
-            int totalPlayers = (league.getPlayers() != null) ? league.getPlayers().size() : 0;
-            int totalTeams = (league.getTeams() != null) ? league.getTeams().size() : 0;
-
-            String winner = null;
-
-            if (status == LeagueStatus.FINISHED) {
-                winner = getLeagueWinnerName(id, league.getLeagueType());
-            }
-
-            result.add(new LeagueResponseDTO(id, name, year, leagueType, status, totalPlayers, totalTeams,winner));
+            LeagueResponseDTO dto = mapLeagueToDTO(league);
+            result.add(dto);
         }
 
         return result;
@@ -238,5 +243,51 @@ public class LeagueServiceBean implements LeagueService {
             }
         }
         matchRepository.saveAll(matches);
+    }
+
+    @Override
+    public LeagueResponseDTO mapLeagueToDTO(League league) {
+        LeagueResponseDTO dto = new LeagueResponseDTO();
+
+        dto.setLeagueId(league.getId());
+        dto.setLeagueName(league.getName());
+        dto.setSeasonYear(league.getSeason() != null ? league.getSeason().getYear() : null);
+        dto.setLeagueType(league.getLeagueType());
+        dto.setLeagueStatus(league.getStatus());
+        dto.setWinner(null);
+
+        // Vytvorenie zoznamu mien hráčov (ak sú)
+        List<ParticipantDTO> players = new ArrayList<>();
+        if (league.getPlayers() != null) {
+            for (Player p : league.getPlayers()) {
+                String fullName = (p.getFirstName() != null ? p.getFirstName() + " " : "") + (p.getLastName() != null ? p.getLastName() : "");
+                players.add(new ParticipantDTO(p.getId(), fullName.trim()));
+            }
+        }
+        dto.setPlayers(players);
+
+        // Vytvorenie zoznamu mien tímov
+        List<ParticipantDTO> teams = new ArrayList<>();
+        if (league.getTeams() != null) {
+            for (Team t : league.getTeams()) {
+                String teamName = (t.getPlayer1() != null ? (t.getPlayer1().getFirstName() + " " + t.getPlayer1().getLastName()) : "")
+                        + " a " +
+                        (t.getPlayer2() != null ? (t.getPlayer2().getFirstName() + " " + t.getPlayer2().getLastName()) : "");
+                teams.add(new ParticipantDTO(t.getId(), teamName.trim()));
+            }
+        }
+        dto.setTeams(teams);
+
+        // Ak je liga skončená, skús získať víťaza
+        if (league.getStatus() == LeagueStatus.FINISHED) {
+            try {
+                String winnerName = getLeagueWinnerName(league.getId(), league.getLeagueType());
+                dto.setWinner(winnerName);
+            } catch (Exception e) {
+                log.warn("Získanie víťaza ligy {} zlyhalo: {}", league.getId(), e.getMessage());
+            }
+        }
+
+        return dto;
     }
 }

@@ -1,7 +1,6 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.LeagueStatus;
-import com.example.mauri.enums.MatchType;
 import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.League;
@@ -174,10 +173,10 @@ public class SeasonServiceBean implements SeasonService {
 
         if (includeLeagues && season.getLeagues() != null) {
             for (League league : season.getLeagues()) {
-                LeagueResponseDTO leagueDTO = mapLeagueToDTO(league);
+                LeagueResponseDTO leagueDTO = leagueService.mapLeagueToDTO(league);
                 leagueDTOs.add(leagueDTO);
-                totalPlayers += leagueDTO.getTotalPlayers();
-                totalTeams += leagueDTO.getTotalTeams();
+                totalPlayers += leagueDTO.getPlayers() != null ? leagueDTO.getPlayers().size() : 0;
+                totalTeams += leagueDTO.getTeams() != null ? leagueDTO.getTeams().size() : 0;
             }
         }
 
@@ -191,36 +190,6 @@ public class SeasonServiceBean implements SeasonService {
                 .createdAt(season.getCreatedAt())
                 .startDate(season.getStartDate())
                 .endDate(season.getEndDate())
-                .build();
-    }
-
-    private LeagueResponseDTO mapLeagueToDTO(League league) {
-        String id = league.getId();
-        String name = league.getName();
-        Integer year = league.getSeason() != null ? league.getSeason().getYear() : null;
-        MatchType leagueType = league.getLeagueType();
-        LeagueStatus status = league.getStatus();
-
-        int playersCount = league.getPlayers() != null ? league.getPlayers().size() : 0;
-        int teamsCount = league.getTeams() != null ? league.getTeams().size() : 0;
-
-        String winner = null;
-        if (status == LeagueStatus.FINISHED) {
-            try {
-                winner = leagueService.getLeagueWinnerName(id, leagueType);
-            } catch (Exception e) {
-                log.warn("Získanie víťaza ligy {} zlyhalo: {}", id, e.getMessage());
-            }
-        }
-        return LeagueResponseDTO.builder()
-                .leagueId(id)
-                .leagueName(name)
-                .seasonYear(year)
-                .leagueType(leagueType)
-                .leagueStatus(status)
-                .totalPlayers(playersCount)
-                .totalTeams(teamsCount)
-                .winner(winner)
                 .build();
     }
 }

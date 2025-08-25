@@ -9,14 +9,15 @@ import lombok.NonNull;
 import java.util.List;
 
 public interface LeagueService {
-    List<League> getAllLeagues();
-    League getLeagueById(@NonNull String id);
-    League createLeague(CreateLeagueDTO createLeagueDTO);
+    List<LeagueResponseDTO> getAllLeagues();
+    LeagueResponseDTO getLeagueById(String id);
+    LeagueResponseDTO createLeague(CreateLeagueDTO createLeagueDTO);
     void deleteLeagueById(@NonNull String id);
-    League addParticipantsToLeague(String leagueId, List<String> participantIds);
+    String addParticipantsToLeague(String leagueId, List<String> participantIds);
     void removeParticipantFromLeague(String leagueId, String participantId);
     int progress(String leagueId);
     List<LeagueResponseDTO> getLeaguesForPlayer(String playerId);
     String getLeagueWinnerName(String leagueId, MatchType leagueType);
     void finishLeague(String leagueId);
+    LeagueResponseDTO mapLeagueToDTO(League league);
 }
