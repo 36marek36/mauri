@@ -29,7 +29,7 @@ public class Season {
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("leagueType DESC, name ASC")
-    @JsonManagedReference
+//    @JsonManagedReference
     private List<League> leagues;
 
     @Enumerated(EnumType.STRING)

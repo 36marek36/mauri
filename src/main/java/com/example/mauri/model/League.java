@@ -28,7 +28,7 @@ public class League {
 
     @ManyToOne
     @JoinColumn(name = ("season_id"))
-    @JsonBackReference
+//    @JsonBackReference
     private Season season;
 
     @ManyToMany
