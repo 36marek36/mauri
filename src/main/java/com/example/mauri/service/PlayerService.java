@@ -9,6 +9,7 @@ import lombok.NonNull;
 import java.util.List;
 
 public interface PlayerService {
+
     List<PlayerResponseDTO> getActivePlayers();
 
     List<PlayerResponseDTO> getInactivePlayers();
