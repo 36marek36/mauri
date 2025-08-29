@@ -15,6 +15,7 @@ import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
 import com.example.mauri.service.PlayerStatsService;
 import com.example.mauri.service.TeamStatsService;
+import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -134,60 +135,61 @@ public class LeagueServiceBean implements LeagueService {
 
     @Override
     @Transactional
-    public void removeParticipantFromLeague(String leagueId, String participantId) {
+    public String removeParticipantFromLeague(String leagueId, String participantId) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
 
         MatchType type = league.getLeagueType();
         List<Match> affectedMatches;
+        String participantName;
 
         switch (type) {
             case SINGLES -> {
                 Player player = playerRepository.findById(participantId)
                         .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + participantId));
 
-                affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
+                if (!league.getPlayers().contains(player)) {
+                    throw new IllegalStateException("Player is not part of the league.");
+                }
 
+                affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
                 for (Match match : affectedMatches) {
                     MatchResult result = new MatchResult();
                     result.setScratchedId(participantId);
-
                     matchService.addResult(match.getId(), result);
                 }
 
                 league.getPlayers().remove(player);
+                participantName = ParticipantNameUtils.buildPlayerName(player);
             }
 
             case DOUBLES -> {
                 Team team = teamRepository.findById(participantId)
                         .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + participantId));
 
-                affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
+                if (!league.getTeams().contains(team)) {
+                    throw new IllegalStateException("Team is not part of the league.");
+                }
 
+                affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
                 for (Match match : affectedMatches) {
                     MatchResult result = new MatchResult();
                     result.setScratchedId(participantId);
-
                     matchService.addResult(match.getId(), result);
                 }
 
                 league.getTeams().remove(team);
+                participantName = ParticipantNameUtils.buildTeamName(team);
             }
 
             default -> throw new UnsupportedOperationException("Unsupported match type: " + type);
         }
 
         leagueRepository.save(league);
-    }
 
-    @Override
-    public int progress(String leagueId) {
-        int played = matchService.getPlayedMatchesForLeague(leagueId).size();
-        int total = matchService.getMatchesForLeague(leagueId).size();
-
-        if (total == 0) return 0;
-
-        return (int) ((double) played / total * 100);
+        return "Účastník '" + participantName + "' bol úspešne odstránený z ligy a "
+                + (affectedMatches.isEmpty() ? "nebol zapojený do žiadneho zápasu." :
+                "bol vyradený z " + affectedMatches.size() + " zápasov.");
     }
 
     @Override
@@ -201,22 +203,6 @@ public class LeagueServiceBean implements LeagueService {
         }
 
         return result;
-    }
-
-    @Override
-    public String getLeagueWinnerName(String leagueId, MatchType leagueType) {
-        if (leagueType == MatchType.SINGLES) {
-            List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(leagueId);
-            if (!stats.isEmpty()) {
-                return stats.getFirst().getPlayerName();
-            }
-        } else if (leagueType == MatchType.DOUBLES) {
-            List<TeamStatsDTO> stats = teamStatsService.getAllStatsForLeague(leagueId);
-            if (!stats.isEmpty()) {
-                return stats.getFirst().getTeamName();
-            }
-        }
-        return null;
     }
 
     @Override
@@ -244,6 +230,29 @@ public class LeagueServiceBean implements LeagueService {
         }
         matchRepository.saveAll(matches);
     }
+    private String getLeagueWinnerName(String leagueId, MatchType leagueType) {
+        if (leagueType == MatchType.SINGLES) {
+            List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(leagueId);
+            if (!stats.isEmpty()) {
+                return stats.getFirst().getPlayerName();
+            }
+        } else if (leagueType == MatchType.DOUBLES) {
+            List<TeamStatsDTO> stats = teamStatsService.getAllStatsForLeague(leagueId);
+            if (!stats.isEmpty()) {
+                return stats.getFirst().getTeamName();
+            }
+        }
+        return null;
+    }
+
+    private int progress(String leagueId) {
+        int played = matchService.getPlayedMatchesCount(leagueId);
+        int total = matchService.getTotalMatchesCount(leagueId);
+
+        if (total == 0) return 0;
+
+        return (int) ((double) played / total * 100);
+    }
 
     @Override
     public LeagueResponseDTO mapLeagueToDTO(League league) {
@@ -260,8 +269,8 @@ public class LeagueServiceBean implements LeagueService {
         List<ParticipantDTO> players = new ArrayList<>();
         if (league.getPlayers() != null) {
             for (Player p : league.getPlayers()) {
-                String fullName = (p.getFirstName() != null ? p.getFirstName() + " " : "") + (p.getLastName() != null ? p.getLastName() : "");
-                players.add(new ParticipantDTO(p.getId(), fullName.trim()));
+                String playerName = ParticipantNameUtils.buildPlayerName(p);
+                players.add(new ParticipantDTO(p.getId(), playerName));
             }
         }
         dto.setPlayers(players);
@@ -270,10 +279,8 @@ public class LeagueServiceBean implements LeagueService {
         List<ParticipantDTO> teams = new ArrayList<>();
         if (league.getTeams() != null) {
             for (Team t : league.getTeams()) {
-                String teamName = (t.getPlayer1() != null ? (t.getPlayer1().getFirstName() + " " + t.getPlayer1().getLastName()) : "")
-                        + " a " +
-                        (t.getPlayer2() != null ? (t.getPlayer2().getFirstName() + " " + t.getPlayer2().getLastName()) : "");
-                teams.add(new ParticipantDTO(t.getId(), teamName.trim()));
+                String teamName = ParticipantNameUtils.buildTeamName(t);
+                teams.add(new ParticipantDTO(t.getId(), teamName));
             }
         }
         dto.setTeams(teams);
@@ -287,6 +294,10 @@ public class LeagueServiceBean implements LeagueService {
                 log.warn("Získanie víťaza ligy {} zlyhalo: {}", league.getId(), e.getMessage());
             }
         }
+
+        // Progress
+        int progress = progress(league.getId());
+        dto.setLeagueProgress(progress);
 
         return dto;
     }

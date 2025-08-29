@@ -4,6 +4,7 @@ import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.create.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
+import com.example.mauri.model.dto.response.MatchResponseDTO;
 import com.example.mauri.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,18 +25,20 @@ public class MatchController {
 
 
     @GetMapping("/")
-    List<Match> getMatches() {
-        return matchService.getMatches();
+    public ResponseEntity<List<MatchResponseDTO>> getAllMatches() {
+        List<MatchResponseDTO> matches = matchService.getMatches();
+        return ResponseEntity.ok(matches);
     }
 
     @GetMapping("/{id}")
-    Match getMatch(@PathVariable String id) {
-        return matchService.getMatch(id);
+    public ResponseEntity<MatchResponseDTO> getMatch(@PathVariable String id) {
+        MatchResponseDTO matchDTO = matchService.getMatch(id);
+        return ResponseEntity.ok(matchDTO);
     }
 
     @GetMapping("/{leagueId}/grouped-by-round")
-    public ResponseEntity<Map<Integer, List<Match>>> getMatchesGroupedByRound(@PathVariable String leagueId) {
-        Map<Integer, List<Match>> groupedMatches = matchService.getMatchesGroupedByRound(leagueId);
+    public ResponseEntity<Map<Integer, List<MatchResponseDTO>>> getMatchesGroupedByRound(@PathVariable String leagueId) {
+        Map<Integer, List<MatchResponseDTO>> groupedMatches = matchService.getMatchesGroupedByRound(leagueId);
         return ResponseEntity.ok(groupedMatches);
     }
 
@@ -58,8 +61,8 @@ public class MatchController {
     }
 
     @PostMapping("/create")
-    ResponseEntity<Match> createMatch(@RequestBody CreateMatchDTO createMatchDTO) {
-        Match created = matchService.createMatch(createMatchDTO);
+    public ResponseEntity<MatchResponseDTO> createMatch(@RequestBody CreateMatchDTO createMatchDTO) {
+        MatchResponseDTO created = matchService.createMatch(createMatchDTO);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 

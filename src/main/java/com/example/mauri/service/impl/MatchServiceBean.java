@@ -7,11 +7,11 @@ import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.create.CreateMatchDTO;
+import com.example.mauri.model.dto.request.ParticipantDTO;
+import com.example.mauri.model.dto.response.MatchResponseDTO;
 import com.example.mauri.repository.*;
-import com.example.mauri.service.MatchResultService;
-import com.example.mauri.service.MatchService;
-import com.example.mauri.service.RoundRobinPlayersService;
-import com.example.mauri.service.RoundRobinTeamsService;
+import com.example.mauri.service.*;
+import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -34,18 +34,22 @@ public class MatchServiceBean implements MatchService {
     private final MatchResultService matchResultService;
 
     @Override
-    public List<Match> getMatches() {
-        return matchRepository.findAll().stream().toList();
+    public List<MatchResponseDTO> getMatches() {
+        List<Match> matches = matchRepository.findAll();
+        return matches.stream()
+                .map(this::mapMatchToDTO)
+                .toList();
     }
 
     @Override
-    public Match getMatch(@NonNull String id) {
-        return matchRepository.findById(id)
+    public MatchResponseDTO getMatch(@NonNull String id) {
+        Match match = matchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + id));
+        return mapMatchToDTO(match);
     }
 
     @Override
-    public Match createMatch(CreateMatchDTO createMatchDTO) {
+    public MatchResponseDTO createMatch(CreateMatchDTO createMatchDTO) {
         Match match = Match.builder()
                 .id(UUID.randomUUID().toString())
                 .matchType(createMatchDTO.getMatchType())
@@ -67,7 +71,8 @@ public class MatchServiceBean implements MatchService {
             }
             default -> throw new IllegalArgumentException("Unsupported MatchType: " + createMatchDTO.getMatchType());
         }
-        return matchRepository.save(match);
+        match = matchRepository.save(match);
+        return mapMatchToDTO(match);
     }
 
     @Override
@@ -124,20 +129,22 @@ public class MatchServiceBean implements MatchService {
     }
 
     @Override
-    public List<Match> getMatchesForLeague(String leagueId) {
-        return matchRepository.findByLeagueId(leagueId);
-    }
-
-    @Override
-    public Map<Integer, List<Match>> getMatchesGroupedByRound(String leagueId) {
+    public Map<Integer, List<MatchResponseDTO>> getMatchesGroupedByRound(String leagueId) {
         List<Match> matches = matchRepository.findByLeagueId(leagueId);
+
         return matches.stream()
-                .collect(Collectors.groupingBy(Match::getRoundNumber));
+                .map(this::mapMatchToDTO) // najprv mapuješ na DTO
+                .collect(Collectors.groupingBy(MatchResponseDTO::getRoundNumber)); // potom group-by
     }
 
     @Override
-    public List<Match> getPlayedMatchesForLeague(String leagueId) {
-        return matchRepository.findAllPlayedLeagueMatches(leagueId);
+    public int getTotalMatchesCount(String leagueId) {
+        return matchRepository.countByLeagueId(leagueId);
+    }
+
+    @Override
+    public int getPlayedMatchesCount(String leagueId) {
+        return matchRepository.countPlayedMatches(leagueId);
     }
 
     @Transactional
@@ -181,5 +188,46 @@ public class MatchServiceBean implements MatchService {
             leagueIds.add(league.getId());
         }
         return leagueIds;
+    }
+
+    private MatchResponseDTO mapMatchToDTO(Match match) {
+        ParticipantDTO homePlayer = null;
+        ParticipantDTO awayPlayer = null;
+        ParticipantDTO homeTeam = null;
+        ParticipantDTO awayTeam = null;
+        switch (match.getMatchType()) {
+            case SINGLES -> {
+                if (match.getHomePlayer() != null) {
+                    String name = ParticipantNameUtils.buildPlayerName(match.getHomePlayer());
+                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name);
+                }
+                if (match.getAwayPlayer() != null) {
+                    String name = ParticipantNameUtils.buildPlayerName(match.getAwayPlayer());
+                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name);
+                }
+            }
+            case DOUBLES -> {
+                if (match.getHomeTeam() != null) {
+                    String teamName = ParticipantNameUtils.buildTeamName(match.getHomeTeam());
+                    homeTeam = new ParticipantDTO(match.getHomeTeam().getId(), teamName);
+                }
+                if (match.getAwayTeam() != null) {
+                    String teamName = ParticipantNameUtils.buildTeamName(match.getAwayTeam());
+                    awayTeam = new ParticipantDTO(match.getAwayTeam().getId(), teamName);
+                }
+            }
+        }
+        return MatchResponseDTO.builder()
+                .id(match.getId())
+                .matchType(match.getMatchType())
+                .leagueId(match.getLeagueId())
+                .result(match.getResult())
+                .roundNumber(match.getRoundNumber())
+                .status(match.getStatus())
+                .homePlayer(homePlayer)
+                .awayPlayer(awayPlayer)
+                .homeTeam(homeTeam)
+                .awayTeam(awayTeam)
+                .build();
     }
 }
