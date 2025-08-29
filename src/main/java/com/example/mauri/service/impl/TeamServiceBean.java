@@ -10,6 +10,7 @@ import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.repository.TeamRepository;
 import com.example.mauri.service.TeamService;
+import com.example.mauri.util.ParticipantNameUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -110,19 +111,16 @@ public class TeamServiceBean implements TeamService {
 
         ParticipantDTO player1 = null;
         if (team.getPlayer1() != null) {
-            String name1 = buildFullName(team.getPlayer1());
+            String name1 = ParticipantNameUtils.buildPlayerName(team.getPlayer1());
             player1 = new ParticipantDTO(team.getPlayer1().getId(), name1);
         }
 
         ParticipantDTO player2 = null;
         if (team.getPlayer2() != null) {
-            String name2 = buildFullName(team.getPlayer2());
+            String name2 = ParticipantNameUtils.buildPlayerName(team.getPlayer2());
             player2 = new ParticipantDTO(team.getPlayer2().getId(), name2);
         }
-
-        String teamName = player1 != null && player2 != null
-                ? player1.getName() + " a " + player2.getName()
-                : "Neznámy tím";
+        String teamName = ParticipantNameUtils.buildTeamName(team);
 
         return TeamResponseDTO.builder()
                 .id(team.getId())
@@ -134,11 +132,4 @@ public class TeamServiceBean implements TeamService {
                 .registrationDate(team.getCreatedAt())
                 .build();
     }
-
-    private String buildFullName(Player player) {
-        String first = player.getFirstName() != null ? player.getFirstName() : "";
-        String last = player.getLastName() != null ? player.getLastName() : "";
-        return (first + " " + last).trim();
-    }
-
 }

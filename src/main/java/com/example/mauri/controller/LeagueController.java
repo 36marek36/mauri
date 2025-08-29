@@ -1,7 +1,6 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.League;
-import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.request.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
@@ -24,7 +23,6 @@ import java.util.List;
 public class LeagueController {
 
     private final LeagueService leagueService;
-    private final MatchService matchService;
     private final TeamStatsService teamStatsService;
     private final PlayerStatsService playerStatsService;
 
@@ -38,12 +36,6 @@ public class LeagueController {
     public ResponseEntity<LeagueResponseDTO> getLeagueById(@PathVariable String leagueId) {
         LeagueResponseDTO leagueDTO = leagueService.getLeagueById(leagueId);
         return ResponseEntity.ok(leagueDTO);
-    }
-
-    @GetMapping("/{leagueId}/matches")
-    public ResponseEntity<List<Match>> getMatchesByLeagueId(@PathVariable("leagueId") String leagueId) {
-        List<Match> matches = matchService.getMatchesForLeague(leagueId);
-        return new ResponseEntity<>(matches, HttpStatus.OK);
     }
 
     @GetMapping("/{leagueId}/teams/stats")
@@ -66,11 +58,11 @@ public class LeagueController {
         return ResponseEntity.ok(playerStatsService.getPlayerStats(leagueId, playerId));
     }
 
-    @GetMapping("/{leagueId}/progress")
-    public ResponseEntity<Integer> getLeagueProgress(@PathVariable String leagueId) {
-        int progress = leagueService.progress(leagueId);
-        return ResponseEntity.ok(progress);
-    }
+//    @GetMapping("/{leagueId}/progress")
+//    public ResponseEntity<Integer> getLeagueProgress(@PathVariable String leagueId) {
+//        int progress = leagueService.progress(leagueId);
+//        return ResponseEntity.ok(progress);
+//    }
 
 
     @PostMapping("/create")
@@ -106,12 +98,12 @@ public class LeagueController {
     }
 
     @DeleteMapping("/{leagueId}/participants/{participantId}")
-    public ResponseEntity<Void> removeParticipantFromLeague(
+    public ResponseEntity<String> removeParticipantFromLeague(
             @PathVariable String leagueId,
             @PathVariable String participantId) {
 
-        leagueService.removeParticipantFromLeague(leagueId, participantId);
-        return ResponseEntity.noContent().build();
+        String message = leagueService.removeParticipantFromLeague(leagueId, participantId);
+        return ResponseEntity.ok(message);
     }
 
 
