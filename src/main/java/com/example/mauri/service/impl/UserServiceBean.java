@@ -1,12 +1,13 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.exception.ResourceNotFoundException;
+import com.example.mauri.mapper.UserMapper;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
-import com.example.mauri.repository.PlayerRepository;
+import com.example.mauri.model.dto.response.UserResponseDTO;
 import com.example.mauri.repository.UserRepository;
+import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -20,49 +21,43 @@ import java.util.List;
 @Slf4j
 public class UserServiceBean implements UserService {
     private final UserRepository userRepository;
-    private final PlayerRepository playerRepository;
+    private final PlayerService playerService;
+    private final UserMapper userMapper;
 
 
     @Override
-    public List<User> getUsers() {
-        return userRepository.findAll().stream().toList();
+    public List<UserResponseDTO> getUsers(){
+        return userRepository.findAll().stream()
+                .map(userMapper::mapUserToDTO)
+                .toList();
     }
 
     @Override
-    public User getAuthenticatedUser() {
+    public UserResponseDTO getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         log.info("username {}", username);
 
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
-
-    @Transactional
-    @Override
-    public void assignPlayerToUser(String playerId, String userId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
-
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (user.getPlayer()!=null) {
-            throw new IllegalStateException("User already has a player assigned");
-        }
-
-        user.setPlayer(player);
-        userRepository.save(user);
+        return userMapper.mapUserToDTO(user);
     }
 
     @Override
     public void deleteUser(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (user.getPlayer()!=null) {
+        Player player = user.getPlayer();
+        if (player!=null) {
+            // najprv odpojiť hráča od používateľa
             user.setPlayer(null);
             userRepository.save(user);
+
+            // zavolať bezpečné zmazanie/deaktiváciu hráča
+            playerService.deletePlayer(player.getId());
         }
         userRepository.deleteById(userId);
     }
+
 }

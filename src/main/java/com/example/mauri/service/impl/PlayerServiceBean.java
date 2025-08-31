@@ -69,6 +69,30 @@ public class PlayerServiceBean implements PlayerService {
         return mapToResponseDTO(saved);
     }
 
+    @Override
+    public void assignPlayerToUser(String playerId, String userId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Player not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getPlayer() != null) {
+            throw new IllegalStateException("User already has a player assigned");
+        }
+
+        user.setPlayer(player);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public PlayerResponseDTO createAndAssignPlayerToUser(CreatePlayerDTO createPlayerDTO, String userId) {
+        PlayerResponseDTO created = createPlayer(createPlayerDTO);
+        assignPlayerToUser(created.getId(), userId);
+        return created;
+    }
+
     @Transactional
     @Override
     public String deletePlayer(@NonNull String id) {

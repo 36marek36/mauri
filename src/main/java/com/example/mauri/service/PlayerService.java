@@ -20,6 +20,10 @@ public interface PlayerService {
 
     PlayerResponseDTO createPlayer(CreatePlayerDTO createPlayerDTO);
 
+    void assignPlayerToUser(String playerId, String userId);
+
+    PlayerResponseDTO createAndAssignPlayerToUser(CreatePlayerDTO createPlayerDTO, String userId);
+
     String deletePlayer(@NonNull String id);
 
     List<PlayerResponseDTO> getActivePlayersNotInAnyActiveLeague();

@@ -1,5 +1,6 @@
 package com.example.mauri.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -35,6 +36,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleValidationErrors(MethodArgumentNotValidException ex) {
         FieldError fieldError = ex.getBindingResult().getFieldError();
         String errorMessage = (fieldError != null) ? fieldError.getDefaultMessage() : "Validation failed";
+        return buildException(HttpStatus.BAD_REQUEST, errorMessage);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex) {
+        String errorMessage = "Validation failed";
+
+        if (!ex.getConstraintViolations().isEmpty()) {
+            // Vyberieme prvú chybu z množiny
+            errorMessage = ex.getConstraintViolations().iterator().next().getMessage();
+        }
+
         return buildException(HttpStatus.BAD_REQUEST, errorMessage);
     }
 

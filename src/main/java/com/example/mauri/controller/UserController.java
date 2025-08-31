@@ -1,7 +1,6 @@
 package com.example.mauri.controller;
 
-import com.example.mauri.model.User;
-import com.example.mauri.model.dto.response.UserDTO;
+import com.example.mauri.model.dto.response.UserResponseDTO;
 import com.example.mauri.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,14 +18,14 @@ public class UserController {
 
 
     @GetMapping("/")
-    List<User> getAllUsers() {
-        return userService.getUsers();
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        List<UserResponseDTO> users = userService.getUsers();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDTO> getCurrentUser() {
-        User user = userService.getAuthenticatedUser();
-        return ResponseEntity.ok(new UserDTO(user));
+    public ResponseEntity<UserResponseDTO> getCurrentUser() {
+        return ResponseEntity.ok(userService.getAuthenticatedUser());
     }
 
     @DeleteMapping("/{id}")

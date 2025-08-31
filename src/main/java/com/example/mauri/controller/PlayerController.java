@@ -1,10 +1,10 @@
 package com.example.mauri.controller;
 
-import com.example.mauri.model.User;
 import com.example.mauri.model.dto.request.AssignPlayerDTO;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
+import com.example.mauri.model.dto.response.UserResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.PlayerService;
@@ -71,14 +71,13 @@ public class PlayerController {
 
     @PostMapping("/user/createPlayer")
     public ResponseEntity<PlayerResponseDTO> createAndAssignPlayerForCurrentUser(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
-        User user = userService.getAuthenticatedUser();
+        UserResponseDTO user = userService.getAuthenticatedUser();
 
-        if (user.getPlayer() != null) {
+        if (user.getPlayerId() != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
-        PlayerResponseDTO player = playerService.createPlayer(createPlayerDTO);
-        userService.assignPlayerToUser(player.getId(), user.getId());
+        PlayerResponseDTO player = playerService.createAndAssignPlayerToUser(createPlayerDTO,user.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(player);
     }
@@ -86,8 +85,8 @@ public class PlayerController {
     @PatchMapping("/assignToUser/{userId}")
     public ResponseEntity<String> assignPlayerToUser(@PathVariable String userId,
                                                      @RequestBody AssignPlayerDTO assignPlayer) {
-        userService.assignPlayerToUser(assignPlayer.getPlayerId(), userId);
-        return ResponseEntity.status(HttpStatus.OK).body("Player assigned to user");
+        playerService.assignPlayerToUser(assignPlayer.getPlayerId(), userId);
+        return ResponseEntity.ok("Hráč bol úspešne priradený.");
     }
 
     @PatchMapping("/{id}")

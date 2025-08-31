@@ -78,10 +78,10 @@ public class AuthServiceBean implements AuthService {
 
     public void changePassword(String currentUsername, ChangePasswordDTO request) {
         var user = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new InvalidOldPasswordException("Old password doesn't match");
+            throw new InvalidOldPasswordException("Nesprávne staré heslo!");
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
