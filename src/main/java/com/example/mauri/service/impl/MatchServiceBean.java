@@ -15,6 +15,7 @@ import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MatchServiceBean implements MatchService {
 
     private final MatchRepository matchRepository;
@@ -96,36 +98,47 @@ public class MatchServiceBean implements MatchService {
 
     @Override
     @Transactional
-    public List<Match> generateMatchesForLeague(String leagueId) {
+    public List<MatchResponseDTO> generateMatchesForLeague(String leagueId) {
+        log.info("Začiatok generovania zápasov pre ligu s ID: {}", leagueId);
+
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("No League found with id: " + leagueId));
-
-        MatchType type = league.getLeagueType();
-        List<Match> matches;
 
         if (matchRepository.existsByLeagueId(leagueId)) {
             throw new IllegalStateException("Zápasy pre ligu '" + league.getName() + "' už existujú!");
         }
 
-        if (type == MatchType.SINGLES) {
-            List<Player> players = league.getPlayers();
-            if (players.size() < 2) {
-                throw new IllegalStateException("Liga '" + league.getName() + "' musí obsahovať aspoň 2 hráčov.");
+        MatchType type = league.getLeagueType();
+        List<Match> matches;
+
+        switch (type) {
+            case SINGLES -> {
+                List<Player> players = league.getPlayers();
+                if (players.size() < 2) {
+                    throw new IllegalStateException("Liga '" + league.getName() + "' musí obsahovať aspoň 2 hráčov.");
+                }
+                matches = roundRobinPlayersService.generateMatches(new ArrayList<>(players), leagueId, type);
             }
-            matches = roundRobinPlayersService.generateMatches(new ArrayList<>(players), leagueId, type);
-        } else if (type == MatchType.DOUBLES) {
-            List<Team> teams = league.getTeams();
-            if (teams.size() < 2) {
-                throw new IllegalStateException("Liga '" + league.getName() + "' musí obsahovať aspoň 2 tímy.");
+            case DOUBLES -> {
+                List<Team> teams = league.getTeams();
+                if (teams.size() < 2) {
+                    throw new IllegalStateException("Liga '" + league.getName() + "' musí obsahovať aspoň 2 tímy.");
+                }
+                matches = roundRobinTeamsService.generateMatches(new ArrayList<>(teams), leagueId, type);
             }
-            matches = roundRobinTeamsService.generateMatches(new ArrayList<>(teams), leagueId, type);
-        } else {
-            throw new UnsupportedOperationException("Unsupported match type: " + type);
+            default -> throw new UnsupportedOperationException("Nepodporovaný typ zápasu: " + type);
         }
 
-        league.setStatus(LeagueStatus.ACTIVE);
         matchRepository.saveAll(matches);
-        return matches;
+
+        league.setStatus(LeagueStatus.ACTIVE);
+        leagueRepository.save(league);
+
+        log.info("Úspešne vygenerovaných {} zápasov pre ligu '{}'", matches.size(), league.getName());
+
+        return matches.stream()
+                .map(this::mapMatchToDTO)
+                .toList();
     }
 
     @Override
@@ -159,21 +172,27 @@ public class MatchServiceBean implements MatchService {
     }
 
     @Override
-    public List<Match> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status) {
+    public List<MatchResponseDTO> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status) {
         List<String> leagueIds = getActiveSeasonLeagueIds();
         if (leagueIds.isEmpty()) {
             return new ArrayList<>();
         }
-        return matchRepository.findByPlayerStatusAndLeagueIds(playerId, status, leagueIds);
+        List<Match> matches = matchRepository.findByPlayerStatusAndLeagueIds(playerId, status, leagueIds);
+        return matches.stream()
+                .map(this::mapMatchToDTO)
+                .toList();
     }
 
     @Override
-    public List<Match> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status) {
+    public List<MatchResponseDTO> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status) {
         List<String> leagueIds = getActiveSeasonLeagueIds();
         if (leagueIds.isEmpty()) {
             return new ArrayList<>();
         }
-        return matchRepository.findByTeamStatusAndLeagueIds(teamId, status, leagueIds);
+        List<Match> matches = matchRepository.findByTeamStatusAndLeagueIds(teamId, status, leagueIds);
+        return matches.stream()
+                .map(this::mapMatchToDTO)
+                .toList();
     }
 
     private List<String> getActiveSeasonLeagueIds() {

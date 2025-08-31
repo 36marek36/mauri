@@ -17,12 +17,11 @@ public interface MatchService {
     MatchResponseDTO createMatch(CreateMatchDTO createMatchDTO);
     void deleteMatch(@NonNull String id);
     Match addResult (String matchId, MatchResult matchResult);
-    List<Match> generateMatchesForLeague(String leagueId);
+    List<MatchResponseDTO> generateMatchesForLeague(String leagueId);
     Map<Integer, List<MatchResponseDTO>> getMatchesGroupedByRound(String leagueId);
     int getTotalMatchesCount(String leagueId);
     int getPlayedMatchesCount(String leagueId);
-//    List<Match> getPlayedMatchesForLeague(String leagueId);
     void cancelResult(String matchId);
-    List<Match> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status);
-    List<Match> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status);
+    List<MatchResponseDTO> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status);
+    List<MatchResponseDTO> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status);
 }

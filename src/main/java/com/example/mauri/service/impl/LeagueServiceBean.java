@@ -233,14 +233,16 @@ public class LeagueServiceBean implements LeagueService {
     private String getLeagueWinnerName(String leagueId, MatchType leagueType) {
         if (leagueType == MatchType.SINGLES) {
             List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(leagueId);
-            if (!stats.isEmpty()) {
-                return stats.getFirst().getPlayerName();
+            if (stats.isEmpty() || stats.stream().allMatch(s -> s.getMatches() == 0)) {
+                return "Liga nemá víťaza, žiadny zápas nebol odohraný.";
             }
+            return stats.getFirst().getPlayerName();
         } else if (leagueType == MatchType.DOUBLES) {
             List<TeamStatsDTO> stats = teamStatsService.getAllStatsForLeague(leagueId);
-            if (!stats.isEmpty()) {
-                return stats.getFirst().getTeamName();
+            if (stats.isEmpty() || stats.stream().allMatch(s -> s.getMatches() == 0)) {
+                return "Liga nemá víťaza, žiadny zápas nebol odohraný.";
             }
+            return stats.getFirst().getTeamName();
         }
         return null;
     }
