@@ -16,6 +16,8 @@ public interface MatchRepository extends JpaRepository<Match, String> {
 
     List<Match> findByLeagueId(String leagueId);
 
+    List<Match> findByLeagueIdAndStatus(String leagueId, MatchStatus status);
+
     @Query("SELECT m FROM matches m WHERE m.leagueId = :leagueId AND " +
             "(m.homePlayer.id = :playerId OR m.awayPlayer.id = :playerId)")
     List<Match> findByLeagueIdAndPlayer(@Param("leagueId") String leagueId,
@@ -25,9 +27,6 @@ public interface MatchRepository extends JpaRepository<Match, String> {
             "(m.homeTeam.id = :teamId OR m.awayTeam.id = :teamId)")
     List<Match> findByLeagueIdAndTeam(@Param("leagueId") String leagueId,
                                       @Param("teamId") String teamId);
-
-//    @Query("select m from matches m where m.leagueId =:leagueId and m.result is not null")
-//    List<Match> findAllPlayedLeagueMatches(@Param("leagueId") String leagueId);
 
     @Query("select m from matches m " +
             "where (m.homeTeam.id = :teamId or m.awayTeam.id = :teamId) " +

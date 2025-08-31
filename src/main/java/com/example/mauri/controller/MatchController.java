@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -43,20 +42,20 @@ public class MatchController {
     }
 
     @GetMapping("/player/{playerId}/status/{status}")
-    public ResponseEntity<List<Match>> getMatchesByPlayerInActiveSeason(
+    public ResponseEntity<List<MatchResponseDTO>> getPlayerMatchesInActiveSeason(
             @PathVariable String playerId,
             @PathVariable MatchStatus status) {
 
-        List<Match> matches = matchService.getMatchesForPlayerInActiveSeason(playerId, status);
+        List<MatchResponseDTO> matches = matchService.getMatchesForPlayerInActiveSeason(playerId, status);
         return ResponseEntity.ok(matches);
     }
 
     @GetMapping("/team/{teamId}/status/{status}")
-    public ResponseEntity<List<Match>> getMatchesByTeamInActiveSeason(
+    public ResponseEntity<List<MatchResponseDTO>> getTeamMatchesInActiveSeason(
             @PathVariable String teamId,
             @PathVariable MatchStatus status) {
 
-        List<Match> matches = matchService.getMatchesForTeamInActiveSeason(teamId, status);
+        List<MatchResponseDTO> matches = matchService.getMatchesForTeamInActiveSeason(teamId, status);
         return ResponseEntity.ok(matches);
     }
 
@@ -79,14 +78,20 @@ public class MatchController {
     }
 
     @PatchMapping("/{leagueId}/generate-matches")
-    ResponseEntity<?> generateMatch(@PathVariable String leagueId) {
-        try {
-            List<Match> matches = matchService.generateMatchesForLeague(leagueId);
-            return new ResponseEntity<>(matches, HttpStatus.OK);
-        }catch (IllegalStateException e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+    public ResponseEntity<List<MatchResponseDTO>> generateMatch(@PathVariable String leagueId) {
+        List<MatchResponseDTO> matches = matchService.generateMatchesForLeague(leagueId);
+        return ResponseEntity.ok(matches);
     }
+
+//    @PatchMapping("/{leagueId}/generate-matches")
+//    ResponseEntity<?> generateMatch(@PathVariable String leagueId) {
+//        try {
+//            List<Match> matches = matchService.generateMatchesForLeague(leagueId);
+//            return new ResponseEntity<>(matches, HttpStatus.OK);
+//        }catch (IllegalStateException e){
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+//        }
+//    }
 
     @PatchMapping("/{matchId}/cancel-result")
     ResponseEntity<?> cancelMatchResult(@PathVariable String matchId) {
