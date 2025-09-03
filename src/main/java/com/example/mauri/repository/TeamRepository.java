@@ -16,6 +16,8 @@ public interface TeamRepository extends JpaRepository<Team, String> {
 
     boolean existsByPlayer1IdOrPlayer2Id(String player1Id, String player2Id);
 
+    List<Team> findByPlayer1IdOrPlayer2Id(String player1Id, String player2Id);
+
     List<Team> findByActiveTrue();
 
     List<Team> findByActiveFalse();

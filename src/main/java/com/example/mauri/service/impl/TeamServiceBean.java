@@ -107,6 +107,14 @@ public class TeamServiceBean implements TeamService {
         teamRepository.save(team);
     }
 
+    @Override
+    public void deactivateTeamsWithPlayer(@NonNull String playerId) {
+        List<Team> teams = teamRepository.findByPlayer1IdOrPlayer2Id(playerId, playerId);
+        for (Team team : teams) {
+            deactivateTeam(team.getId());
+        }
+    }
+
     private TeamResponseDTO mapToResponseDTO (Team team){
 
         ParticipantDTO player1 = null;

@@ -24,4 +24,6 @@ public interface TeamService {
 
     void deactivateTeam(@NonNull String id);
 
+    void deactivateTeamsWithPlayer(@NonNull String playerId);
+
 }
