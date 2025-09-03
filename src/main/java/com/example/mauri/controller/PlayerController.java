@@ -51,6 +51,7 @@ public class PlayerController {
         List<PlayerResponseDTO> freePlayersDTO = playerService.getActivePlayersNotInAnyActiveLeague();
         return ResponseEntity.ok(freePlayersDTO);
     }
+
     @GetMapping("/{playerId}/leagues")
     public ResponseEntity<List<LeagueResponseDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
         List<LeagueResponseDTO> leagues = leagueService.getLeaguesForPlayer(playerId);
@@ -72,13 +73,7 @@ public class PlayerController {
     @PostMapping("/user/createPlayer")
     public ResponseEntity<PlayerResponseDTO> createAndAssignPlayerForCurrentUser(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
         UserResponseDTO user = userService.getAuthenticatedUser();
-
-        if (user.getPlayerId() != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
-
-        PlayerResponseDTO player = playerService.createAndAssignPlayerToUser(createPlayerDTO,user.getId());
-
+        PlayerResponseDTO player = playerService.createAndAssignPlayerToUser(createPlayerDTO, user.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(player);
     }
 
@@ -91,16 +86,16 @@ public class PlayerController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<PlayerResponseDTO> updatePlayer(@PathVariable String id,
-                                                          @RequestBody UpdatePlayerDTO updatedPlayer) {
+                                                          @Valid @RequestBody UpdatePlayerDTO updatedPlayer) {
         PlayerResponseDTO updated = playerService.updatePlayer(id, updatedPlayer);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String,String>> deletePlayer(@PathVariable String id) {
+    public ResponseEntity<Map<String, String>> deletePlayer(@PathVariable String id) {
         String status = playerService.deletePlayer(id);
 
-        Map<String,String> response = Map.of("status", status);
+        Map<String, String> response = Map.of("status", status);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

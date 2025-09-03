@@ -8,6 +8,7 @@ import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.PlayerService;
+import com.example.mauri.service.TeamService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class PlayerServiceBean implements PlayerService {
     private final TeamRepository teamRepository;
     private final LeagueRepository leagueRepository;
     private final MatchRepository matchRepository;
+    private final TeamService teamService;
 
 
     @Override
@@ -78,7 +80,7 @@ public class PlayerServiceBean implements PlayerService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getPlayer() != null) {
-            throw new IllegalStateException("User already has a player assigned");
+            throw new IllegalStateException("Používatel " + user.getUsername() + " už má hráča priradeného!");
         }
 
         user.setPlayer(player);
@@ -106,7 +108,10 @@ public class PlayerServiceBean implements PlayerService {
 
         if (isInTeam || isInLeague || isInMatch) {
             deactivatePlayer(id);
-            if (isInTeam) return "deactivated_player_in_team";
+            if (isInTeam) {
+                teamService.deactivateTeamsWithPlayer(id);
+                return "deactivated_player_in_team";
+            }
             return "deactivated";
         } else {
             playerRepository.delete(player);
