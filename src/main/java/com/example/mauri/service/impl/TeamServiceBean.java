@@ -120,13 +120,13 @@ public class TeamServiceBean implements TeamService {
         ParticipantDTO player1 = null;
         if (team.getPlayer1() != null) {
             String name1 = ParticipantNameUtils.buildPlayerName(team.getPlayer1());
-            player1 = new ParticipantDTO(team.getPlayer1().getId(), name1);
+            player1 = new ParticipantDTO(team.getPlayer1().getId(), name1,team.getPlayer1().isActive());
         }
 
         ParticipantDTO player2 = null;
         if (team.getPlayer2() != null) {
             String name2 = ParticipantNameUtils.buildPlayerName(team.getPlayer2());
-            player2 = new ParticipantDTO(team.getPlayer2().getId(), name2);
+            player2 = new ParticipantDTO(team.getPlayer2().getId(), name2,team.getPlayer2().isActive());
         }
         String teamName = ParticipantNameUtils.buildTeamName(team);
 

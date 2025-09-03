@@ -272,7 +272,7 @@ public class LeagueServiceBean implements LeagueService {
         if (league.getPlayers() != null) {
             for (Player p : league.getPlayers()) {
                 String playerName = ParticipantNameUtils.buildPlayerName(p);
-                players.add(new ParticipantDTO(p.getId(), playerName));
+                players.add(new ParticipantDTO(p.getId(), playerName,p.isActive()));
             }
         }
         dto.setPlayers(players);
@@ -282,7 +282,7 @@ public class LeagueServiceBean implements LeagueService {
         if (league.getTeams() != null) {
             for (Team t : league.getTeams()) {
                 String teamName = ParticipantNameUtils.buildTeamName(t);
-                teams.add(new ParticipantDTO(t.getId(), teamName));
+                teams.add(new ParticipantDTO(t.getId(), teamName,t.isActive()));
             }
         }
         dto.setTeams(teams);
