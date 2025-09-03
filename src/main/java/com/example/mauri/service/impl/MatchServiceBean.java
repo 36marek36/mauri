@@ -218,21 +218,21 @@ public class MatchServiceBean implements MatchService {
             case SINGLES -> {
                 if (match.getHomePlayer() != null) {
                     String name = ParticipantNameUtils.buildPlayerName(match.getHomePlayer());
-                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name);
+                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive());
                 }
                 if (match.getAwayPlayer() != null) {
                     String name = ParticipantNameUtils.buildPlayerName(match.getAwayPlayer());
-                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name);
+                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive());
                 }
             }
             case DOUBLES -> {
                 if (match.getHomeTeam() != null) {
                     String teamName = ParticipantNameUtils.buildTeamName(match.getHomeTeam());
-                    homeTeam = new ParticipantDTO(match.getHomeTeam().getId(), teamName);
+                    homeTeam = new ParticipantDTO(match.getHomeTeam().getId(), teamName,match.getHomeTeam().isActive());
                 }
                 if (match.getAwayTeam() != null) {
                     String teamName = ParticipantNameUtils.buildTeamName(match.getAwayTeam());
-                    awayTeam = new ParticipantDTO(match.getAwayTeam().getId(), teamName);
+                    awayTeam = new ParticipantDTO(match.getAwayTeam().getId(), teamName,match.getAwayTeam().isActive());
                 }
             }
         }
