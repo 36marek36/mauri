@@ -90,6 +90,13 @@ public class LeagueController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+    @PatchMapping("/{leagueId}/participants/{participantId}/drop")
+    public ResponseEntity<String> dropParticipant(
+            @PathVariable String leagueId,
+            @PathVariable String participantId) {
+        String message = leagueService.dropParticipantFromLeague(leagueId, participantId);
+        return ResponseEntity.ok(message);
+    }
 
     @DeleteMapping("{id}")
     ResponseEntity<League> deleteLeague(@PathVariable("id") String id) {

@@ -47,6 +47,8 @@ public class League {
     )
     private List<Team> teams;
 
+    private List<String> droppedParticipantsIds;
+
     @Enumerated(EnumType.STRING)
     private LeagueStatus status;
 
