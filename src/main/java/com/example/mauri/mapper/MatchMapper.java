@@ -3,11 +3,19 @@ package com.example.mauri.mapper;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.request.ParticipantDTO;
 import com.example.mauri.model.dto.response.MatchResponseDTO;
+import com.example.mauri.service.PlayerStatsService;
+import com.example.mauri.service.TeamStatsService;
 import com.example.mauri.util.ParticipantNameUtils;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class MatchMapper {
+
+    private final PlayerStatsService playerStatsService;
+    private final TeamStatsService teamStatsService;
+
 
     public MatchResponseDTO mapMatchToDTO(Match match) {
         ParticipantDTO homePlayer = null;
@@ -18,21 +26,25 @@ public class MatchMapper {
             case SINGLES -> {
                 if (match.getHomePlayer() != null) {
                     String name = ParticipantNameUtils.buildPlayerName(match.getHomePlayer());
-                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive());
+                    int progress = playerStatsService.playerProgress(match.getLeagueId(), match.getHomePlayer().getId());
+                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive(),progress);
                 }
                 if (match.getAwayPlayer() != null) {
                     String name = ParticipantNameUtils.buildPlayerName(match.getAwayPlayer());
-                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive());
+                    int progress = playerStatsService.playerProgress(match.getLeagueId(), match.getAwayPlayer().getId());
+                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive(),progress);
                 }
             }
             case DOUBLES -> {
                 if (match.getHomeTeam() != null) {
                     String teamName = ParticipantNameUtils.buildTeamName(match.getHomeTeam());
-                    homeTeam = new ParticipantDTO(match.getHomeTeam().getId(), teamName,match.getHomeTeam().isActive());
+                    int progress = teamStatsService.teamProgress(match.getLeagueId(), match.getHomeTeam().getId());
+                    homeTeam = new ParticipantDTO(match.getHomeTeam().getId(), teamName,match.getHomeTeam().isActive(),progress);
                 }
                 if (match.getAwayTeam() != null) {
                     String teamName = ParticipantNameUtils.buildTeamName(match.getAwayTeam());
-                    awayTeam = new ParticipantDTO(match.getAwayTeam().getId(), teamName,match.getAwayTeam().isActive());
+                    int progress = teamStatsService.teamProgress(match.getLeagueId(), match.getAwayTeam().getId());
+                    awayTeam = new ParticipantDTO(match.getAwayTeam().getId(), teamName,match.getAwayTeam().isActive(),progress);
                 }
             }
         }

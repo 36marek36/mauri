@@ -44,7 +44,8 @@ public class LeagueMapper {
         if (league.getPlayers() != null) {
             for (Player p : league.getPlayers()) {
                 String playerName = ParticipantNameUtils.buildPlayerName(p);
-                players.add(new ParticipantDTO(p.getId(), playerName, p.isActive()));
+                int progress = playerStatsService.playerProgress(league.getId(), p.getId());
+                players.add(new ParticipantDTO(p.getId(), playerName, p.isActive(),progress));
             }
         }
         dto.setPlayers(players);
@@ -54,7 +55,8 @@ public class LeagueMapper {
         if (league.getTeams() != null) {
             for (Team t : league.getTeams()) {
                 String teamName = ParticipantNameUtils.buildTeamName(t);
-                teams.add(new ParticipantDTO(t.getId(), teamName, t.isActive()));
+                int progress = teamStatsService.teamProgress(league.getId(), t.getId());
+                teams.add(new ParticipantDTO(t.getId(), teamName, t.isActive(),progress));
             }
         }
         dto.setTeams(teams);

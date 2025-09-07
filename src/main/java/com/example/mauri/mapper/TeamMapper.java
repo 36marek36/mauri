@@ -1,25 +1,29 @@
 package com.example.mauri.mapper;
 
 import com.example.mauri.model.Team;
-import com.example.mauri.model.dto.request.ParticipantDTO;
+import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
 import com.example.mauri.util.ParticipantNameUtils;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class TeamMapper {
-    public TeamResponseDTO mapToResponseDTO (Team team){
 
-        ParticipantDTO player1 = null;
+    private final PlayerMapper playerMapper;
+
+
+    public TeamResponseDTO mapToResponseDTO(Team team) {
+
+        PlayerResponseDTO player1 = null;
         if (team.getPlayer1() != null) {
-            String name1 = ParticipantNameUtils.buildPlayerName(team.getPlayer1());
-            player1 = new ParticipantDTO(team.getPlayer1().getId(), name1,team.getPlayer1().isActive());
+            player1 = playerMapper.mapToResponseDTO(team.getPlayer1());
         }
 
-        ParticipantDTO player2 = null;
+        PlayerResponseDTO player2 = null;
         if (team.getPlayer2() != null) {
-            String name2 = ParticipantNameUtils.buildPlayerName(team.getPlayer2());
-            player2 = new ParticipantDTO(team.getPlayer2().getId(), name2,team.getPlayer2().isActive());
+            player2 = playerMapper.mapToResponseDTO(team.getPlayer2());
         }
         String teamName = ParticipantNameUtils.buildTeamName(team);
 
