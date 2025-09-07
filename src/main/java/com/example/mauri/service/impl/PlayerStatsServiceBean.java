@@ -29,7 +29,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
         List<Match> matches = matchRepository.findByLeagueIdAndStatus(leagueId, MatchStatus.FINISHED);
 
         Player player = playerService.getPlayer(playerId);
-        return calculatePlayerStats(player, matches);
+        return calculatePlayerStats(player, matches,leagueId);
     }
 
     // Získanie štatistík všetkých hráčov v lige
@@ -45,7 +45,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
         List<PlayerStatsDTO> statsList = new ArrayList<>();
 
         for (Player player : players) {
-            PlayerStatsDTO stats = calculatePlayerStats(player, matches);
+            PlayerStatsDTO stats = calculatePlayerStats(player, matches, leagueId);
             statsList.add(stats);
         }
 
@@ -61,8 +61,17 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
         return statsList;
     }
 
+    private int playerProgress(String leagueId, String playerId) {
+        int played = matchRepository.countPlayedMatchesByPlayer(leagueId,playerId,MatchStatus.FINISHED);
+        int total = matchRepository.countTotalMatchesByPlayer(leagueId,playerId);
+
+        if (total == 0) return 0;
+
+        return (int) ((double) played / total * 100);
+    }
+
     // Privátna metóda na výpočet štatistík hráča zo zoznamu zápasov
-    private PlayerStatsDTO calculatePlayerStats(Player player, List<Match> matches) {
+    private PlayerStatsDTO calculatePlayerStats(Player player, List<Match> matches,String leagueId) {
         String playerId = player.getId();
         String playerName = ParticipantNameUtils.buildPlayerName(player);
 
@@ -91,6 +100,8 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
             else losses++;
         }
 
+        int progress = playerProgress(leagueId,playerId);
+
         return PlayerStatsDTO.builder()
                 .playerId(playerId)
                 .playerName(playerName)
@@ -99,6 +110,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 .losses(losses)
                 .setsWon(setsWon)
                 .setsLost(setsLost)
+                .leagueProgress(progress)
                 .build();
     }
 

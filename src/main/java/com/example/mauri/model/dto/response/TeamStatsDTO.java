@@ -17,4 +17,5 @@ public class TeamStatsDTO {
     private int losses;
     private int setsWon;
     private int setsLost;
+    private int leagueProgress;
 }

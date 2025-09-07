@@ -55,4 +55,20 @@ public interface MatchRepository extends JpaRepository<Match, String> {
     int countPlayedMatches(@Param("leagueId") String leagueId);
 
     int countByLeagueId(String leagueId);
+
+    @Query("select count(m) from matches m where m.leagueId = :leagueId and" +
+            "(m.homePlayer.id = :playerId or m.awayPlayer.id = :playerId)")
+    int countTotalMatchesByPlayer(@Param("leagueId") String leagueId, @Param("playerId") String playerId);
+
+    @Query("select count(m) from matches m where m.leagueId = :leagueId and" +
+            "(m.homePlayer.id = :playerId or m.awayPlayer.id = :playerId) and m.status = :status")
+    int countPlayedMatchesByPlayer(@Param("leagueId") String leagueId, @Param("playerId") String playerId, @Param("status") MatchStatus status);
+
+    @Query("select count(m) from matches m where m.leagueId = :leagueId and " +
+            "(m.homeTeam.id = :teamId or m.awayTeam.id = :teamId)")
+    int countTotalMatchesByTeam(@Param("leagueId") String leagueId, @Param("teamId") String teamId);
+
+    @Query("select count(m) from matches m where m.leagueId = :leagueId and" +
+            "(m.homeTeam.id = :teamId or m.awayTeam.id = :teamId) and m.status = :status")
+    int countPlayedMatchesByTeam(@Param("leagueId") String leagueId, @Param("teamId") String teamId, @Param("status") MatchStatus status);
 }
