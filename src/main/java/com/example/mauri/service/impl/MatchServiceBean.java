@@ -5,13 +5,12 @@ import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
+import com.example.mauri.mapper.MatchMapper;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.create.CreateMatchDTO;
-import com.example.mauri.model.dto.request.ParticipantDTO;
 import com.example.mauri.model.dto.response.MatchResponseDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.*;
-import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +33,13 @@ public class MatchServiceBean implements MatchService {
     private final RoundRobinTeamsService roundRobinTeamsService;
     private final SeasonRepository seasonRepository;
     private final MatchResultService matchResultService;
+    private final MatchMapper matchMapper;
 
     @Override
     public List<MatchResponseDTO> getMatches() {
         List<Match> matches = matchRepository.findAll();
         return matches.stream()
-                .map(this::mapMatchToDTO)
+                .map(matchMapper::mapMatchToDTO)
                 .toList();
     }
 
@@ -47,7 +47,7 @@ public class MatchServiceBean implements MatchService {
     public MatchResponseDTO getMatch(@NonNull String id) {
         Match match = matchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + id));
-        return mapMatchToDTO(match);
+        return matchMapper.mapMatchToDTO(match);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class MatchServiceBean implements MatchService {
             default -> throw new IllegalArgumentException("Unsupported MatchType: " + createMatchDTO.getMatchType());
         }
         match = matchRepository.save(match);
-        return mapMatchToDTO(match);
+        return matchMapper.mapMatchToDTO(match);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class MatchServiceBean implements MatchService {
         log.info("Úspešne vygenerovaných {} zápasov pre ligu '{}'", matches.size(), league.getName());
 
         return matches.stream()
-                .map(this::mapMatchToDTO)
+                .map(matchMapper::mapMatchToDTO)
                 .toList();
     }
 
@@ -146,7 +146,7 @@ public class MatchServiceBean implements MatchService {
         List<Match> matches = matchRepository.findByLeagueId(leagueId);
 
         return matches.stream()
-                .map(this::mapMatchToDTO) // najprv mapuješ na DTO
+                .map(matchMapper::mapMatchToDTO) // najprv mapuješ na DTO
                 .collect(Collectors.groupingBy(MatchResponseDTO::getRoundNumber)); // potom group-by
     }
 
@@ -179,7 +179,7 @@ public class MatchServiceBean implements MatchService {
         }
         List<Match> matches = matchRepository.findByPlayerStatusAndLeagueIds(playerId, status, leagueIds);
         return matches.stream()
-                .map(this::mapMatchToDTO)
+                .map(matchMapper::mapMatchToDTO)
                 .toList();
     }
 
@@ -191,7 +191,7 @@ public class MatchServiceBean implements MatchService {
         }
         List<Match> matches = matchRepository.findByTeamStatusAndLeagueIds(teamId, status, leagueIds);
         return matches.stream()
-                .map(this::mapMatchToDTO)
+                .map(matchMapper::mapMatchToDTO)
                 .toList();
     }
 
@@ -207,46 +207,5 @@ public class MatchServiceBean implements MatchService {
             leagueIds.add(league.getId());
         }
         return leagueIds;
-    }
-
-    private MatchResponseDTO mapMatchToDTO(Match match) {
-        ParticipantDTO homePlayer = null;
-        ParticipantDTO awayPlayer = null;
-        ParticipantDTO homeTeam = null;
-        ParticipantDTO awayTeam = null;
-        switch (match.getMatchType()) {
-            case SINGLES -> {
-                if (match.getHomePlayer() != null) {
-                    String name = ParticipantNameUtils.buildPlayerName(match.getHomePlayer());
-                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive());
-                }
-                if (match.getAwayPlayer() != null) {
-                    String name = ParticipantNameUtils.buildPlayerName(match.getAwayPlayer());
-                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive());
-                }
-            }
-            case DOUBLES -> {
-                if (match.getHomeTeam() != null) {
-                    String teamName = ParticipantNameUtils.buildTeamName(match.getHomeTeam());
-                    homeTeam = new ParticipantDTO(match.getHomeTeam().getId(), teamName,match.getHomeTeam().isActive());
-                }
-                if (match.getAwayTeam() != null) {
-                    String teamName = ParticipantNameUtils.buildTeamName(match.getAwayTeam());
-                    awayTeam = new ParticipantDTO(match.getAwayTeam().getId(), teamName,match.getAwayTeam().isActive());
-                }
-            }
-        }
-        return MatchResponseDTO.builder()
-                .id(match.getId())
-                .matchType(match.getMatchType())
-                .leagueId(match.getLeagueId())
-                .result(match.getResult())
-                .roundNumber(match.getRoundNumber())
-                .status(match.getStatus())
-                .homePlayer(homePlayer)
-                .awayPlayer(awayPlayer)
-                .homeTeam(homeTeam)
-                .awayTeam(awayTeam)
-                .build();
     }
 }
