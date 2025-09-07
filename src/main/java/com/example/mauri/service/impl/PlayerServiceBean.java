@@ -1,6 +1,7 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.exception.ResourceNotFoundException;
+import com.example.mauri.mapper.PlayerMapper;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
@@ -28,6 +29,7 @@ public class PlayerServiceBean implements PlayerService {
     private final LeagueRepository leagueRepository;
     private final MatchRepository matchRepository;
     private final TeamService teamService;
+    private final PlayerMapper playerMapper;
 
 
     @Override
@@ -35,7 +37,7 @@ public class PlayerServiceBean implements PlayerService {
         List<Player> players = playerRepository.findByActiveTrue();
 
         return players.stream()
-                .map(this::mapToResponseDTO) // každý Player sa zmení na PlayerResponseDTO
+                .map(playerMapper::mapToResponseDTO) // každý Player sa zmení na PlayerResponseDTO
                 .toList();                   // a všetky sa uložia do zoznamu
     }
 
@@ -43,7 +45,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getInactivePlayers() {
         List<Player> players = playerRepository.findByActiveFalse();
         return players.stream()
-                .map(this::mapToResponseDTO)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -55,7 +57,7 @@ public class PlayerServiceBean implements PlayerService {
     @Override
     public PlayerResponseDTO getPlayerResponseById(String id) {
         Player player = getPlayer(id);
-        return mapToResponseDTO(player);
+        return playerMapper.mapToResponseDTO(player);
     }
 
     @Override
@@ -68,7 +70,7 @@ public class PlayerServiceBean implements PlayerService {
                 .phone(createPlayerDTO.getPhone())
                 .build();
         Player saved = playerRepository.save(player);
-        return mapToResponseDTO(saved);
+        return playerMapper.mapToResponseDTO(saved);
     }
 
     @Override
@@ -124,7 +126,7 @@ public class PlayerServiceBean implements PlayerService {
         List<Player> freePlayers = playerRepository.findActivePlayersWithoutActiveLeague();
 
         return freePlayers.stream()
-                .map(this::mapToResponseDTO)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -132,7 +134,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getPlayersWithoutUser() {
         List<Player> players = playerRepository.findActivePlayersWithoutUser();
         return players.stream()
-                .map(this::mapToResponseDTO)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -165,7 +167,7 @@ public class PlayerServiceBean implements PlayerService {
             existingPlayer.setPhone(updatedPlayer.getPhone());
         }
         Player saved = playerRepository.save(existingPlayer);
-        return mapToResponseDTO(saved);
+        return playerMapper.mapToResponseDTO(saved);
     }
 
     private Player getPlayerOrThrow(String id) {
@@ -181,17 +183,4 @@ public class PlayerServiceBean implements PlayerService {
         }
     }
 
-    private PlayerResponseDTO mapToResponseDTO(Player player) {
-        return PlayerResponseDTO.builder()
-                .id(player.getId())
-                .firstName(player.getFirstName())
-                .lastName(player.getLastName())
-                .name(player.getFirstName() + " " + player.getLastName())
-                .email(player.getEmail())
-                .phone(player.getPhone())
-                .registrationDate(player.getRegistrationDate())
-                .deletedDate(player.getDeletedDate())
-                .active(player.isActive())
-                .build();
-    }
 }

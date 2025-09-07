@@ -3,10 +3,10 @@ package com.example.mauri.service.impl;
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
+import com.example.mauri.mapper.SeasonMapper;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.SeasonRepository;
@@ -33,6 +33,7 @@ public class SeasonServiceBean implements SeasonService {
     private final LeagueRepository leagueRepository;
     private final LeagueService leagueService;
     private final MatchService matchService;
+    private final SeasonMapper seasonMapper;
 
 
     @Override
@@ -44,7 +45,7 @@ public class SeasonServiceBean implements SeasonService {
 
         List<SeasonResponseDTO> seasonDTOs = new ArrayList<>();
         for (Season season : seasons) {
-            seasonDTOs.add(mapSeasonToDTO(season, true));
+            seasonDTOs.add(seasonMapper.mapSeasonToDTO(season,true));
         }
 
         return seasonDTOs;
@@ -55,7 +56,7 @@ public class SeasonServiceBean implements SeasonService {
         Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Season not found with id: " + seasonId));
 
-        return mapSeasonToDTO(season, true);
+        return seasonMapper.mapSeasonToDTO(season, true);
     }
 
     @Override
@@ -65,7 +66,7 @@ public class SeasonServiceBean implements SeasonService {
                 .year(createSeasonDTO.getYear())
                 .build();
         season = seasonRepository.save(season);
-        return mapSeasonToDTO(season, false);
+        return seasonMapper.mapSeasonToDTO(season, false);
     }
 
 
@@ -164,32 +165,5 @@ public class SeasonServiceBean implements SeasonService {
         season.setEndDate(LocalDate.now());
         seasonRepository.save(season);
         return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
-    }
-
-    private SeasonResponseDTO mapSeasonToDTO(Season season, boolean includeLeagues) {
-        List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
-        long totalPlayers = 0;
-        long totalTeams = 0;
-
-        if (includeLeagues && season.getLeagues() != null) {
-            for (League league : season.getLeagues()) {
-                LeagueResponseDTO leagueDTO = leagueService.mapLeagueToDTO(league);
-                leagueDTOs.add(leagueDTO);
-                totalPlayers += leagueDTO.getPlayers() != null ? leagueDTO.getPlayers().size() : 0;
-                totalTeams += leagueDTO.getTeams() != null ? leagueDTO.getTeams().size() : 0;
-            }
-        }
-
-        return SeasonResponseDTO.builder()
-                .id(season.getId())
-                .year(season.getYear())
-                .status(season.getStatus())
-                .leagues(leagueDTOs)
-                .totalPlayers(totalPlayers)
-                .totalTeams(totalTeams)
-                .createdAt(season.getCreatedAt())
-                .startDate(season.getStartDate())
-                .endDate(season.getEndDate())
-                .build();
     }
 }
