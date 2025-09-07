@@ -7,4 +7,5 @@ import java.util.List;
 public interface TeamStatsService {
     TeamStatsDTO getTeamStats(String leagueId, String teamId);
     List<TeamStatsDTO> getAllStatsForLeague(String leagueId);
+    int teamProgress(String leagueId, String teamId);
 }

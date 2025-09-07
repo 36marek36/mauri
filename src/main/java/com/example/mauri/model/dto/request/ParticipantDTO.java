@@ -11,4 +11,5 @@ public class ParticipantDTO {
     private String id;
     private String name;
     private boolean active;
+    private int leagueProgress;
 }

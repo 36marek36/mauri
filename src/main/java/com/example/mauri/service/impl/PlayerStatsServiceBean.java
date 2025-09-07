@@ -60,8 +60,8 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
 
         return statsList;
     }
-
-    private int playerProgress(String leagueId, String playerId) {
+    @Override
+    public int playerProgress(String leagueId, String playerId) {
         int played = matchRepository.countPlayedMatchesByPlayer(leagueId,playerId,MatchStatus.FINISHED);
         int total = matchRepository.countTotalMatchesByPlayer(leagueId,playerId);
 
