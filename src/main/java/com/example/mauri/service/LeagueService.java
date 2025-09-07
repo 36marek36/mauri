@@ -14,6 +14,7 @@ public interface LeagueService {
     void deleteLeagueById(@NonNull String id);
     String addParticipantsToLeague(String leagueId, List<String> participantIds);
     String removeParticipantFromLeague(String leagueId, String participantId);
+    String dropParticipantFromLeague(String leagueId, String participantId);
     List<LeagueResponseDTO> getLeaguesForPlayer(String playerId);
     void finishLeague(String leagueId);
     LeagueResponseDTO mapLeagueToDTO(League league);

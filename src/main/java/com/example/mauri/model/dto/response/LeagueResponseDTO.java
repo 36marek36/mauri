@@ -22,6 +22,7 @@ public class LeagueResponseDTO {
     private LeagueStatus leagueStatus;
     private List<ParticipantDTO> players;
     private List<ParticipantDTO> teams;
+    private List<String> droppedParticipantsIds;
     private String winner;
     private int leagueProgress;
 }

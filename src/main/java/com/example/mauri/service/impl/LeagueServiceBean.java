@@ -46,17 +46,10 @@ public class LeagueServiceBean implements LeagueService {
     public List<LeagueResponseDTO> getAllLeagues() {
         List<League> leagues = leagueRepository.findAll();
 
-//        return leagues.stream()
-//                .map(this::mapLeagueToDTO)
-//                .toList();
+        return leagues.stream()
+                .map(this::mapLeagueToDTO)
+                .toList();
 
-        List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
-        for (League league : leagues) {
-            LeagueResponseDTO dto = mapLeagueToDTO(league);
-            leagueDTOs.add(dto);
-        }
-
-        return leagueDTOs;
     }
 
     @Override
@@ -154,12 +147,75 @@ public class LeagueServiceBean implements LeagueService {
 
                 affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
                 for (Match match : affectedMatches) {
+                    matchService.deleteMatch(match.getId());
+                }
+                league.getPlayers().remove(player);
+                participantName = ParticipantNameUtils.buildPlayerName(player);
+            }
+
+            case DOUBLES -> {
+                Team team = teamRepository.findById(participantId)
+                        .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + participantId));
+
+                if (!league.getTeams().contains(team)) {
+                    throw new IllegalStateException("Team is not part of the league.");
+                }
+
+                affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
+                for (Match match : affectedMatches) {
+                    matchService.deleteMatch(match.getId());
+                }
+                league.getTeams().remove(team);
+                participantName = ParticipantNameUtils.buildTeamName(team);
+            }
+
+            default -> throw new UnsupportedOperationException("Unsupported match type: " + type);
+        }
+
+        leagueRepository.save(league);
+
+        return "Účastník '" + participantName + "' bol úspešne odstránený z ligy a "
+                + (affectedMatches.isEmpty() ? "nebol zapojený do žiadneho zápasu." :
+                "a všetky jeho zapasy (" + affectedMatches.size() + ") boli zmazané.");
+    }
+
+    @Transactional
+    @Override
+    public String dropParticipantFromLeague(String leagueId, String participantId) {
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
+
+        if (league.getDroppedParticipantsIds() == null) {
+            league.setDroppedParticipantsIds(new ArrayList<>());
+        }
+
+        if (league.getDroppedParticipantsIds().contains(participantId)) {
+            return "Účastník už je označený ako odstúpený z ligy.";
+        }
+
+        if (league.getStatus() == LeagueStatus.CREATED) {
+            return "Je zbytočné hráča odhlasovať z neaktívnej ligy. Možeš ho z ligy radšej odstrániť.";
+        }
+
+        MatchType type = league.getLeagueType();
+        List<Match> affectedMatches;
+        String participantName;
+
+        switch (type) {
+            case SINGLES -> {
+                Player player = playerRepository.findById(participantId)
+                        .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + participantId));
+
+                if (!league.getPlayers().contains(player)) {
+                    throw new IllegalStateException("Player is not part of the league.");
+                }
+
+                affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
+                for (Match match : affectedMatches) {
                     MatchResult result = new MatchResult();
                     result.setScratchedId(participantId);
                     matchService.addResult(match.getId(), result);
                 }
-
-                league.getPlayers().remove(player);
                 participantName = ParticipantNameUtils.buildPlayerName(player);
             }
 
@@ -177,19 +233,15 @@ public class LeagueServiceBean implements LeagueService {
                     result.setScratchedId(participantId);
                     matchService.addResult(match.getId(), result);
                 }
-
-                league.getTeams().remove(team);
                 participantName = ParticipantNameUtils.buildTeamName(team);
             }
-
             default -> throw new UnsupportedOperationException("Unsupported match type: " + type);
         }
 
+        league.getDroppedParticipantsIds().add(participantId);
         leagueRepository.save(league);
 
-        return "Účastník '" + participantName + "' bol úspešne odstránený z ligy a "
-                + (affectedMatches.isEmpty() ? "nebol zapojený do žiadneho zápasu." :
-                "bol vyradený z " + affectedMatches.size() + " zápasov.");
+        return "Účastník '" + participantName + "' bol úspešne odhlásený z ligy a všetky svoje zapasy (" + affectedMatches.size() + ") prehral kontumačne 0:6, 0:6";
     }
 
     @Override
@@ -230,6 +282,7 @@ public class LeagueServiceBean implements LeagueService {
         }
         matchRepository.saveAll(matches);
     }
+
     private String getLeagueWinnerName(String leagueId, MatchType leagueType) {
         if (leagueType == MatchType.SINGLES) {
             List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(leagueId);
@@ -272,7 +325,7 @@ public class LeagueServiceBean implements LeagueService {
         if (league.getPlayers() != null) {
             for (Player p : league.getPlayers()) {
                 String playerName = ParticipantNameUtils.buildPlayerName(p);
-                players.add(new ParticipantDTO(p.getId(), playerName,p.isActive()));
+                players.add(new ParticipantDTO(p.getId(), playerName, p.isActive()));
             }
         }
         dto.setPlayers(players);
@@ -282,10 +335,12 @@ public class LeagueServiceBean implements LeagueService {
         if (league.getTeams() != null) {
             for (Team t : league.getTeams()) {
                 String teamName = ParticipantNameUtils.buildTeamName(t);
-                teams.add(new ParticipantDTO(t.getId(), teamName,t.isActive()));
+                teams.add(new ParticipantDTO(t.getId(), teamName, t.isActive()));
             }
         }
         dto.setTeams(teams);
+
+        dto.setDroppedParticipantsIds(league.getDroppedParticipantsIds());
 
         // Ak je liga skončená, skús získať víťaza
         if (league.getStatus() == LeagueStatus.FINISHED) {
