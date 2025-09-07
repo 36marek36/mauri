@@ -29,7 +29,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
         List<Match> matches = matchRepository.findByLeagueIdAndStatus(leagueId, MatchStatus.FINISHED);
 
         Team team = teamService.getTeamById(teamId);
-        return calculateTeamStats(team, matches);
+        return calculateTeamStats(team, matches,leagueId);
     }
 
     // Získanie štatistík všetkých tímov v lige
@@ -45,7 +45,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
         List<TeamStatsDTO> statsList = new ArrayList<>();
 
         for (Team team : teams) {
-            TeamStatsDTO stats = calculateTeamStats(team, matches);
+            TeamStatsDTO stats = calculateTeamStats(team, matches,leagueId);
             statsList.add(stats);
         }
 
@@ -61,8 +61,17 @@ public class TeamStatsServiceBean implements TeamStatsService {
         return statsList;
     }
 
+    private int teamProgress(String leagueId, String teamId) {
+        int played = matchRepository.countPlayedMatchesByTeam(leagueId,teamId,MatchStatus.FINISHED);
+        int total = matchRepository.countTotalMatchesByTeam(leagueId,teamId);
+
+        if (total == 0) return 0;
+
+        return (int) ((double) played / total * 100);
+    }
+
     // Privátna metóda na výpočet štatistík tímu zo zoznamu zápasov
-    private TeamStatsDTO calculateTeamStats(Team team, List<Match> matches) {
+    private TeamStatsDTO calculateTeamStats(Team team, List<Match> matches, String leagueId) {
         String teamId = team.getId();
         String teamName = ParticipantNameUtils.buildTeamName(team);
 
@@ -91,6 +100,8 @@ public class TeamStatsServiceBean implements TeamStatsService {
             else losses++;
         }
 
+        int progress = teamProgress(leagueId,teamId);
+
         return TeamStatsDTO.builder()
                 .teamId(teamId)
                 .teamName(teamName)
@@ -99,6 +110,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 .losses(losses)
                 .setsWon(setsWon)
                 .setsLost(setsLost)
+                .leagueProgress(progress)
                 .build();
     }
 
