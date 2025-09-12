@@ -3,13 +3,16 @@ package com.example.mauri.service.impl;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.PlayerMapper;
 import com.example.mauri.model.Player;
+import com.example.mauri.model.Team;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.TeamService;
+import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +40,7 @@ public class PlayerServiceBean implements PlayerService {
         List<Player> players = playerRepository.findByActiveTrue();
 
         return players.stream()
-                .map(playerMapper::mapToResponseDTO) // každý Player sa zmení na PlayerResponseDTO
+                .map(this::mapPlayerWithTeams) // každý Player sa zmení na PlayerResponseDTO
                 .toList();                   // a všetky sa uložia do zoznamu
     }
 
@@ -45,7 +48,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getInactivePlayers() {
         List<Player> players = playerRepository.findByActiveFalse();
         return players.stream()
-                .map(playerMapper::mapToResponseDTO)
+                .map(this::mapPlayerWithTeams)
                 .toList();
     }
 
@@ -56,8 +59,8 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public PlayerResponseDTO getPlayerResponseById(String id) {
-        Player player = getPlayer(id);
-        return playerMapper.mapToResponseDTO(player);
+        Player player = getPlayerOrThrow(id);
+        return mapPlayerWithTeams(player);
     }
 
     @Override
@@ -126,7 +129,7 @@ public class PlayerServiceBean implements PlayerService {
         List<Player> freePlayers = playerRepository.findActivePlayersWithoutActiveLeague();
 
         return freePlayers.stream()
-                .map(playerMapper::mapToResponseDTO)
+                .map(this::mapPlayerWithTeams)
                 .toList();
     }
 
@@ -134,7 +137,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getPlayersWithoutUser() {
         List<Player> players = playerRepository.findActivePlayersWithoutUser();
         return players.stream()
-                .map(playerMapper::mapToResponseDTO)
+                .map(this::mapPlayerWithTeams)
                 .toList();
     }
 
@@ -181,6 +184,21 @@ public class PlayerServiceBean implements PlayerService {
             user.setPlayer(null);
             userRepository.save(user);
         }
+    }
+
+    private PlayerResponseDTO mapPlayerWithTeams(Player player) {
+        List<Team> teams = teamRepository.findByPlayer1IdOrPlayer2Id(player.getId(), player.getId());
+
+        List<TeamShortDTO> teamShortDTOS = teams.stream()
+                .map(team -> new TeamShortDTO(
+                        team.getId(),
+                        ParticipantNameUtils.buildTeamName(team) // alebo napr. názov tímu, ak máš
+                ))
+                .toList();
+
+        PlayerResponseDTO dto = playerMapper.mapToResponseDTO(player);
+        dto.setTeams(teamShortDTOS);
+        return dto;
     }
 
 }
