@@ -7,15 +7,10 @@ import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.LeagueMapper;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
-import com.example.mauri.model.dto.request.ParticipantDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
-import com.example.mauri.model.dto.response.PlayerStatsDTO;
-import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
-import com.example.mauri.service.PlayerStatsService;
-import com.example.mauri.service.TeamStatsService;
 import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
@@ -40,8 +35,6 @@ public class LeagueServiceBean implements LeagueService {
     private final SeasonRepository seasonRepository;
     private final MatchService matchService;
     private final LeagueMapper leagueMapper;
-    private final PlayerStatsService playerStatsService;
-    private final TeamStatsService teamStatsService;
 
 
     @Override
@@ -49,7 +42,7 @@ public class LeagueServiceBean implements LeagueService {
         List<League> leagues = leagueRepository.findAll();
 
         return leagues.stream()
-                .map(this::getFullLeagueDTO)
+                .map(leagueMapper::mapLeagueToDTO)
                 .toList();
 
     }
@@ -59,7 +52,7 @@ public class LeagueServiceBean implements LeagueService {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
 
-        return getFullLeagueDTO(league);
+        return leagueMapper.mapLeagueToDTO(league);
     }
 
     @Override
@@ -247,6 +240,19 @@ public class LeagueServiceBean implements LeagueService {
     }
 
     @Override
+    public List<LeagueResponseDTO> getLeaguesForPlayer(String playerId) {
+        List<League> leagues = leagueRepository.findLeaguesByPlayerId(playerId);
+        List<LeagueResponseDTO> result = new ArrayList<>();
+
+        for (League league : leagues) {
+            LeagueResponseDTO dto = leagueMapper.mapLeagueToDTO(league);
+            result.add(dto);
+        }
+
+        return result;
+    }
+
+    @Override
     public void finishLeague(String leagueId) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("No league found with id: " + leagueId));
@@ -270,63 +276,5 @@ public class LeagueServiceBean implements LeagueService {
             }
         }
         matchRepository.saveAll(matches);
-    }
-
-    @Override
-    public LeagueResponseDTO getFullLeagueDTO(League league) {
-
-        LeagueResponseDTO dto = leagueMapper.mapLeagueToDTO(league);
-
-        // Hráči
-        List<ParticipantDTO> players = league.getPlayers().stream()
-                .map(player -> {
-                    String name = ParticipantNameUtils.buildPlayerName(player);
-                    int progress = playerStatsService.playerProgress(league.getId(), player.getId());
-                    return new ParticipantDTO(player.getId(), name, player.isActive(), progress);
-                })
-                .toList();
-        dto.setPlayers(players);
-
-        // Tímy
-        List<ParticipantDTO> teams = league.getTeams().stream()
-                .map(team -> {
-                    String name = ParticipantNameUtils.buildTeamName(team);
-                    int progress = teamStatsService.teamProgress(league.getId(), team.getId());
-                    return new ParticipantDTO(team.getId(), name, team.isActive(), progress);
-                })
-                .toList();
-        dto.setTeams(teams);
-
-        // Víťaz
-        if (league.getStatus() == LeagueStatus.FINISHED) {
-            dto.setWinner(determineWinnerName(league));
-        }
-
-        // Progress
-        dto.setLeagueProgress(calculateProgress(league.getId()));
-
-        return dto;
-    }
-
-    private String determineWinnerName(League league) {
-        if (league.getLeagueType() == MatchType.SINGLES) {
-            List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(league.getId());
-            if (stats.isEmpty() || stats.stream().allMatch(s -> s.getMatches() == 0)) {
-                return "Liga nemá víťaza, žiadny zápas nebol odohraný.";
-            }
-            return stats.getFirst().getPlayerName();
-        } else {
-            List<TeamStatsDTO> stats = teamStatsService.getAllStatsForLeague(league.getId());
-            if (stats.isEmpty() || stats.stream().allMatch(s -> s.getMatches() == 0)) {
-                return "Liga nemá víťaza, žiadny zápas nebol odohraný.";
-            }
-            return stats.getFirst().getTeamName();
-        }
-    }
-
-    private int calculateProgress(String leagueId) {
-        int played = matchService.getPlayedMatchesCount(leagueId);
-        int total = matchService.getTotalMatchesCount(leagueId);
-        return total == 0 ? 0 : (int) ((double) played / total * 100);
     }
 }

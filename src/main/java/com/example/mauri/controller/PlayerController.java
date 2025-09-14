@@ -2,9 +2,11 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.request.AssignPlayerDTO;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.UserResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
+import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import java.util.Map;
 public class PlayerController {
     private final PlayerService playerService;
     private final UserService userService;
+    private final LeagueService leagueService;
 
     @GetMapping("/")
     public ResponseEntity<List<PlayerResponseDTO>> getActivePlayers() {
@@ -47,6 +50,12 @@ public class PlayerController {
     public ResponseEntity<List<PlayerResponseDTO>> getFreePlayers() {
         List<PlayerResponseDTO> freePlayersDTO = playerService.getActivePlayersNotInAnyActiveLeague();
         return ResponseEntity.ok(freePlayersDTO);
+    }
+
+    @GetMapping("/{playerId}/leagues")
+    public ResponseEntity<List<LeagueResponseDTO>> getLeaguesForPlayer(@PathVariable String playerId) {
+        List<LeagueResponseDTO> leagues = leagueService.getLeaguesForPlayer(playerId);
+        return ResponseEntity.ok(leagues);
     }
 
     @GetMapping("/without-user")

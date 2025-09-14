@@ -4,7 +4,6 @@ import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
-import com.example.mauri.service.LeagueService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SeasonMapper {
 
-    private final LeagueService leagueService;
+    private final LeagueMapper leagueMapper;
 
     public SeasonResponseDTO mapSeasonToDTO(Season season, boolean includeLeagues) {
         List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
@@ -24,7 +23,7 @@ public class SeasonMapper {
 
         if (includeLeagues && season.getLeagues() != null) {
             for (League league : season.getLeagues()) {
-                LeagueResponseDTO leagueDTO = leagueService.getFullLeagueDTO(league);
+                LeagueResponseDTO leagueDTO = leagueMapper.mapLeagueToDTO(league);
                 leagueDTOs.add(leagueDTO);
                 totalPlayers += leagueDTO.getPlayers() != null ? leagueDTO.getPlayers().size() : 0;
                 totalTeams += leagueDTO.getTeams() != null ? leagueDTO.getTeams().size() : 0;
