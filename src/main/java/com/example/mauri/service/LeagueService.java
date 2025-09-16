@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.model.League;
 import com.example.mauri.model.dto.create.CreateLeagueDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import lombok.NonNull;
@@ -14,6 +15,6 @@ public interface LeagueService {
     String addParticipantsToLeague(String leagueId, List<String> participantIds);
     String removeParticipantFromLeague(String leagueId, String participantId);
     String dropParticipantFromLeague(String leagueId, String participantId);
-    List<LeagueResponseDTO> getLeaguesForPlayer(String playerId);
     void finishLeague(String leagueId);
+    LeagueResponseDTO getFullLeagueDTO(League league);
 }

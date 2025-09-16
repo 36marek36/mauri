@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto.response;
 
+import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -27,4 +28,5 @@ public class PlayerResponseDTO {
     private LocalDate deletedDate;
     private boolean active;
     private List<TeamShortDTO> teams;
+    private List<LeagueShortDTO> leagues;
 }
