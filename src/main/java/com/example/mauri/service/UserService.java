@@ -8,4 +8,5 @@ public interface UserService {
     List<UserResponseDTO> getUsers();
     UserResponseDTO getAuthenticatedUser();
     void deleteUser(String userId);
+    String updateUsernameForAuthenticatedUser(String newUsername);
 }

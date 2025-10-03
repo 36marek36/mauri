@@ -24,6 +24,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
     private final TeamService teamService;
 
     // Získanie štatistík jedného tímu v lige
+    @Override
     public TeamStatsDTO getTeamStats(String leagueId, String teamId) {
         // Načítame všetky ukončené zápasy ligy naraz (pre lepšiu efektivitu)
         List<Match> matches = matchRepository.findByLeagueIdAndStatus(leagueId, MatchStatus.FINISHED);
@@ -33,6 +34,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
     }
 
     // Získanie štatistík všetkých tímov v lige
+    @Override
     public List<TeamStatsDTO> getAllStatsForLeague(String leagueId) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));

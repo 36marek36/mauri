@@ -60,4 +60,24 @@ public class UserServiceBean implements UserService {
         userRepository.deleteById(userId);
     }
 
+    @Override
+    public String updateUsernameForAuthenticatedUser(String newUsername) {
+        // Získaj username prihláseného používateľa zo Spring Security kontextu
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Nájde používateľa podľa username
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Voliteľná kontrola, či username už existuje (a nie je rovnaký)
+        if (userRepository.findByUsername(newUsername).isPresent()) {
+            throw new IllegalArgumentException("Username already taken");
+        }
+
+        // Nastav nové meno a ulož
+        user.setUsername(newUsername);
+        userRepository.save(user);
+        return "Užívatelske meno bolo úspešne zmenené";
+    }
+
 }
