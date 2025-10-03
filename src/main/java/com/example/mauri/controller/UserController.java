@@ -1,6 +1,7 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.response.UserResponseDTO;
+import com.example.mauri.model.dto.update.UpdateUsernameDTO;
 import com.example.mauri.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,13 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponseDTO> getCurrentUser() {
         return ResponseEntity.ok(userService.getAuthenticatedUser());
+    }
+
+    @PatchMapping("/me/update")
+    ResponseEntity<String> updateUsername(@RequestBody UpdateUsernameDTO updateUsernameDTO) {
+        String message = userService.updateUsernameForAuthenticatedUser(updateUsernameDTO.getNewUsername());
+        return ResponseEntity.ok(message);
+
     }
 
     @DeleteMapping("/{id}")
