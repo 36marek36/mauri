@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "https://preeminent-boba-fd56c6.netlify.app")
+//@CrossOrigin(origins = "https://preeminent-boba-fd56c6.netlify.app")
 @RestController
 @RequestMapping("/rest/players")
 @RequiredArgsConstructor
