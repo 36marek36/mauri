@@ -5,7 +5,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.security.Key;
@@ -17,11 +16,25 @@ public class JwtUtil {
     private final Key key;
     private final long jwtExpirationMs;
 
+//    public JwtUtil(
+//            @Value("${jwt.secret}") String secret,
+//            @Value("${jwt.expiration.ms}") long expirationMs) {
+//        byte[] keyBytes = Decoders.BASE64.decode(secret);
+//        this.key = Keys.hmacShaKeyFor(keyBytes);
+//        this.jwtExpirationMs = expirationMs;
+//    }
+
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration.ms}") long expirationMs) {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secret);
+            this.key = Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            System.err.println("Failed to decode JWT secret: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Invalid JWT secret", e);
+        }
         this.jwtExpirationMs = expirationMs;
     }
 
@@ -52,10 +65,5 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
-
-    @PostConstruct
-    public void init() {
-        System.out.println("JWT Secret key successfully loaded and decoded.");
     }
 }
