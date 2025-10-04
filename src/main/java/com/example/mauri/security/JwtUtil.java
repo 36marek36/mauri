@@ -16,25 +16,12 @@ public class JwtUtil {
     private final Key key;
     private final long jwtExpirationMs;
 
-//    public JwtUtil(
-//            @Value("${jwt.secret}") String secret,
-//            @Value("${jwt.expiration.ms}") long expirationMs) {
-//        byte[] keyBytes = Decoders.BASE64.decode(secret);
-//        this.key = Keys.hmacShaKeyFor(keyBytes);
-//        this.jwtExpirationMs = expirationMs;
-//    }
-
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration.ms}") long expirationMs) {
-        try {
-            byte[] keyBytes = Decoders.BASE64.decode(secret);
-            this.key = Keys.hmacShaKeyFor(keyBytes);
-        } catch (Exception e) {
-            System.err.println("Failed to decode JWT secret: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Invalid JWT secret", e);
-        }
+        System.out.println("JWT SECRET from config: " + secret);
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
         this.jwtExpirationMs = expirationMs;
     }
 
