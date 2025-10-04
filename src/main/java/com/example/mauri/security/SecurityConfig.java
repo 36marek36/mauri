@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/rest/players/").permitAll()
                         .requestMatchers("/rest/teams/").permitAll()
                         .requestMatchers("/rest/users/me/**").authenticated()
-//                        .requestMatchers("/rest/players/**").authenticated()
+                        .requestMatchers("/rest/players/**").authenticated()
                         .requestMatchers("/rest/teams/**").authenticated()
                         .requestMatchers("/rest/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
