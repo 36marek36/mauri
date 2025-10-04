@@ -19,7 +19,6 @@ public class JwtUtil {
     public JwtUtil(
             @Value("${jwt}") String secret,
             @Value("${jwt.expiration.ms}") long expirationMs) {
-        System.out.println("JWT SECRET from config: " + secret);
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.jwtExpirationMs = expirationMs;
