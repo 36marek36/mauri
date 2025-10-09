@@ -14,7 +14,9 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://preeminent-boba-fd56c6.netlify.app")
+                        .allowedOrigins(
+                                "http://localhost:5173",
+                                "https://preeminent-boba-fd56c6.netlify.app")
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
