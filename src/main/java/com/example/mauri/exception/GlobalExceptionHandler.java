@@ -76,6 +76,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         return buildException(HttpStatus.BAD_REQUEST, "Neplatný vstup.");
     }
+    @ExceptionHandler(PlayerAlreadyExistsException.class)
+    public ResponseEntity<Object> handlePlayerNameExists(PlayerAlreadyExistsException ex) {
+        return buildException(HttpStatus.CONFLICT, ex.getMessage());
+    }
 
     private ResponseEntity<Object> buildException(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();

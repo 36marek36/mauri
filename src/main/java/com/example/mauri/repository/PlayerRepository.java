@@ -19,4 +19,6 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
     List<Player> findByActiveTrue();
     List<Player> findByActiveFalse();
 
+    boolean existsByFirstNameAndLastName(String firstName, String lastName);
+
 }
