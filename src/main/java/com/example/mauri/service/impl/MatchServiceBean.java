@@ -92,7 +92,14 @@ public class MatchServiceBean implements MatchService {
 
         MatchResult finalResult = matchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
-        match.setStatus(MatchStatus.FINISHED);
+
+        // Nastavenie statusu zápasu podľa výsledku
+        if (finalResult.getScratchedId() != null) {
+            match.setStatus(MatchStatus.SCRATCHED);
+        } else {
+            match.setStatus(MatchStatus.FINISHED);
+        }
+
         return matchRepository.save(match);
     }
 

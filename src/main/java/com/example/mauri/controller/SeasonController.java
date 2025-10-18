@@ -37,6 +37,12 @@ public class SeasonController {
         return ResponseEntity.ok(seasonStats);
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<SeasonResponseDTO> getCurrentSeason() {
+        SeasonResponseDTO current = seasonService.getCurrentSeason();
+        return ResponseEntity.ok(current);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<SeasonResponseDTO> createSeason(@Valid @RequestBody CreateSeasonDTO createSeasonDTO) {
         SeasonResponseDTO season = seasonService.createSeason(createSeasonDTO);

@@ -14,4 +14,5 @@ public interface SeasonService {
     String startSeason(String seasonId);
     String finishSeason(String seasonId);
     SeasonResponseDTO getSeasonStats(String seasonId);
+    SeasonResponseDTO getCurrentSeason();
 }
