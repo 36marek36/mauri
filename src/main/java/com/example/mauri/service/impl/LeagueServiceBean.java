@@ -259,16 +259,13 @@ public class LeagueServiceBean implements LeagueService {
         leagueRepository.save(league);
 
         List<Match> matches = matchRepository.findByLeagueId(leagueId);
+
         for (Match match : matches) {
-            if (match.getResult() != null &&
-                    match.getResult().getScore1() != null &&
-                    match.getResult().getScore2() != null &&
-                    match.getResult().getWinnerId() != null) {
-                match.setStatus(MatchStatus.FINISHED);
-            } else {
+            if (match.getStatus() == MatchStatus.CREATED) {
                 match.setStatus(MatchStatus.CANCELLED);
             }
         }
+
         matchRepository.saveAll(matches);
     }
 

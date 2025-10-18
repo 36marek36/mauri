@@ -60,6 +60,13 @@ public class SeasonServiceBean implements SeasonService {
     }
 
     @Override
+    public SeasonResponseDTO getCurrentSeason() {
+        return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
+                .map(season -> seasonMapper.mapSeasonToDTO(season, true))
+                .orElseThrow(() -> new ResourceNotFoundException("Žiadna aktuálna sezóna nie je dostupná."));
+    }
+
+    @Override
     public SeasonResponseDTO createSeason(CreateSeasonDTO createSeasonDTO) {
         Season season = Season.builder()
                 .id(UUID.randomUUID().toString())

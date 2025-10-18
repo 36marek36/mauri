@@ -1,5 +1,5 @@
 package com.example.mauri.enums;
 
 public enum MatchStatus {
-    CREATED,FINISHED,CANCELLED
+    CREATED,FINISHED,CANCELLED,SCRATCHED
 }

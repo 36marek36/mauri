@@ -68,17 +68,22 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public PlayerResponseDTO createPlayer(CreatePlayerDTO createPlayerDTO) {
+        String firstName = ParticipantNameUtils.capitalizeNamePart(createPlayerDTO.getFirstName());
+        String lastName = ParticipantNameUtils.capitalizeNamePart(createPlayerDTO.getLastName());
+
         boolean exists = playerRepository.existsByFirstNameAndLastName(createPlayerDTO.getFirstName(), createPlayerDTO.getLastName());
         if (exists) {
             throw new PlayerAlreadyExistsException("Hráč s týmto menom už existuje.");
         }
+
         Player player = Player.builder()
                 .id(UUID.randomUUID().toString())
-                .firstName(createPlayerDTO.getFirstName())
-                .lastName(createPlayerDTO.getLastName())
+                .firstName(firstName)
+                .lastName(lastName)
                 .email(createPlayerDTO.getEmail())
                 .phone(createPlayerDTO.getPhone())
                 .build();
+
         Player saved = playerRepository.save(player);
         return playerMapper.mapToResponseDTO(saved);
     }

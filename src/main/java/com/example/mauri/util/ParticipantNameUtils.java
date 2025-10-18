@@ -16,4 +16,12 @@ public class ParticipantNameUtils {
         return (name1 + " a " + name2).trim();
     }
 
+    public static String capitalizeNamePart(String input) {
+        if (input == null || input.isBlank()) {
+            return input;
+        }
+        input = input.trim();
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
+    }
+
 }
