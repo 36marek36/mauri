@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,15 +23,23 @@ public class TeamStatsServiceBean implements TeamStatsService {
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
     private final TeamService teamService;
+    private final MatchQueryService matchQueryService;
 
     // Získanie štatistík jedného tímu v lige
     @Override
     public TeamStatsDTO getTeamStats(String leagueId, String teamId) {
-        // Načítame všetky ukončené zápasy ligy naraz (pre lepšiu efektivitu)
-        List<Match> matches = matchRepository.findByLeagueIdAndStatus(leagueId, MatchStatus.FINISHED);
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
 
+        List<Match> matches = matchQueryService.getEvaluatedMatches(leagueId);
         Team team = teamService.getTeamById(teamId);
-        return calculateTeamStats(team, matches,leagueId);
+
+        TeamStatsDTO stats = calculateTeamStats(team, matches, leagueId);
+
+        List<String> droppedIds = league.getDroppedParticipantsIds();
+        stats.setDroppedFromLeague(droppedIds != null && droppedIds.contains(teamId));
+
+        return stats;
     }
 
     // Získanie štatistík všetkých tímov v lige
@@ -40,23 +49,36 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
 
         List<Team> teams = league.getTeams();
+        List<String> droppedIds = league.getDroppedParticipantsIds() != null
+                ? league.getDroppedParticipantsIds()
+                : Collections.emptyList();
 
-        // Načítame všetky ukončené zápasy ligy naraz
-        List<Match> matches = matchRepository.findByLeagueIdAndStatus(leagueId, MatchStatus.FINISHED);
+        List<Match> matches = matchQueryService.getEvaluatedMatches(leagueId);
 
         List<TeamStatsDTO> statsList = new ArrayList<>();
 
         for (Team team : teams) {
-            TeamStatsDTO stats = calculateTeamStats(team, matches,leagueId);
+            TeamStatsDTO stats = calculateTeamStats(team, matches, leagueId);
+
+            // ✅ Nastavíme príznak odhlásenia
+            stats.setDroppedFromLeague(droppedIds.contains(team.getId()));
+
             statsList.add(stats);
         }
 
+        // ✅ Triedenie
         statsList.sort((a, b) -> {
-            // Najprv podľa počtu vyhraných setov zostupne
+            boolean aDropped = a.isDroppedFromLeague();
+            boolean bDropped = b.isDroppedFromLeague();
+
+            if (aDropped && !bDropped) return 1;
+            if (!aDropped && bDropped) return -1;
+
+            // Podľa počtu vyhraných setov
             int cmp = Integer.compare(b.getSetsWon(), a.getSetsWon());
             if (cmp != 0) return cmp;
 
-            // Ak rovnaké, podľa vzájomných zápasov
+            // Podľa vzájomného zápasu
             return compareHeadToHeadInMemory(a.getTeamId(), b.getTeamId(), matches);
         });
 
@@ -65,7 +87,10 @@ public class TeamStatsServiceBean implements TeamStatsService {
 
     @Override
     public int teamProgress(String leagueId, String teamId) {
-        int played = matchRepository.countPlayedMatchesByTeam(leagueId,teamId,MatchStatus.FINISHED);
+        int played = matchRepository.countPlayedMatchesByTeamInStatuses(
+                leagueId,
+                teamId,
+                List.of(MatchStatus.FINISHED,MatchStatus.CANCELLED,MatchStatus.SCRATCHED));
         int total = matchRepository.countTotalMatchesByTeam(leagueId,teamId);
 
         if (total == 0) return 0;
@@ -144,67 +169,3 @@ public class TeamStatsServiceBean implements TeamStatsService {
     }
 }
 
-//    public TeamStatsDTO getTeamStats(String leagueId, String teamId) {
-//
-//        List<Match> matches = matchRepository.findByLeagueIdAndTeam(leagueId, teamId);
-//
-//        Team team = teamService.getTeamById(teamId);
-//        String teamName = ParticipantNameUtils.buildTeamName(team);
-/// /        String teamName = team.getPlayer1().getLastName()+" / "+team.getPlayer2().getLastName();
-//
-//
-//        int matchesPlayed = 0;
-//        int wins = 0;
-//        int losses = 0;
-//        int setsWon = 0;
-//        int setsLost = 0;
-//
-//        for (Match match : matches) {
-//            if (match.getStatus() != MatchStatus.FINISHED || match.getResult() == null) {
-//                continue;
-//            }
-//
-//            MatchResult matchResult = match.getResult();
-//
-//            boolean isHome = match.getHomeTeam().getId().equals(teamId);
-//            int teamSets = isHome ? matchResult.getScore1() : matchResult.getScore2();
-//            int opponentSets = isHome ? matchResult.getScore2() : matchResult.getScore1();
-//
-//            matchesPlayed++;
-//            setsWon += teamSets;
-//            setsLost += opponentSets;
-//
-//            if (matchResult.getWinnerId().equals(teamId)) {
-//                wins++;
-//            } else {
-//                losses++;
-//            }
-//        }
-//        return TeamStatsDTO.builder()
-//                .teamId(teamId)
-//                .teamName(teamName)
-//                .matches(matchesPlayed)
-//                .wins(wins)
-//                .losses(losses)
-//                .setsWon(setsWon)
-//                .setsLost(setsLost)
-//                .build();
-//    }
-//
-//    public List<TeamStatsDTO> getAllStatsForLeague(String leagueId) {
-//        League league = leagueRepository.findById(leagueId)
-//                .orElseThrow(() -> new ResourceNotFoundException("League not found"));
-//
-//
-//        List<Team> teams = league.getTeams();
-//        List<TeamStatsDTO> statsList = new ArrayList<>();
-//
-//        for (Team team : teams) {
-//            TeamStatsDTO stats = getTeamStats(leagueId, team.getId());
-//            statsList.add(stats);
-//        }
-//
-//        statsList.sort(Comparator.comparingInt(TeamStatsDTO::getSetsWon).reversed());
-//        return statsList;
-//    }
-//}
