@@ -214,9 +214,10 @@ public class LeagueServiceBean implements LeagueService {
 
                 affectedMatches = matchRepository.findByLeagueIdAndPlayer(leagueId, participantId);
                 for (Match match : affectedMatches) {
-                    MatchResult result = new MatchResult();
-                    result.setScratchedId(participantId);
-                    matchService.addResult(match.getId(), result);
+//                    MatchResult result = new MatchResult();
+//                    result.setScratchedId(participantId);
+//                    matchService.addResult(match.getId(), result);
+                    matchService.deleteMatch(match.getId());
                 }
                 participantName = ParticipantNameUtils.buildPlayerName(player);
             }
@@ -231,9 +232,10 @@ public class LeagueServiceBean implements LeagueService {
 
                 affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
                 for (Match match : affectedMatches) {
-                    MatchResult result = new MatchResult();
-                    result.setScratchedId(participantId);
-                    matchService.addResult(match.getId(), result);
+//                    MatchResult result = new MatchResult();
+//                    result.setScratchedId(participantId);
+//                    matchService.addResult(match.getId(), result);
+                    matchService.deleteMatch(match.getId());
                 }
                 participantName = ParticipantNameUtils.buildTeamName(team);
             }
