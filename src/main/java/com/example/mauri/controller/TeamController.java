@@ -45,6 +45,12 @@ public class TeamController {
         return ResponseEntity.ok(freeTeamsDTO);
     }
 
+    @GetMapping("/not-in-league/{leagueId}")
+    public ResponseEntity<List<TeamResponseDTO>> getTeamsNotInLeague(@PathVariable String leagueId) {
+        List<TeamResponseDTO> teams = teamService.getTeamsNotInLeague(leagueId);
+        return ResponseEntity.ok(teams);
+    }
+
     @PostMapping("/create")
     ResponseEntity<TeamResponseDTO> createTeam(@Valid @RequestBody CreateTeamDTO team) {
         TeamResponseDTO created = teamService.createTeam(team.getPlayer1Id(), team.getPlayer2Id());

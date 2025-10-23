@@ -3,6 +3,7 @@ package com.example.mauri.repository;
 import com.example.mauri.model.Team;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,4 +22,7 @@ public interface TeamRepository extends JpaRepository<Team, String> {
     List<Team> findByActiveTrue();
 
     List<Team> findByActiveFalse();
+
+    @Query("SELECT t FROM teams t WHERE t.active = true and t.id NOT IN (SELECT tm.id FROM leagues l join l.teams tm WHERE l.id = :leagueId)")
+    List<Team> findTeamsNotInLeague(@Param("leagueId") String leagueId);
 }

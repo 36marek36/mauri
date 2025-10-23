@@ -26,4 +26,6 @@ public interface TeamService {
 
     void deactivateTeamsWithPlayer(@NonNull String playerId);
 
+    List<TeamResponseDTO> getTeamsNotInLeague(String leagueId);
+
 }

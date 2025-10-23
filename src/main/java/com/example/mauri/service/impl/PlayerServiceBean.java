@@ -185,6 +185,15 @@ public class PlayerServiceBean implements PlayerService {
         return playerMapper.mapToResponseDTO(saved);
     }
 
+
+    @Override
+    public List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId) {
+        List<Player> players = playerRepository.findPlayersNotInLeague(leagueId);
+        return players.stream()
+                .map(this::mapFullPlayer)
+                .toList();
+    }
+
     private Player getPlayerOrThrow(String id) {
         return playerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Player not found with id: " + id));

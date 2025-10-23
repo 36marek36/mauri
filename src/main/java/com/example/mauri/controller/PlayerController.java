@@ -55,6 +55,12 @@ public class PlayerController {
         return ResponseEntity.ok(players);
     }
 
+    @GetMapping("/not-in-league/{leagueId}")
+    public ResponseEntity<List<PlayerResponseDTO>> getPlayersNotInLeague(@PathVariable String leagueId) {
+        List<PlayerResponseDTO> players = playerService.getPlayersNotInLeague(leagueId);
+        return ResponseEntity.ok(players);
+    }
+
     @PostMapping("/admin/createPlayer")
     ResponseEntity<PlayerResponseDTO> createPlayer(@Valid @RequestBody CreatePlayerDTO createPlayerDTO) {
         PlayerResponseDTO created = playerService.createPlayer(createPlayerDTO);
