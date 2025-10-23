@@ -114,4 +114,12 @@ public class TeamServiceBean implements TeamService {
             deactivateTeam(team.getId());
         }
     }
+
+    @Override
+    public List<TeamResponseDTO> getTeamsNotInLeague(String leagueId) {
+        List<Team> teams = teamRepository.findTeamsNotInLeague(leagueId);
+        return teams.stream()
+                .map(teamMapper::mapToResponseDTO)
+                .toList();
+    }
 }

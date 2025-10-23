@@ -34,4 +34,6 @@ public interface PlayerService {
 
     PlayerResponseDTO updatePlayer(String playerId, UpdatePlayerDTO updatedPlayer);
 
+    List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId);
+
 }
