@@ -5,6 +5,7 @@ import com.example.mauri.mapper.UserMapper;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.response.UserResponseDTO;
+import com.example.mauri.model.dto.update.UpdateRoleDTO;
 import com.example.mauri.repository.UserRepository;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.UserService;
@@ -78,6 +79,17 @@ public class UserServiceBean implements UserService {
         user.setUsername(newUsername);
         userRepository.save(user);
         return "Užívatelske meno bolo úspešne zmenené";
+    }
+
+    @Override
+    public String updateUserRole(UpdateRoleDTO dto) {
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Používateľ nebol nájdený"));
+
+        user.setRole(dto.getUpdateUserRole());
+        userRepository.save(user);
+
+        return "Rola používateľa " + user.getUsername() + " bola zmenená na " + dto.getUpdateUserRole();
     }
 
 }

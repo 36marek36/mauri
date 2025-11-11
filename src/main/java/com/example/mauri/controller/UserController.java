@@ -1,8 +1,10 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.response.UserResponseDTO;
+import com.example.mauri.model.dto.update.UpdateRoleDTO;
 import com.example.mauri.model.dto.update.UpdateUsernameDTO;
 import com.example.mauri.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +35,12 @@ public class UserController {
     ResponseEntity<String> updateUsername(@RequestBody UpdateUsernameDTO updateUsernameDTO) {
         String message = userService.updateUsernameForAuthenticatedUser(updateUsernameDTO.getNewUsername());
         return ResponseEntity.ok(message);
+    }
 
+    @PatchMapping("/updateRole")
+    ResponseEntity<String> updateUserRole(@RequestBody @Valid UpdateRoleDTO updateRoleDTO) {
+        String message = userService.updateUserRole(updateRoleDTO);
+        return ResponseEntity.ok(message);
     }
 
     @DeleteMapping("/{id}")
