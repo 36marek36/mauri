@@ -1,6 +1,7 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.dto.response.UserResponseDTO;
+import com.example.mauri.model.dto.update.UpdateRoleDTO;
 
 import java.util.List;
 
@@ -9,4 +10,5 @@ public interface UserService {
     UserResponseDTO getAuthenticatedUser();
     void deleteUser(String userId);
     String updateUsernameForAuthenticatedUser(String newUsername);
+    String updateUserRole(UpdateRoleDTO dto);
 }
