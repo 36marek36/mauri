@@ -19,6 +19,9 @@ import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -62,6 +65,21 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public PlayerResponseDTO getPlayerResponseById(String id) {
+
+        // 1. Skontroluj, či je používateľ prihlásený
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Používateľ neexistuje")); // 404
+
+        // 2. Overenie práv na zobrazenie detailu
+        if (!user.isShowDetails()) {
+            throw new AccessDeniedException("Nemáte povolenie zobraziť detail hráča."); // 403
+        }
+
+        // 3. Načítaj hráča a vráť DTO
         Player player = getPlayerOrThrow(id);
         return mapFullPlayer(player);
     }
@@ -218,7 +236,7 @@ public class PlayerServiceBean implements PlayerService {
                 .toList());
 
         dto.setLeagues(leagues.stream()
-                .map(league -> new LeagueShortDTO(league.getId(), league.getName(), league.getSeason().getYear()))
+                .map(league -> new LeagueShortDTO(league.getId(), league.getName(), league.getSeason().getYear(),league.getLeagueType(),league.getStatus()))
                 .toList());
 
         return dto;
