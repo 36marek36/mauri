@@ -15,6 +15,7 @@ public class UserResponseDTO {
     private String role;
     private String playerId;
     private String playerName;
+    private boolean showDetails;
     @JsonFormat(pattern = "dd.MM.yyyy HH:mm:ss")
     private LocalDateTime createdAt;
     @JsonFormat(pattern = "dd.MM.yyyy HH:mm:ss")

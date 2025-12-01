@@ -30,6 +30,8 @@ public class User {
     @JoinColumn(name = "player_id")
     private Player player;
 
+    private boolean showDetails;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime lastLogin;

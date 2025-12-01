@@ -1,6 +1,7 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.response.UserResponseDTO;
+import com.example.mauri.model.dto.update.ShowDetailsUpdateDTO;
 import com.example.mauri.model.dto.update.UpdateRoleDTO;
 import com.example.mauri.model.dto.update.UpdateUsernameDTO;
 import com.example.mauri.service.UserService;
@@ -40,6 +41,12 @@ public class UserController {
     @PatchMapping("/updateRole")
     ResponseEntity<String> updateUserRole(@RequestBody @Valid UpdateRoleDTO updateRoleDTO) {
         String message = userService.updateUserRole(updateRoleDTO);
+        return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/showPlayerDetails")
+    ResponseEntity<String> showUserDetails(@RequestBody ShowDetailsUpdateDTO showDetailsUpdateDTO) {
+        String message = userService.showDetails(showDetailsUpdateDTO);
         return ResponseEntity.ok(message);
     }
 
