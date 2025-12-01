@@ -18,6 +18,7 @@ public class UserMapper {
                 .role(user.getRole().name())
                 .playerId(player != null ? player.getId() : null)
                 .playerName(player != null ? player.getFirstName() + " " + player.getLastName() : null)
+                .showDetails(user.isShowDetails())
                 .createdAt(user.getCreatedAt())
                 .lastLogin(user.getLastLogin())
                 .build();
