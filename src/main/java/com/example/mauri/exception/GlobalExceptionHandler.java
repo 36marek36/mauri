@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -79,6 +80,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PlayerAlreadyExistsException.class)
     public ResponseEntity<Object> handlePlayerNameExists(PlayerAlreadyExistsException ex) {
         return buildException(HttpStatus.CONFLICT, ex.getMessage());
+    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex) {
+        return buildException(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     private ResponseEntity<Object> buildException(HttpStatus status, String message) {
