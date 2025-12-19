@@ -74,13 +74,20 @@ public class PlayerServiceBean implements PlayerService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Používateľ neexistuje")); // 404
 
-        // 2. Overenie práv na zobrazenie detailu
+        // 2. Načítaj hráča
+        Player player = getPlayerOrThrow(id);
+
+        // 3. Overenie práv
+        // Ak používateľ nemá showDetails, môže vidieť iba svojho hráča
         if (!user.isShowDetails()) {
-            throw new AccessDeniedException("Nemáte povolenie zobraziť detail hráča."); // 403
+            Player myPlayer = user.getPlayer();
+
+            if (myPlayer == null || !myPlayer.getId().equals(player.getId())) {
+                throw new AccessDeniedException("Nemáte povolenie zobraziť detail tohto hráča.");
+            }
         }
 
-        // 3. Načítaj hráča a vráť DTO
-        Player player = getPlayerOrThrow(id);
+        // 4. Vráť DTO
         return mapFullPlayer(player);
     }
 
@@ -236,7 +243,7 @@ public class PlayerServiceBean implements PlayerService {
                 .toList());
 
         dto.setLeagues(leagues.stream()
-                .map(league -> new LeagueShortDTO(league.getId(), league.getName(), league.getSeason().getYear(),league.getLeagueType(),league.getStatus()))
+                .map(league -> new LeagueShortDTO(league.getId(), league.getName(), league.getSeason().getYear(), league.getLeagueType(), league.getStatus()))
                 .toList());
 
         return dto;
