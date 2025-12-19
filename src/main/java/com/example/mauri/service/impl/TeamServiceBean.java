@@ -4,14 +4,15 @@ import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.TeamMapper;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
+import com.example.mauri.model.User;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
-import com.example.mauri.repository.LeagueRepository;
-import com.example.mauri.repository.MatchRepository;
-import com.example.mauri.repository.PlayerRepository;
-import com.example.mauri.repository.TeamRepository;
+import com.example.mauri.repository.*;
 import com.example.mauri.service.TeamService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class TeamServiceBean implements TeamService {
 
     private final TeamRepository teamRepository;
+    private final UserRepository userRepository;
     private final PlayerRepository playerRepository;
     private final LeagueRepository leagueRepository;
     private final MatchRepository matchRepository;
@@ -53,7 +55,35 @@ public class TeamServiceBean implements TeamService {
 
     @Override
     public TeamResponseDTO getTeamResponseById(String id) {
+        // 1. Skontroluj, či je používateľ prihlásený
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Používateľ neexistuje")); // 404
+
+        // 2. Načítaj tím
         Team team = getTeamById(id);
+
+        // 3. Overenie práv
+        // Ak používateľ nemá showDetails, môže vidieť len tímy, ktorých je členom
+        if (!user.isShowDetails()) {
+            Player myPlayer = user.getPlayer();
+
+            if (myPlayer == null) {
+                throw new AccessDeniedException("Nemáte povolenie zobraziť detail tímu."); // 403
+            }
+
+            // Over, či je používateľ hráčom v tíme
+            boolean isMember = myPlayer.getId().equals(team.getPlayer1().getId())
+                    || myPlayer.getId().equals(team.getPlayer2().getId());
+
+            if (!isMember) {
+                throw new AccessDeniedException("Nemáte povolenie zobraziť detail tímu."); // 403
+            }
+        }
+
+        // 4. Vráť DTO
         return teamMapper.mapToResponseDTO(team);
     }
 

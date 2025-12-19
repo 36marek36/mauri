@@ -45,7 +45,7 @@ public class SeasonServiceBean implements SeasonService {
 
         List<SeasonResponseDTO> seasonDTOs = new ArrayList<>();
         for (Season season : seasons) {
-            seasonDTOs.add(seasonMapper.mapSeasonToDTO(season,true));
+            seasonDTOs.add(seasonMapper.mapSeasonToDTO(season, true));
         }
 
         return seasonDTOs;
@@ -114,14 +114,27 @@ public class SeasonServiceBean implements SeasonService {
         Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sezóna s ID " + seasonId + " neexistuje."));
 
+        seasonRepository.findByStatus(SeasonStatus.ACTIVE)
+                .filter(active -> !active.getId().equals(seasonId))
+                .ifPresent(active -> {
+                    throw new IllegalStateException(
+                            "Nie je možné spustiť sezónu – sezóna " +
+                                    active.getYear() + " je už aktívna."
+                    );
+                });
+
         if (season.getStatus() != SeasonStatus.CREATED) {
-            if (season.getStatus() == SeasonStatus.ACTIVE) {
-                throw new IllegalStateException("Sezóna " + season.getYear() + " je už spustená.");
-            }
-            if (season.getStatus() == SeasonStatus.FINISHED) {
-                throw new IllegalStateException("Sezóna " + season.getYear() + " bola už ukončená.");
-            }
-            throw new IllegalStateException("Sezónu možno spustiť len ak je v stave CREATED.");
+            throw switch (season.getStatus()) {
+                case ACTIVE -> new IllegalStateException(
+                        "Sezóna " + season.getYear() + " je už spustená."
+                );
+                case FINISHED -> new IllegalStateException(
+                        "Sezóna " + season.getYear() + " bola už ukončená."
+                );
+                default -> new IllegalStateException(
+                        "Sezónu možno spustiť len ak je v stave CREATED."
+                );
+            };
         }
 
         List<League> leagues = leagueRepository.findAllBySeasonId(seasonId);

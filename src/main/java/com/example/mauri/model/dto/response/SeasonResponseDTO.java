@@ -1,6 +1,7 @@
 package com.example.mauri.model.dto.response;
 
 import com.example.mauri.enums.SeasonStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,9 @@ public class SeasonResponseDTO {
     private long totalTeams;
 
     private LocalDate createdAt;
+
+    @JsonFormat(pattern = "dd.MM.yyyy")
     private LocalDate startDate;
+    @JsonFormat(pattern = "dd.MM.yyyy")
     private LocalDate endDate;
 }

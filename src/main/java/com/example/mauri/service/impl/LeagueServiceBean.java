@@ -217,7 +217,10 @@ public class LeagueServiceBean implements LeagueService {
 //                    MatchResult result = new MatchResult();
 //                    result.setScratchedId(participantId);
 //                    matchService.addResult(match.getId(), result);
-                    matchService.deleteMatch(match.getId());
+
+                    match.setStatus(MatchStatus.CANCELLED);
+
+//                    matchService.deleteMatch(match.getId());
                 }
                 participantName = ParticipantNameUtils.buildPlayerName(player);
             }
@@ -232,10 +235,8 @@ public class LeagueServiceBean implements LeagueService {
 
                 affectedMatches = matchRepository.findByLeagueIdAndTeam(leagueId, participantId);
                 for (Match match : affectedMatches) {
-//                    MatchResult result = new MatchResult();
-//                    result.setScratchedId(participantId);
-//                    matchService.addResult(match.getId(), result);
-                    matchService.deleteMatch(match.getId());
+                    match.setStatus(MatchStatus.CANCELLED);
+//                    matchService.deleteMatch(match.getId());
                 }
                 participantName = ParticipantNameUtils.buildTeamName(team);
             }
@@ -245,7 +246,7 @@ public class LeagueServiceBean implements LeagueService {
         league.getDroppedParticipantsIds().add(participantId);
         leagueRepository.save(league);
 
-        return "Účastník '" + participantName + "' bol úspešne odhlásený z ligy a všetky svoje zapasy (" + affectedMatches.size() + ") prehral kontumačne 0:6, 0:6";
+        return "Účastník '" + participantName + "' bol úspešne odhlásený z ligy a všetky svoje zapasy (" + affectedMatches.size() + ") boli zrušené.";
     }
 
     @Override
