@@ -6,7 +6,6 @@ import com.example.mauri.model.*;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
-import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.PlayerStatsService;
 import com.example.mauri.util.ParticipantNameUtils;
 import lombok.RequiredArgsConstructor;
@@ -22,24 +21,20 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
 
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
-    private final PlayerService playerService;
     private final MatchQueryService matchQueryService;
 
     // Získanie štatistík jedného hráča v lige
     @Override
     public PlayerStatsDTO getPlayerStats(String leagueId, String playerId) {
-        League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
+        // Získaj všetky štatistiky pre ligu (vrátane ranku)
+        List<PlayerStatsDTO> leagueStats = getAllStatsForLeague(leagueId);
 
-        List<Match> matches = matchQueryService.getEvaluatedMatches(leagueId);
-        Player player = playerService.getPlayer(playerId);
-
-        PlayerStatsDTO stats = calculatePlayerStats(player, matches, leagueId);
-
-        List<String> droppedIds = league.getDroppedParticipantsIds();
-        stats.setDroppedFromLeague(droppedIds != null && droppedIds.contains(playerId));
-
-        return stats;
+        // Nájdeme konkrétneho hráča
+        return leagueStats.stream()
+                .filter(s -> s.getPlayerId().equals(playerId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Player with id " + playerId + " not found in league " + leagueId));
     }
 
     // Získanie štatistík všetkých hráčov v lige
@@ -82,6 +77,16 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
             // Ak sú sety rovnaké, porovnaj vzájomný zápas
             return compareHeadToHeadInMemory(a.getPlayerId(), b.getPlayerId(), matches);
         });
+        // ✅ Po triedení priraď poradie (rank)
+        int rank = 1;
+        for (PlayerStatsDTO stats : statsList) {
+            if (!stats.isDroppedFromLeague()) {
+                stats.setRank(rank++);
+            } else {
+                // Ak chceš, aby odhlásení nemali poradie, nechaj null
+                stats.setRank(null);
+            }
+        }
 
         return statsList;
     }

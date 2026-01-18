@@ -20,4 +20,5 @@ public class PlayerStatsDTO {
     private int setsLost;
     private int leagueProgress;
     private boolean droppedFromLeague;
+    private Integer rank;
 }
