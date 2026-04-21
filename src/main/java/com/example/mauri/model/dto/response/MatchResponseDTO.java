@@ -20,8 +20,8 @@ public class MatchResponseDTO {
     private ParticipantDTO homePlayer ;
     private ParticipantDTO awayPlayer ;
 
-    private ParticipantDTO homeTeam ;
-    private ParticipantDTO awayTeam ;
+    private TeamResponseDTO homeTeam ;
+    private TeamResponseDTO awayTeam ;
 
     private String leagueId;
 
