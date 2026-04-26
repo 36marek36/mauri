@@ -22,7 +22,7 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
 
     boolean existsByFirstNameAndLastName(String firstName, String lastName);
 
-    @Query("SELECT p FROM players p WHERE p.active = true and p.id NOT IN (SELECT pl.id FROM leagues l join l.players pl WHERE l.id = :leagueId)")
+    @Query("SELECT p FROM players p WHERE p.active = true and p.id NOT IN (SELECT pl.id FROM leagues l join l.players pl WHERE l.id = :leagueId) order by p.lastName ASC ")
     List<Player> findPlayersNotInLeague(@Param("leagueId") String leagueId);
 
 }

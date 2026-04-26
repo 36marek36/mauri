@@ -168,7 +168,7 @@ public class LeagueServiceBean implements LeagueService {
                     matchService.deleteMatch(match.getId());
                 }
                 league.getTeams().remove(team);
-                participantName = ParticipantNameUtils.buildTeamName(team);
+                participantName = ParticipantNameUtils.buildTeamShortName(team);
             }
 
             default -> throw new UnsupportedOperationException("Unsupported match type: " + type);
@@ -238,7 +238,7 @@ public class LeagueServiceBean implements LeagueService {
                     match.setStatus(MatchStatus.CANCELLED);
 //                    matchService.deleteMatch(match.getId());
                 }
-                participantName = ParticipantNameUtils.buildTeamName(team);
+                participantName = ParticipantNameUtils.buildTeamShortName(team);
             }
             default -> throw new UnsupportedOperationException("Unsupported match type: " + type);
         }
@@ -290,7 +290,7 @@ public class LeagueServiceBean implements LeagueService {
         // Tímy
         List<ParticipantDTO> teams = league.getTeams().stream()
                 .map(team -> {
-                    String name = ParticipantNameUtils.buildTeamName(team);
+                    String name = ParticipantNameUtils.buildTeamShortName(team);
                     int progress = teamStatsService.teamProgress(league.getId(), team.getId());
                     return new ParticipantDTO(team.getId(), name, team.isActive(), progress);
                 })
