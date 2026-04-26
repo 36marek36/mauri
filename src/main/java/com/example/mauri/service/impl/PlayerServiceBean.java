@@ -239,7 +239,7 @@ public class PlayerServiceBean implements PlayerService {
         PlayerResponseDTO dto = playerMapper.mapToResponseDTO(player);
 
         dto.setTeams(teams.stream()
-                .map(team -> new TeamShortDTO(team.getId(), ParticipantNameUtils.buildTeamName(team)))
+                .map(team -> new TeamShortDTO(team.getId(), ParticipantNameUtils.buildTeamShortName(team)))
                 .toList());
 
         dto.setLeagues(leagues.stream()

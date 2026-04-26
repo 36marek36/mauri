@@ -31,7 +31,7 @@ public class TeamMapper {
         if (team.getPlayer2() != null) {
             player2 = playerMapper.mapToResponseDTO(team.getPlayer2());
         }
-        String teamName = ParticipantNameUtils.buildTeamName(team);
+        String teamName = ParticipantNameUtils.buildTeamShortName(team);
 
         List<League> leagues = leagueRepository.findLeaguesByTeamId(team.getId());
 

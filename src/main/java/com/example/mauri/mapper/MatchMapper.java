@@ -25,12 +25,12 @@ public class MatchMapper {
         switch (match.getMatchType()) {
             case SINGLES -> {
                 if (match.getHomePlayer() != null) {
-                    String name = ParticipantNameUtils.buildPlayerName(match.getHomePlayer());
+                    String name = ParticipantNameUtils.buildPlayerShortName(match.getHomePlayer());
                     int progress = playerStatsService.playerProgress(match.getLeagueId(), match.getHomePlayer().getId());
                     homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive(),progress);
                 }
                 if (match.getAwayPlayer() != null) {
-                    String name = ParticipantNameUtils.buildPlayerName(match.getAwayPlayer());
+                    String name = ParticipantNameUtils.buildPlayerShortName(match.getAwayPlayer());
                     int progress = playerStatsService.playerProgress(match.getLeagueId(), match.getAwayPlayer().getId());
                     awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive(),progress);
                 }

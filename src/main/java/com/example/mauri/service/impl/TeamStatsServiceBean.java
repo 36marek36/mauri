@@ -101,7 +101,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
     // Privátna metóda na výpočet štatistík tímu zo zoznamu zápasov
     private TeamStatsDTO calculateTeamStats(Team team, List<Match> matches, String leagueId) {
         String teamId = team.getId();
-        String teamName = ParticipantNameUtils.buildTeamName(team);
+        String teamName = ParticipantNameUtils.buildTeamShortName(team);
 
         int matchesPlayed = 0;
         int wins = 0;
