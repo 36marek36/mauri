@@ -17,8 +17,9 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
     @Query("SELECT p FROM players p WHERE p.active = true AND p.id NOT IN (SELECT u.player.id FROM users u WHERE u.player IS NOT NULL)")
     List<Player> findActivePlayersWithoutUser();
 
-    List<Player> findByActiveTrue();
-    List<Player> findByActiveFalse();
+    List<Player> findByActiveTrueOrderByLastNameAsc();
+
+    List<Player> findByActiveFalseOrderByLastNameAsc();
 
     boolean existsByFirstNameAndLastName(String firstName, String lastName);
 

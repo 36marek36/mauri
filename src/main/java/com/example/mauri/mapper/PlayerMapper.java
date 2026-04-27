@@ -13,7 +13,7 @@ public class PlayerMapper {
                 .id(player.getId())
                 .firstName(player.getFirstName())
                 .lastName(player.getLastName())
-                .name(player.getFirstName() + " " + player.getLastName())
+                .name(player.getLastName() + " " + player.getFirstName())
                 .email(player.getEmail())
                 .phone(player.getPhone())
                 .registrationDate(player.getRegistrationDate())

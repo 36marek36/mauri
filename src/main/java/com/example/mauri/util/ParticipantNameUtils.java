@@ -7,7 +7,7 @@ public class ParticipantNameUtils {
     public static String buildPlayerName(Player player) {
         String first = player.getFirstName() != null ? player.getFirstName() : "";
         String last = player.getLastName() != null ? player.getLastName() : "";
-        return (first + " " + last).trim();
+        return (last + " " + first).trim();
     }
     public static String buildPlayerShortName(Player player) {
         String first = player.getFirstName() != null ? player.getFirstName() : "";
@@ -17,7 +17,7 @@ public class ParticipantNameUtils {
                 ? first.substring(0, 1).toUpperCase() + "."
                 : "";
 
-        return (firstInitial + " " + last).trim();
+        return (last + " " + firstInitial).trim();
     }
 
     public static String buildTeamName(Team team) {

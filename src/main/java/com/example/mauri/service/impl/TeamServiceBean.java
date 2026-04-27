@@ -33,7 +33,7 @@ public class TeamServiceBean implements TeamService {
 
     @Override
     public List<TeamResponseDTO> getActiveTeams() {
-        List<Team> teams = teamRepository.findByActiveTrue();
+        List<Team> teams = teamRepository.findByActiveTrueOrderByPlayer1LastNameAsc();
         return teams.stream()
                 .map(teamMapper::mapToResponseDTO)
                 .toList();
@@ -41,7 +41,7 @@ public class TeamServiceBean implements TeamService {
 
     @Override
     public List<TeamResponseDTO> getInactiveTeams() {
-        List<Team> teams = teamRepository.findByActiveFalse();
+        List<Team> teams = teamRepository.findByActiveFalseOrderByPlayer1LastNameAsc();
         return teams.stream()
                 .map(teamMapper::mapToResponseDTO)
                 .toList();
@@ -89,17 +89,31 @@ public class TeamServiceBean implements TeamService {
 
     @Override
     public TeamResponseDTO createTeam(String player1Id, String player2Id) {
+
+        if (player1Id.equals(player2Id)) {
+            throw new IllegalArgumentException("Hráč nemôže byť v tíme sám so sebou.");
+        }
+
         Player player1 = playerRepository.findById(player1Id)
                 .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + player1Id));
+
         Player player2 = playerRepository.findById(player2Id)
                 .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + player2Id));
+
+        boolean exists = teamRepository.existsByPlayers(player1Id, player2Id);
+
+        if (exists) {
+            throw new IllegalStateException("Tím už existuje.");
+        }
 
         Team team = Team.builder()
                 .id(UUID.randomUUID().toString())
                 .player1(player1)
                 .player2(player2)
                 .build();
+
         Team saved = teamRepository.save(team);
+
         return teamMapper.mapToResponseDTO(saved);
     }
 

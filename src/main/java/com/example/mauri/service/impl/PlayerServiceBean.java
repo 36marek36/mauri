@@ -43,7 +43,7 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public List<PlayerResponseDTO> getActivePlayers() {
-        List<Player> players = playerRepository.findByActiveTrue();
+        List<Player> players = playerRepository.findByActiveTrueOrderByLastNameAsc();
 
         return players.stream()
                 .map(this::mapFullPlayer) // každý Player sa zmení na PlayerResponseDTO
@@ -52,7 +52,7 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public List<PlayerResponseDTO> getInactivePlayers() {
-        List<Player> players = playerRepository.findByActiveFalse();
+        List<Player> players = playerRepository.findByActiveFalseOrderByLastNameAsc();
         return players.stream()
                 .map(this::mapFullPlayer)
                 .toList();

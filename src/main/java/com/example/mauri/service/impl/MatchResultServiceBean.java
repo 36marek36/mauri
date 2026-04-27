@@ -25,6 +25,7 @@ public class MatchResultServiceBean implements MatchResultService {
         if (!inputResult.getSetScores().isEmpty()) {
             numberSets(inputResult.getSetScores());
             calculateScore(inputResult);
+            validateMatch(inputResult);
             determineWinner(match, inputResult);
         }
 
@@ -58,26 +59,31 @@ public class MatchResultServiceBean implements MatchResultService {
             throw new InvalidMatchResultException("Musíte zadať aspoň jeden set.");
         }
 
+        if (setScores.size() < 2) {
+            throw new InvalidMatchResultException("Zápas musí obsahovať aspoň 2 sety.");
+        }
+
         for (SetScore set : setScores) {
-            Integer s1 = set.getScore1();
-            Integer s2 = set.getScore2();
 
-            if (s1 == null || s2 == null) {
-                throw new InvalidMatchResultException("Set nemá vyplnené skóre.");
+            int s1 = set.getScore1();
+            int s2 = set.getScore2();
+
+            if (s1 < 0 || s2 < 0) {
+                throw new InvalidMatchResultException("Skóre nemôže byť záporné.");
             }
 
-            if (s1 < 0 || s2 < 0 || s1 > 30 || s2 > 30) {
-                throw new InvalidMatchResultException("Skóre musí byť v rozsahu 0–30.");
-            }
-
-            if (s1.equals(s2)) {
+            if (s1 == s2) {
                 throw new InvalidMatchResultException("Set nemôže skončiť remízou.");
             }
 
-            int diff = Math.abs(s1 - s2);
-            boolean tiebreak = (s1 == 7 && s2 == 6) || (s1 == 6 && s2 == 7);
-            if (diff < 2 && !tiebreak) {
-                throw new InvalidMatchResultException("Rozdiel v skóre musí byť aspoň 2 body, okrem tiebreaku.");
+            int max = Math.max(s1, s2);
+            int min = Math.min(s1, s2);
+
+            boolean normalSet = (max == 6 && min <= 4);
+            boolean extendedSet = (max == 7 && (min == 5 || min == 6));
+
+            if (!normalSet && !extendedSet) {
+                throw new InvalidMatchResultException("Neplatný výsledok setu.");
             }
         }
     }
@@ -104,13 +110,19 @@ public class MatchResultServiceBean implements MatchResultService {
         matchResult.setScore2(setsWon2);
     }
 
+    private void validateMatch(MatchResult result) {
+
+        int s1 = result.getScore1();
+        int s2 = result.getScore2();
+
+        if (s1 == s2) {
+            throw new InvalidMatchResultException("Zápas nemôže skončiť remízou – musíte zadať rozhodujúci set.");
+        }
+    }
+
     private void determineWinner(Match match, MatchResult matchResult) {
         int score1 = matchResult.getScore1();
         int score2 = matchResult.getScore2();
-
-        if (score1 == score2) {
-            throw new InvalidMatchResultException("Zápas nemôže skončiť remízou – musíte zadať rozhodujúci set.");
-        }
 
         String winnerId;
         if (score1 > score2) {
