@@ -2,6 +2,7 @@ package com.example.mauri.service;
 
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
+import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import lombok.NonNull;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface SeasonService {
     String finishSeason(String seasonId);
     SeasonResponseDTO getSeasonStats(String seasonId);
     SeasonResponseDTO getCurrentSeason();
+    SeasonResponseDTO updateSeason(String seasonId, UpdateSeasonDTO updateSeasonDTO);
 }

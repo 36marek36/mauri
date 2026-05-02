@@ -4,6 +4,7 @@ import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
+import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.service.SeasonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -74,5 +75,12 @@ public class SeasonController {
     public ResponseEntity<String> finishSeason(@PathVariable String seasonId) {
         String message = seasonService.finishSeason(seasonId);
         return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<SeasonResponseDTO> updateSeason(@PathVariable String id,
+                                                          @RequestBody UpdateSeasonDTO updateSeasonDTO) {
+        SeasonResponseDTO updated = seasonService.updateSeason(id, updateSeasonDTO);
+        return ResponseEntity.ok(updated);
     }
 }
