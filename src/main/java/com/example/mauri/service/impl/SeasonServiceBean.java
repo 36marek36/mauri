@@ -8,6 +8,7 @@ import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
+import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.SeasonRepository;
 import com.example.mauri.service.LeagueService;
@@ -17,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -64,6 +66,36 @@ public class SeasonServiceBean implements SeasonService {
         return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
                 .map(season -> seasonMapper.mapSeasonToDTO(season, true))
                 .orElseThrow(() -> new ResourceNotFoundException("Žiadna aktuálna sezóna nie je dostupná."));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public SeasonResponseDTO updateSeason(String seasonId, UpdateSeasonDTO updateSeasonDTO) {
+        Season existingSeason = getSeasonOrThrow(seasonId);
+
+        if (updateSeasonDTO.getYear() != null) {
+            existingSeason.setYear(updateSeasonDTO.getYear());
+        }
+
+        if (updateSeasonDTO.getStatus() != null) {
+            existingSeason.setStatus(updateSeasonDTO.getStatus());
+        }
+
+        if (updateSeasonDTO.getStartDate() != null) {
+            existingSeason.setStartDate(updateSeasonDTO.getStartDate());
+        }
+
+        if (updateSeasonDTO.getEndDate() != null) {
+            existingSeason.setEndDate(updateSeasonDTO.getEndDate());
+        }
+        // ✅ validácia po aplikovaní zmien
+        if (existingSeason.getStartDate() != null && existingSeason.getEndDate() != null) {
+            if (existingSeason.getEndDate().isBefore(existingSeason.getStartDate())) {
+                throw new IllegalArgumentException("End date cannot be before start date");
+            }
+        }
+        Season saved = seasonRepository.save(existingSeason);
+        return seasonMapper.mapSeasonToDTO(saved, false);
     }
 
     @Override
@@ -185,5 +217,10 @@ public class SeasonServiceBean implements SeasonService {
         season.setEndDate(LocalDate.now());
         seasonRepository.save(season);
         return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
+    }
+
+    private Season getSeasonOrThrow(String id) {
+        return seasonRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No season found with id: " + id));
     }
 }
