@@ -16,7 +16,7 @@ public class WebConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://localhost:5173",
-//                                "https://preeminent-boba-fd56c6.netlify.app")
+                                "https://preeminent-boba-fd56c6.netlify.app",
                                 "https://mauri.sk")
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
