@@ -25,6 +25,7 @@ public class MatchResultServiceBean implements MatchResultService {
         if (!inputResult.getSetScores().isEmpty()) {
             numberSets(inputResult.getSetScores());
             calculateScore(inputResult);
+            calculatePoints(match, inputResult);
             validateMatch(inputResult);
             determineWinner(match, inputResult);
         }
@@ -137,5 +138,15 @@ public class MatchResultServiceBean implements MatchResultService {
             };
         }
         matchResult.setWinnerId(winnerId);
+    }
+
+    private void calculatePoints(Match match, MatchResult result) {
+
+        Integer sets1 = result.getScore1();
+        Integer sets2 = result.getScore2();
+
+        // LEGACY pravidlo (tvoja dnešná logika)
+        result.setPoints1(sets1);
+        result.setPoints2(sets2);
     }
 }

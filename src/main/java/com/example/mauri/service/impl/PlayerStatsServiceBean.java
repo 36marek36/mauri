@@ -421,6 +421,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
         int losses = 0;
         int setsWon = 0;
         int setsLost = 0;
+        int points = 0;
 
         for (Match match : matches) {
 
@@ -463,6 +464,10 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
 
             setsLost += opponentSets;
 
+            points += isHome
+                    ? result.getPoints1()
+                    : result.getPoints2();
+
             if (playerId.equals(
                     result.getWinnerId())) {
 
@@ -485,6 +490,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 .matches(matchesPlayed)
                 .wins(wins)
                 .losses(losses)
+                .points(points)
                 .setsWon(setsWon)
                 .setsLost(setsLost)
                 .leagueProgress(progress)
