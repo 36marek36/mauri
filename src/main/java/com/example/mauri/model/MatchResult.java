@@ -20,6 +20,8 @@ public class MatchResult {
     private Integer score2;
     private String scratchedId;
     private String winnerId;
+    private Integer points1;
+    private Integer points2;
 
     @ElementCollection
     @CollectionTable(name = "match_set_scores", joinColumns = @JoinColumn(name = "match_id"))
