@@ -24,4 +24,5 @@ public interface MatchService {
     void cancelResult(String matchId);
     List<MatchResponseDTO> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status);
     List<MatchResponseDTO> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status);
+    void recalculateLeague(String leagueId);
 }

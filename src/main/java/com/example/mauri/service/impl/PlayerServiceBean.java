@@ -144,6 +144,9 @@ public class PlayerServiceBean implements PlayerService {
 
         detachPlayerFromUsers(player.getId());
 
+        player.setDeletedDate(LocalDate.now());
+        player.setActive(false);
+
         boolean isInTeam = teamRepository.existsByPlayer1IdOrPlayer2Id(id, id);
         boolean isInLeague = !leagueRepository.findLeaguesByPlayerId(id).isEmpty();
         boolean isInMatch = matchRepository.existsByHomePlayerIdOrAwayPlayerId(id, id);
@@ -182,11 +185,7 @@ public class PlayerServiceBean implements PlayerService {
     @Override
     public void deactivatePlayer(String playerId) {
         Player player = getPlayerOrThrow(playerId);
-
         detachPlayerFromUsers(playerId);
-        player.setDeletedDate(LocalDate.now());
-
-        player.setActive(false);
         playerRepository.save(player);
     }
 

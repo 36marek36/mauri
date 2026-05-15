@@ -81,6 +81,13 @@ public class PlayerController {
         return ResponseEntity.ok("Hráč bol úspešne priradený.");
     }
 
+    @PatchMapping("/unassignFromUser/{playerId}")
+    public ResponseEntity<String> unassignPlayerFromUser(@PathVariable String playerId){
+        playerService.deactivatePlayer(playerId);
+        return ResponseEntity.ok("Hráč bol úspešne odpojený.");
+
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<PlayerResponseDTO> updatePlayer(@PathVariable String id,
                                                           @Valid @RequestBody UpdatePlayerDTO updatedPlayer) {
