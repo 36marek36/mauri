@@ -90,6 +90,13 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
 
+        League league = leagueRepository.findById(match.getLeagueId()).orElseThrow();
+        Season season = league.getSeason();
+
+        if (season.getStatus() == SeasonStatus.FINISHED) {
+            throw new IllegalStateException("Sezóna je ukončená, úpravy nie sú povolené.");
+        }
+
         MatchResult finalResult = matchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
 
@@ -200,6 +207,23 @@ public class MatchServiceBean implements MatchService {
         return matches.stream()
                 .map(matchMapper::mapMatchToDTO)
                 .toList();
+    }
+
+    @Transactional
+    @Override
+    public void recalculateLeague(String leagueId) {
+        List<Match> matches = matchRepository.findByLeagueId(leagueId);
+        for (Match match : matches) {
+            if (match.getStatus() != MatchStatus.FINISHED) {
+                continue;
+            }
+            MatchResult result = match.getResult();
+            if (result == null) {
+                continue;
+            }
+            matchResultService.recalculate(match, result);
+        }
+        matchRepository.saveAll(matches);
     }
 
     private List<String> getActiveSeasonLeagueIds() {

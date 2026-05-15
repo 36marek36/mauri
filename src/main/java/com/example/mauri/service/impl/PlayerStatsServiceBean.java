@@ -17,11 +17,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PlayerStatsServiceBean implements PlayerStatsService {
-
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
     private final MatchQueryService matchQueryService;
-
     /**
      * =========================
      * DETAIL HRÁČA
@@ -31,10 +29,8 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
     public PlayerStatsDTO getPlayerStats(
             String leagueId,
             String playerId) {
-
         List<PlayerStatsDTO> leagueStats =
                 getAllStatsForLeague(leagueId);
-
         return leagueStats.stream()
                 .filter(s ->
                         s.getPlayerId().equals(playerId))
@@ -46,7 +42,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                                         + " not found in league "
                                         + leagueId));
     }
-
     /**
      * =========================
      * TABUĽKA LIGY
@@ -55,62 +50,47 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
     @Override
     public List<PlayerStatsDTO> getAllStatsForLeague(
             String leagueId) {
-
         League league =
                 leagueRepository.findById(leagueId)
                         .orElseThrow(() ->
                                 new ResourceNotFoundException(
                                         "League not found with id: "
                                                 + leagueId));
-
         List<Player> players =
                 league.getPlayers();
-
         List<String> droppedIds =
                 league.getDroppedParticipantsIds() != null
                         ? league.getDroppedParticipantsIds()
                         : Collections.emptyList();
-
         List<Match> matches =
                 matchQueryService.getEvaluatedMatches(
                         leagueId);
-
         List<PlayerStatsDTO> statsList =
                 new ArrayList<>();
-
         for (Player player : players) {
-
             PlayerStatsDTO stats =
                     calculatePlayerStats(
                             player,
                             matches,
                             leagueId);
-
             stats.setDroppedFromLeague(
                     droppedIds.contains(
                             player.getId()));
-
             statsList.add(stats);
         }
-
         List<PlayerStatsDTO> sorted =
                 sortLeagueTable(statsList, matches);
-
-        // Rank iba pre aktívnych
+// Rank iba pre aktívnych
         int rank = 1;
-
         for (PlayerStatsDTO stats : sorted) {
-
             if (!stats.isDroppedFromLeague()) {
                 stats.setRank(rank++);
             } else {
                 stats.setRank(null);
             }
         }
-
         return sorted;
     }
-
     /**
      * =========================
      * PROGRESS
@@ -120,7 +100,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
     public int playerProgress(
             String leagueId,
             String playerId) {
-
         int played =
                 matchRepository
                         .countPlayedMatchesByPlayerInStatuses(
@@ -131,20 +110,16 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                                         MatchStatus.CANCELLED,
                                         MatchStatus.SCRATCHED
                                 ));
-
         int total =
                 matchRepository
                         .countTotalMatchesByPlayer(
                                 leagueId,
                                 playerId);
-
         if (total == 0) {
             return 0;
         }
-
         return (int) ((double) played / total * 100);
     }
-
     /**
      * =========================
      * HLAVNÉ TRIEDENIE
@@ -153,89 +128,83 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
     private List<PlayerStatsDTO> sortLeagueTable(
             List<PlayerStatsDTO> statsList,
             List<Match> matches) {
-
-        // Aktívni hráči
+// Aktívni hráči
         List<PlayerStatsDTO> activePlayers =
                 statsList.stream()
                         .filter(p ->
                                 !p.isDroppedFromLeague())
                         .collect(Collectors.toList());
-
-        // Odhlásení hráči
+// Odhlásení hráči
         List<PlayerStatsDTO> droppedPlayers =
                 statsList.stream()
                         .filter(
                                 PlayerStatsDTO::isDroppedFromLeague)
-                        .collect(Collectors.toList());
-
-        // Základné triedenie podľa vyhraných setov
+                        .toList();
+/*
+  HLAVNÉ KRITÉRIUM = BODY
+ */
         activePlayers.sort(
                 Comparator.comparingInt(
-                                PlayerStatsDTO::getSetsWon)
+                                PlayerStatsDTO::getPoints)
                         .reversed()
         );
-
-        // Skupiny rovnakých setov
+/*
+  SKUPINY ROVNAKÝCH BODOV
+ */
         Map<Integer, List<PlayerStatsDTO>> grouped =
                 activePlayers.stream()
                         .collect(Collectors.groupingBy(
-                                PlayerStatsDTO::getSetsWon,
+                                PlayerStatsDTO::getPoints,
                                 LinkedHashMap::new,
                                 Collectors.toList()
                         ));
-
         List<PlayerStatsDTO> finalOrder =
                 new ArrayList<>();
-
         grouped.entrySet().stream()
                 .sorted(Map.Entry
                         .<Integer, List<PlayerStatsDTO>>
                                 comparingByKey()
                         .reversed())
                 .forEach(entry -> {
-
                     List<PlayerStatsDTO> tiedPlayers =
                             entry.getValue();
-
-                    // Bez remízy
+/*
+  Bez remízy
+ */
                     if (tiedPlayers.size() == 1) {
-
                         finalOrder.addAll(
                                 tiedPlayers);
                     }
-
-                    // 2 hráči -> head to head
+/*
+  2 hráči -> vzájomný zápas
+ */
                     else if (tiedPlayers.size() == 2) {
-
                         tiedPlayers.sort((a, b) ->
                                 compareHeadToHeadInMemory(
                                         a.getPlayerId(),
                                         b.getPlayerId(),
                                         matches));
-
                         finalOrder.addAll(
                                 tiedPlayers);
                     }
-
-                    // 3+ hráči -> mini tabuľka
+/*
+  3+ hráči -> mini tabuľka
+ */
                     else {
-
                         List<PlayerStatsDTO> miniTable =
                                 resolveMiniTable(
                                         tiedPlayers,
                                         matches);
-
                         finalOrder.addAll(
                                 miniTable);
                     }
                 });
-
-        // Odhlásení vždy na konci
+/*
+  Odhlásení vždy na konci
+ */
         finalOrder.addAll(droppedPlayers);
-
         return finalOrder;
     }
-
     /**
      * =========================
      * MINI TABUĽKA
@@ -244,161 +213,144 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
     private List<PlayerStatsDTO> resolveMiniTable(
             List<PlayerStatsDTO> tiedPlayers,
             List<Match> allMatches) {
-
         Set<String> playerIds =
                 tiedPlayers.stream()
                         .map(PlayerStatsDTO::getPlayerId)
                         .collect(Collectors.toSet());
-
-        // Iba vzájomné zápasy
+/*
+  Iba vzájomné zápasy
+ */
         List<Match> mutualMatches =
                 allMatches.stream()
                         .filter(match -> {
-
                             if (match.getHomePlayer() == null
                                     || match.getAwayPlayer() == null) {
                                 return false;
                             }
-
                             String homeId =
                                     match.getHomePlayer().getId();
-
                             String awayId =
                                     match.getAwayPlayer().getId();
-
                             return playerIds.contains(homeId)
                                     && playerIds.contains(awayId);
                         })
                         .toList();
-
-        Map<String, Integer> miniWins =
+        Map<String, Integer> miniPoints =
                 new HashMap<>();
-
         Map<String, Integer> miniSetsWon =
                 new HashMap<>();
-
         Map<String, Integer> miniSetsLost =
                 new HashMap<>();
-
         for (PlayerStatsDTO player : tiedPlayers) {
-
-            miniWins.put(
+            miniPoints.put(
                     player.getPlayerId(),
                     0);
-
             miniSetsWon.put(
                     player.getPlayerId(),
                     0);
-
             miniSetsLost.put(
                     player.getPlayerId(),
                     0);
         }
-
+/*
+  Prepočet mini tabuľky
+ */
         for (Match match : mutualMatches) {
-
             MatchResult result =
                     match.getResult();
-
             if (result == null) {
                 continue;
             }
-
             String homeId =
                     match.getHomePlayer().getId();
-
             String awayId =
                     match.getAwayPlayer().getId();
-
             int homeSets =
                     result.getScore1();
-
             int awaySets =
                     result.getScore2();
-
-            // Home
+/*
+  MINI BODY
+ */
+            miniPoints.put(
+                    homeId,
+                    miniPoints.get(homeId)
+                            + result.getPoints1());
+            miniPoints.put(
+                    awayId,
+                    miniPoints.get(awayId)
+                            + result.getPoints2());
+/*
+  SETY
+ */
             miniSetsWon.put(
                     homeId,
                     miniSetsWon.get(homeId)
                             + homeSets);
-
             miniSetsLost.put(
                     homeId,
                     miniSetsLost.get(homeId)
                             + awaySets);
-
-            // Away
             miniSetsWon.put(
                     awayId,
                     miniSetsWon.get(awayId)
                             + awaySets);
-
             miniSetsLost.put(
                     awayId,
                     miniSetsLost.get(awayId)
                             + homeSets);
-
-            String winnerId =
-                    result.getWinnerId();
-
-            miniWins.put(
-                    winnerId,
-                    miniWins.get(winnerId)
-                            + 1);
         }
-
+/*
+  Triedenie mini tabuľky
+ */
         return tiedPlayers.stream()
                 .sorted((a, b) -> {
-
                     String aId =
                             a.getPlayerId();
-
                     String bId =
                             b.getPlayerId();
-
-                    // 1. výhry
+/*
+  1. mini body
+ */
                     int cmp = Integer.compare(
-                            miniWins.get(bId),
-                            miniWins.get(aId));
-
+                            miniPoints.get(bId),
+                            miniPoints.get(aId));
                     if (cmp != 0) {
                         return cmp;
                     }
-
-                    // 2. rozdiel setov
+/*
+  2. rozdiel setov
+ */
                     int aDiff =
                             miniSetsWon.get(aId)
                                     - miniSetsLost.get(aId);
-
                     int bDiff =
                             miniSetsWon.get(bId)
                                     - miniSetsLost.get(bId);
-
                     cmp = Integer.compare(
                             bDiff,
                             aDiff);
-
                     if (cmp != 0) {
                         return cmp;
                     }
-
-                    // 3. počet vyhraných setov
+/*
+  3. vyhrané sety
+ */
                     cmp = Integer.compare(
                             miniSetsWon.get(bId),
                             miniSetsWon.get(aId));
-
                     if (cmp != 0) {
                         return cmp;
                     }
-
-                    // 4. fallback
+/*
+  4. fallback
+ */
                     return a.getPlayerName()
                             .compareToIgnoreCase(
                                     b.getPlayerName());
                 })
                 .toList();
     }
-
     /**
      * =========================
      * VÝPOČET ŠTATISTÍK
@@ -408,82 +360,61 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
             Player player,
             List<Match> matches,
             String leagueId) {
-
         String playerId =
                 player.getId();
-
         String playerName =
                 ParticipantNameUtils
                         .buildPlayerName(player);
-
         int matchesPlayed = 0;
         int wins = 0;
         int losses = 0;
         int setsWon = 0;
         int setsLost = 0;
         int points = 0;
-
         for (Match match : matches) {
-
             boolean isHome =
                     match.getHomePlayer() != null
                             && match.getHomePlayer()
                             .getId()
                             .equals(playerId);
-
             boolean isAway =
                     match.getAwayPlayer() != null
                             && match.getAwayPlayer()
                             .getId()
                             .equals(playerId);
-
             if (!isHome && !isAway) {
                 continue;
             }
-
             MatchResult result =
                     match.getResult();
-
             if (result == null) {
                 continue;
             }
-
             int playerSets =
                     isHome
                             ? result.getScore1()
                             : result.getScore2();
-
             int opponentSets =
                     isHome
                             ? result.getScore2()
                             : result.getScore1();
-
             matchesPlayed++;
-
             setsWon += playerSets;
-
             setsLost += opponentSets;
-
             points += isHome
                     ? result.getPoints1()
                     : result.getPoints2();
-
             if (playerId.equals(
                     result.getWinnerId())) {
-
                 wins++;
-
             } else {
-
                 losses++;
             }
         }
-
         int progress =
                 playerProgress(
                         leagueId,
                         playerId);
-
         return PlayerStatsDTO.builder()
                 .playerId(playerId)
                 .playerName(playerName)
@@ -496,7 +427,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 .leagueProgress(progress)
                 .build();
     }
-
     /**
      * =========================
      * HEAD TO HEAD
@@ -506,70 +436,46 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
             String playerId1,
             String playerId2,
             List<Match> allMatches) {
-
-        int winsPlayer1 = 0;
-        int winsPlayer2 = 0;
-
+        int pointsPlayer1 = 0;
+        int pointsPlayer2 = 0;
         for (Match match : allMatches) {
-
             if (match.getHomePlayer() == null
                     || match.getAwayPlayer() == null) {
                 continue;
             }
-
             boolean isBetweenPlayers =
-
                     (match.getHomePlayer().getId()
                             .equals(playerId1)
-
                             &&
-
                             match.getAwayPlayer().getId()
                                     .equals(playerId2))
-
                             ||
-
                             (match.getHomePlayer().getId()
                                     .equals(playerId2)
-
                                     &&
-
                                     match.getAwayPlayer().getId()
                                             .equals(playerId1));
-
             if (!isBetweenPlayers) {
                 continue;
             }
-
             MatchResult result =
                     match.getResult();
-
             if (result == null) {
                 continue;
             }
-
-            String winnerId =
-                    result.getWinnerId();
-
-            if (winnerId.equals(playerId1)) {
-
-                winsPlayer1++;
-
-            } else if (winnerId.equals(playerId2)) {
-
-                winsPlayer2++;
-            }
+            boolean player1Home =
+                    match.getHomePlayer().getId()
+                            .equals(playerId1);
+            pointsPlayer1 += player1Home
+                    ? result.getPoints1()
+                    : result.getPoints2();
+            pointsPlayer2 += player1Home
+                    ? result.getPoints2()
+                    : result.getPoints1();
         }
-
-        if (winsPlayer1 > winsPlayer2) {
-            return -1;
-        }
-
-        if (winsPlayer2 > winsPlayer1) {
-            return 1;
-        }
-
-        return 0;
+        return Integer.compare(
+                pointsPlayer2,
+                pointsPlayer1);
     }
 }
 

@@ -25,12 +25,20 @@ public class MatchResultServiceBean implements MatchResultService {
         if (!inputResult.getSetScores().isEmpty()) {
             numberSets(inputResult.getSetScores());
             calculateScore(inputResult);
-            calculatePoints(match, inputResult);
+            calculatePoints(inputResult);
             validateMatch(inputResult);
             determineWinner(match, inputResult);
         }
 
         return inputResult;
+    }
+
+    @Override
+    public void recalculate(Match match, MatchResult result) {
+        calculateScore(result);
+        calculatePoints(result);
+        validateMatch(result);
+        determineWinner(match, result);
     }
 
     private List<SetScore> generateScratchResult(Match match, String scratchedId) {
@@ -140,13 +148,35 @@ public class MatchResultServiceBean implements MatchResultService {
         matchResult.setWinnerId(winnerId);
     }
 
-    private void calculatePoints(Match match, MatchResult result) {
+    private void calculatePoints(MatchResult matchResult) {
 
-        Integer sets1 = result.getScore1();
-        Integer sets2 = result.getScore2();
+        int setsWon1 = matchResult.getScore1();
+        int setsWon2 = matchResult.getScore2();
 
-        // LEGACY pravidlo (tvoja dnešná logika)
-        result.setPoints1(sets1);
-        result.setPoints2(sets2);
+        int points1 = 0;
+        int points2 = 0;
+
+        if (setsWon1 > setsWon2) {
+            // hráč 1 vyhral
+            points1 = (setsWon2 == 0) ? 3 : 2;
+            points2 = (setsWon2 == 1) ? 1 : 0;
+        } else {
+            // hráč 2 vyhral
+            points2 = (setsWon1 == 0) ? 3 : 2;
+            points1 = (setsWon1 == 1) ? 1 : 0;
+        }
+
+        matchResult.setPoints1(points1);
+        matchResult.setPoints2(points2);
     }
+
+//    private void calculatePoints(MatchResult result) {
+//
+//        Integer sets1 = result.getScore1();
+//        Integer sets2 = result.getScore2();
+//
+//        // LEGACY pravidlo (tvoja dnešná logika)
+//        result.setPoints1(sets1);
+//        result.setPoints2(sets2);
+//    }
 }
