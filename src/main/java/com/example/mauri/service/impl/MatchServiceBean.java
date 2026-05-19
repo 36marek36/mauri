@@ -34,6 +34,7 @@ public class MatchServiceBean implements MatchService {
     private final SeasonRepository seasonRepository;
     private final MatchResultService matchResultService;
     private final MatchMapper matchMapper;
+    private final MatchActivityService matchActivityService;
 
     @Override
     public List<MatchResponseDTO> getMatches() {
@@ -107,7 +108,11 @@ public class MatchServiceBean implements MatchService {
             match.setStatus(MatchStatus.FINISHED);
         }
 
-        return matchRepository.save(match);
+        Match savedMatch = matchRepository.save(match);
+
+        matchActivityService.createActivity(savedMatch.getId());
+
+        return savedMatch;
     }
 
     @Override
