@@ -1,5 +1,6 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 public class PlayerStatsServiceBean implements PlayerStatsService {
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
-
+    private final MatchQueryService matchQueryService;
     /**
      * =========================
      * DETAIL HRÁČA
@@ -41,47 +42,45 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                                         + " not found in league "
                                         + leagueId));
     }
-
     /**
      * =========================
      * TABUĽKA LIGY
      * =========================
      */
     @Override
-    public List<PlayerStatsDTO> getAllStatsForLeague(String leagueId) {
-
-        League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
-
-        List<Player> players = league.getPlayers();
-
-        List<String> droppedIds = league.getDroppedParticipantsIds() != null
-                ? league.getDroppedParticipantsIds()
-                : Collections.emptyList();
-
-        List<Match> matches = matchRepository.findByLeagueId(leagueId);
-        List<Match> evaluatedMatches = matches.stream()
-                .filter(m -> m.getStatus().isPlayed())
-                .toList();
-
-        Map<String, Integer> playerProgressMap =
-                calculatePlayerProgress(matches, players);
-
-        List<PlayerStatsDTO> statsList = new ArrayList<>();
-
+    public List<PlayerStatsDTO> getAllStatsForLeague(
+            String leagueId) {
+        League league =
+                leagueRepository.findById(leagueId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "League not found with id: "
+                                                + leagueId));
+        List<Player> players =
+                league.getPlayers();
+        List<String> droppedIds =
+                league.getDroppedParticipantsIds() != null
+                        ? league.getDroppedParticipantsIds()
+                        : Collections.emptyList();
+        List<Match> matches =
+                matchQueryService.getEvaluatedMatches(
+                        leagueId);
+        List<PlayerStatsDTO> statsList =
+                new ArrayList<>();
         for (Player player : players) {
-            PlayerStatsDTO stats = calculatePlayerStats(
-                    player,
-                    evaluatedMatches,
-                    playerProgressMap
-            );
-
-            stats.setDroppedFromLeague(droppedIds.contains(player.getId()));
+            PlayerStatsDTO stats =
+                    calculatePlayerStats(
+                            player,
+                            matches,
+                            leagueId);
+            stats.setDroppedFromLeague(
+                    droppedIds.contains(
+                            player.getId()));
             statsList.add(stats);
         }
-
-        List<PlayerStatsDTO> sorted = sortLeagueTable(statsList, evaluatedMatches);
-
+        List<PlayerStatsDTO> sorted =
+                sortLeagueTable(statsList, matches);
+// Rank iba pre aktívnych
         int rank = 1;
         for (PlayerStatsDTO stats : sorted) {
             if (!stats.isDroppedFromLeague()) {
@@ -90,7 +89,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 stats.setRank(null);
             }
         }
-
         return sorted;
     }
     /**
@@ -99,57 +97,29 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
      * =========================
      */
     @Override
-    public Map<String, Integer> calculatePlayerProgress(List<Match> matches, List<Player> players) {
-        Map<String, Integer> played = new HashMap<>();
-        Map<String, Integer> total = new HashMap<>();
-
-        for (Match match : matches) {
-
-            if (match.getHomePlayer() != null) {
-                String id = match.getHomePlayer().getId();
-                total.merge(id, 1, Integer::sum);
-
-                if (match.getStatus().isPlayed()) {
-                    played.merge(id, 1, Integer::sum);
-                }
-            }
-
-            if (match.getAwayPlayer() != null) {
-                String id = match.getAwayPlayer().getId();
-                total.merge(id, 1, Integer::sum);
-
-                if (match.getStatus().isPlayed()) {
-                    played.merge(id, 1, Integer::sum);
-                }
-            }
+    public int playerProgress(
+            String leagueId,
+            String playerId) {
+        int played =
+                matchRepository
+                        .countPlayedMatchesByPlayerInStatuses(
+                                leagueId,
+                                playerId,
+                                List.of(
+                                        MatchStatus.FINISHED,
+                                        MatchStatus.CANCELLED,
+                                        MatchStatus.SCRATCHED
+                                ));
+        int total =
+                matchRepository
+                        .countTotalMatchesByPlayer(
+                                leagueId,
+                                playerId);
+        if (total == 0) {
+            return 0;
         }
-
-        Map<String, Integer> progress = new HashMap<>();
-
-        for (Player p : players) {
-            String id = p.getId();
-
-            int t = total.getOrDefault(id, 0);
-            int pCount = played.getOrDefault(id, 0);
-
-            int percent = t == 0 ? 0 : (pCount * 100 / t);
-
-            progress.put(id, percent);
-        }
-
-        return progress;
+        return (int) ((double) played / total * 100);
     }
-
-//    private boolean isPlayed(Match match) {
-//        MatchStatus status = match.getStatus();
-//        return status == MatchStatus.FINISHED
-//                || status == MatchStatus.CANCELLED
-//                || status == MatchStatus.SCRATCHED;
-//    }
-
-
-
-
     /**
      * =========================
      * HLAVNÉ TRIEDENIE
@@ -235,7 +205,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
         finalOrder.addAll(droppedPlayers);
         return finalOrder;
     }
-
     /**
      * =========================
      * MINI TABUĽKA
@@ -382,7 +351,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 })
                 .toList();
     }
-
     /**
      * =========================
      * VÝPOČET ŠTATISTÍK
@@ -391,7 +359,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
     private PlayerStatsDTO calculatePlayerStats(
             Player player,
             List<Match> matches,
-            Map<String, Integer> playerProgressMap) {
+            String leagueId) {
         String playerId =
                 player.getId();
         String playerName =
@@ -443,7 +411,10 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 losses++;
             }
         }
-        int progress = playerProgressMap.getOrDefault(playerId, 0);
+        int progress =
+                playerProgress(
+                        leagueId,
+                        playerId);
         return PlayerStatsDTO.builder()
                 .playerId(playerId)
                 .playerName(playerName)
@@ -456,7 +427,6 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 .leagueProgress(progress)
                 .build();
     }
-
     /**
      * =========================
      * HEAD TO HEAD
@@ -508,6 +478,8 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 pointsPlayer1);
     }
 }
+
+
 
 
 //
