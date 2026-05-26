@@ -2,7 +2,6 @@ package com.example.mauri.model;
 
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchType;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +27,6 @@ public class League {
 
     @ManyToOne
     @JoinColumn(name = ("season_id"))
-//    @JsonBackReference
     private Season season;
 
     @ManyToMany
