@@ -33,7 +33,7 @@ public class TeamMapper {
         }
         String teamName = ParticipantNameUtils.buildTeamShortName(team);
 
-        List<League> leagues = leagueRepository.findLeaguesByTeamId(team.getId());
+//        List<League> leagues = leagueRepository.findLeaguesByTeamId(team.getId());
 
         return TeamResponseDTO.builder()
                 .id(team.getId())
@@ -43,9 +43,9 @@ public class TeamMapper {
                 .active(team.isActive())
                 .deletedDate(team.getDeletedDate())
                 .registrationDate(team.getCreatedAt())
-                .leagues(leagues.stream()
-                        .map(league -> new LeagueShortDTO(league.getId(),league.getName(),league.getSeason().getYear(),league.getLeagueType(),league.getStatus()))
-                        .toList())
+//                .leagues(leagues.stream()
+//                        .map(league -> new LeagueShortDTO(league.getId(),league.getName(),league.getSeason().getYear(),league.getLeagueType(),league.getStatus()))
+//                        .toList())
                 .build();
     }
 }
