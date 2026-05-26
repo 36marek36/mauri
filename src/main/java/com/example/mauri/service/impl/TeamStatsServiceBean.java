@@ -1,5 +1,6 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
@@ -20,7 +21,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
     private final TeamService teamService;
-
+    private final MatchQueryService matchQueryService;
     @Override
     public TeamStatsDTO getTeamStats(
             String leagueId,
@@ -30,13 +31,10 @@ public class TeamStatsServiceBean implements TeamStatsService {
                         new ResourceNotFoundException(
                                 "League not found with id: " + leagueId));
         List<Match> matches =
-                matchRepository.findByLeagueId(leagueId);
-        Map<String, Integer> teamProgressMap =
-                calculateTeamProgress(matches, league.getTeams());
-
+                matchQueryService.getEvaluatedMatches(leagueId);
         Team team = teamService.getTeamById(teamId);
         TeamStatsDTO stats =
-                calculateTeamStats(team, matches, teamProgressMap);
+                calculateTeamStats(team, matches, leagueId);
         List<String> droppedIds =
                 league.getDroppedParticipantsIds();
         stats.setDroppedFromLeague(
@@ -44,7 +42,6 @@ public class TeamStatsServiceBean implements TeamStatsService {
                         droppedIds.contains(teamId));
         return stats;
     }
-
     @Override
     public List<TeamStatsDTO> getAllStatsForLeague(
             String leagueId) {
@@ -53,85 +50,49 @@ public class TeamStatsServiceBean implements TeamStatsService {
                         new ResourceNotFoundException(
                                 "League not found with id: " + leagueId));
         List<Team> teams = league.getTeams();
-
         List<String> droppedIds =
                 league.getDroppedParticipantsIds() != null
                         ? league.getDroppedParticipantsIds()
                         : Collections.emptyList();
-
-        List<Match> matches = matchRepository.findByLeagueId(leagueId);
-        List<Match> evaluatedMatches = matches.stream()
-                .filter(m -> m.getStatus().isPlayed())
-                .toList();
-
-        Map<String, Integer> teamProgressMap =
-                calculateTeamProgress(matches, teams);
-
+        List<Match> matches =
+                matchQueryService.getEvaluatedMatches(leagueId);
         List<TeamStatsDTO> statsList =
                 new ArrayList<>();
         for (Team team : teams) {
             TeamStatsDTO stats =
                     calculateTeamStats(
                             team,
-                            evaluatedMatches,
-                            teamProgressMap);
+                            matches,
+                            leagueId);
             stats.setDroppedFromLeague(
                     droppedIds.contains(team.getId()));
             statsList.add(stats);
         }
 
-        return sortLeagueTable(statsList, evaluatedMatches);
+        return sortLeagueTable(statsList, matches);
     }
-
     @Override
-    public Map<String, Integer> calculateTeamProgress(List<Match> matches, List<Team> teams) {
-        Map<String, Integer> played = new HashMap<>();
-        Map<String, Integer> total = new HashMap<>();
-
-        for (Match match : matches) {
-
-            if (match.getHomeTeam() != null) {
-                String id = match.getHomeTeam().getId();
-                total.merge(id, 1, Integer::sum);
-
-                if (match.getStatus().isPlayed()) {
-                    played.merge(id, 1, Integer::sum);
-                }
-            }
-
-            if (match.getAwayTeam() != null) {
-                String id = match.getAwayTeam().getId();
-                total.merge(id, 1, Integer::sum);
-
-                if (match.getStatus().isPlayed()) {
-                    played.merge(id, 1, Integer::sum);
-                }
-            }
+    public int teamProgress(
+            String leagueId,
+            String teamId) {
+        int played =
+                matchRepository.countPlayedMatchesByTeamInStatuses(
+                        leagueId,
+                        teamId,
+                        List.of(
+                                MatchStatus.FINISHED,
+                                MatchStatus.CANCELLED,
+                                MatchStatus.SCRATCHED
+                        ));
+        int total =
+                matchRepository.countTotalMatchesByTeam(
+                        leagueId,
+                        teamId);
+        if (total == 0) {
+            return 0;
         }
-
-        Map<String, Integer> progress = new HashMap<>();
-
-        for (Team team : teams) {
-            String id = team.getId();
-
-            int t = total.getOrDefault(id, 0);
-            int tCount = played.getOrDefault(id, 0);
-
-            int percent = t == 0 ? 0 : (tCount * 100 / t);
-
-            progress.put(id, percent);
-        }
-
-        return progress;
+        return (int) ((double) played / total * 100);
     }
-
-//    private boolean isPlayed(Match match) {
-//        MatchStatus status = match.getStatus();
-//        return status == MatchStatus.FINISHED
-//                || status == MatchStatus.CANCELLED
-//                || status == MatchStatus.SCRATCHED;
-//    }
-
     /**
      * =========================
      * HLAVNÉ TRIEDENIE TABUĽKY
@@ -224,7 +185,6 @@ public class TeamStatsServiceBean implements TeamStatsService {
         finalOrder.addAll(droppedTeams);
         return finalOrder;
     }
-
     /**
      * =========================
      * MINI TABUĽKA
@@ -377,7 +337,6 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 })
                 .toList();
     }
-
     /**
      * =========================
      * ŠTATISTIKY TÍMU
@@ -386,7 +345,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
     private TeamStatsDTO calculateTeamStats(
             Team team,
             List<Match> matches,
-            Map<String, Integer> teamProgressMap) {
+            String leagueId) {
         String teamId =
                 team.getId();
         String teamName =
@@ -438,8 +397,10 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 losses++;
             }
         }
-        int progress = teamProgressMap.getOrDefault(teamId, 0);
-
+        int progress =
+                teamProgress(
+                        leagueId,
+                        teamId);
         return TeamStatsDTO.builder()
                 .teamId(teamId)
                 .teamName(teamName)
@@ -452,7 +413,6 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 .leagueProgress(progress)
                 .build();
     }
-
     /**
      * =========================
      * HEAD TO HEAD
