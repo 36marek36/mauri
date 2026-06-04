@@ -19,8 +19,6 @@ public interface MatchService {
     Match addResult (String matchId, MatchResult matchResult);
     List<MatchResponseDTO> generateMatchesForLeague(String leagueId);
     Map<Integer, List<MatchResponseDTO>> getMatchesGroupedByRound(String leagueId);
-    int getTotalMatchesCount(String leagueId);
-    int getPlayedMatchesCount(String leagueId);
     void cancelResult(String matchId);
     List<MatchResponseDTO> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status);
     List<MatchResponseDTO> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status);

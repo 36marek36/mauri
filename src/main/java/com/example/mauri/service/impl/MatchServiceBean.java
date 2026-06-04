@@ -169,16 +169,6 @@ public class MatchServiceBean implements MatchService {
                 .collect(Collectors.groupingBy(MatchResponseDTO::getRoundNumber)); // potom group-by
     }
 
-    @Override
-    public int getTotalMatchesCount(String leagueId) {
-        return matchRepository.countByLeagueId(leagueId);
-    }
-
-    @Override
-    public int getPlayedMatchesCount(String leagueId) {
-        return matchRepository.countPlayedMatches(leagueId);
-    }
-
     @Transactional
     @Override
     public void cancelResult(String matchId) {

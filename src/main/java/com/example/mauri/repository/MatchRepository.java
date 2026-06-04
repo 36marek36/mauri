@@ -16,8 +16,6 @@ public interface MatchRepository extends JpaRepository<Match, String> {
 
     List<Match> findByLeagueId(String leagueId);
 
-    List<Match> findByLeagueIdAndStatus(String leagueId, MatchStatus status);
-
     @Query("SELECT m FROM matches m WHERE m.leagueId = :leagueId AND " +
             "(m.homePlayer.id = :playerId OR m.awayPlayer.id = :playerId)")
     List<Match> findByLeagueIdAndPlayer(@Param("leagueId") String leagueId,
@@ -51,32 +49,4 @@ public interface MatchRepository extends JpaRepository<Match, String> {
 
     boolean existsByHomeTeamIdOrAwayTeamId(String homeTeamId, String awayTeamId);
 
-    @Query("select count(m) from matches m where m.leagueId = :leagueId and m.result is not null")
-    int countPlayedMatches(@Param("leagueId") String leagueId);
-
-    int countByLeagueId(String leagueId);
-
-    @Query("select count(m) from matches m where m.leagueId = :leagueId and" +
-            "(m.homePlayer.id = :playerId or m.awayPlayer.id = :playerId)")
-    int countTotalMatchesByPlayer(@Param("leagueId") String leagueId, @Param("playerId") String playerId);
-
-    @Query("select count (m) from matches m where m.leagueId = :leagueId and" +
-            "(m.homePlayer.id = :playerId or m.awayPlayer.id = :playerId) and m.status in :statuses")
-    int countPlayedMatchesByPlayerInStatuses(
-            @Param("leagueId") String leagueId,
-            @Param("playerId") String playerId,
-            @Param("statuses") List<MatchStatus> statuses
-    );
-
-    @Query("select count(m) from matches m where m.leagueId = :leagueId and " +
-            "(m.homeTeam.id = :teamId or m.awayTeam.id = :teamId)")
-    int countTotalMatchesByTeam(@Param("leagueId") String leagueId, @Param("teamId") String teamId);
-
-    @Query("select count (m) from matches m where m.leagueId = :leagueId and" +
-            "(m.homeTeam.id = :teamId or m.awayTeam.id = :teamId) and m.status in :statuses")
-    int countPlayedMatchesByTeamInStatuses(
-            @Param("leagueId") String leagueId,
-            @Param("teamId") String teamId,
-            @Param("statuses") List<MatchStatus> statuses
-    );
 }
