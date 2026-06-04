@@ -22,6 +22,7 @@ public class SeasonResponseDTO {
 
     private long totalPlayers;
     private long totalTeams;
+    private long totalParticipants;
 
     private LocalDate createdAt;
 

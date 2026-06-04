@@ -8,9 +8,7 @@ import com.example.mauri.service.LeagueService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Component
 @AllArgsConstructor
@@ -22,6 +20,8 @@ public class SeasonMapper {
         List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
         long totalPlayers = 0;
         long totalTeams = 0;
+
+        Set<String> participantIds = new HashSet<>();
 
         if (includeLeagues && season.getLeagues() != null) {
 
@@ -36,6 +36,19 @@ public class SeasonMapper {
 
                 totalPlayers += leagueDTO.getPlayers() != null ? leagueDTO.getPlayers().size() : 0;
                 totalTeams += leagueDTO.getTeams() != null ? leagueDTO.getTeams().size() : 0;
+                // single hráči
+                league.getPlayers()
+                        .forEach(player -> participantIds.add(player.getId()));
+                // doubles hráči
+                league.getTeams()
+                        .forEach(team -> {
+                            if (team.getPlayer1() != null) {
+                                participantIds.add(team.getPlayer1().getId());
+                            }
+                            if (team.getPlayer2() != null) {
+                                participantIds.add(team.getPlayer2().getId());
+                            }
+                        });
             }
         }
         return SeasonResponseDTO.builder()
@@ -45,6 +58,7 @@ public class SeasonMapper {
                 .leagues(leagueDTOs)
                 .totalPlayers(totalPlayers)
                 .totalTeams(totalTeams)
+                .totalParticipants(participantIds.size())
                 .createdAt(season.getCreatedAt())
                 .startDate(season.getStartDate())
                 .endDate(season.getEndDate())
