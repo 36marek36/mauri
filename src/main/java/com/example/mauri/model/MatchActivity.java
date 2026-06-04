@@ -14,4 +14,6 @@ public class MatchActivity {
     private String matchId;
 
     private Instant createdAt;
+
+    private String leagueName;
 }

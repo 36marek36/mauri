@@ -8,4 +8,5 @@ import java.time.Instant;
 public class MatchActivityDTO {
     private MatchResponseDTO match;
     private Instant playedAt;
+    private String leagueName;
 }
