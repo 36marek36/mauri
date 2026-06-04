@@ -1,9 +1,11 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.mapper.MatchMapper;
+import com.example.mauri.model.League;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.MatchActivity;
 import com.example.mauri.model.dto.response.MatchActivityDTO;
+import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchActivityRepository;
 import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.service.MatchActivityService;
@@ -18,6 +20,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,7 @@ public class MatchActivityServiceBean implements MatchActivityService {
     private final MatchActivityRepository matchActivityRepository;
     private final MatchRepository matchRepository;
     private final MatchMapper matchMapper;
+    private final LeagueRepository leagueRepository;
 
     @Override
     public void createActivity(String matchId) {
@@ -50,22 +54,35 @@ public class MatchActivityServiceBean implements MatchActivityService {
                 matchActivityRepository
                         .findByCreatedAtAfterOrderByCreatedAtDesc(threeDaysAgo);
 
-        List<String> ids = activities.stream()
+        List<String> matchIds = activities.stream()
                 .map(MatchActivity::getMatchId)
                 .toList();
 
-        List<Match> matches = matchRepository.findAllById(ids);
+        List<Match> matches = matchRepository.findAllById(matchIds);
 
-        Map<String, Match> map = matches.stream()
+        Map<String, Match> matchMap = matches.stream()
                 .collect(Collectors.toMap(
                         Match::getId,
                         Function.identity()
                 ));
 
+        // 👉 zber leagueId
+        Set<String> leagueIds = matches.stream()
+                .map(Match::getLeagueId)
+                .collect(Collectors.toSet());
+
+        // 👉 batch fetch líg
+        Map<String, String> leagueNameMap = leagueRepository.findAllById(leagueIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        League::getId,
+                        League::getName
+                ));
+
         return activities.stream()
                 .map(activity -> {
 
-                    Match match = map.get(activity.getMatchId());
+                    Match match = matchMap.get(activity.getMatchId());
 
                     if (match == null) {
                         return null;
@@ -74,6 +91,10 @@ public class MatchActivityServiceBean implements MatchActivityService {
                     MatchActivityDTO dto = new MatchActivityDTO();
                     dto.setMatch(matchMapper.mapMatchToDTO(match));
                     dto.setPlayedAt(activity.getCreatedAt());
+
+                    dto.setLeagueName(
+                            leagueNameMap.get(match.getLeagueId())
+                    );
 
                     return dto;
                 })
