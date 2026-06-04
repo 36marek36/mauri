@@ -4,7 +4,6 @@ import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.request.ParticipantDTO;
 import com.example.mauri.model.dto.response.MatchResponseDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
-import com.example.mauri.service.PlayerStatsService;
 import com.example.mauri.util.ParticipantNameUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class MatchMapper {
 
-    private final PlayerStatsService playerStatsService;
     private final TeamMapper teamMapper;
 
 
@@ -26,13 +24,11 @@ public class MatchMapper {
             case SINGLES -> {
                 if (match.getHomePlayer() != null) {
                     String name = ParticipantNameUtils.buildPlayerShortName(match.getHomePlayer());
-                    int progress = playerStatsService.playerProgress(match.getLeagueId(), match.getHomePlayer().getId());
-                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive(),progress);
+                    homePlayer = new ParticipantDTO(match.getHomePlayer().getId(), name,match.getHomePlayer().isActive(),0);
                 }
                 if (match.getAwayPlayer() != null) {
                     String name = ParticipantNameUtils.buildPlayerShortName(match.getAwayPlayer());
-                    int progress = playerStatsService.playerProgress(match.getLeagueId(), match.getAwayPlayer().getId());
-                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive(),progress);
+                    awayPlayer = new ParticipantDTO(match.getAwayPlayer().getId(), name,match.getAwayPlayer().isActive(),0);
                 }
             }
             case DOUBLES -> {

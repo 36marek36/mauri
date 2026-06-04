@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -276,12 +277,32 @@ public class LeagueServiceBean implements LeagueService {
     public LeagueResponseDTO getFullLeagueDTO(League league) {
 
         LeagueResponseDTO dto = leagueMapper.mapLeagueToDTO(league);
+        // ALL matches
+        List<Match> allMatches =
+                matchRepository.findByLeagueId(league.getId());
+
+        // PLAYED matches
+        List<Match> evaluatedMatches = allMatches.stream()
+                .filter(m -> m.getStatus().isPlayed())
+                .toList();
+
+        // Progress mapy
+        Map<String, Integer> playerProgressMap =
+                playerStatsService.calculatePlayerProgress(
+                        allMatches,
+                        league.getPlayers());
+
+        Map<String, Integer> teamProgressMap =
+                teamStatsService.calculateTeamProgress(
+                        allMatches,
+                        league.getTeams());
+
 
         // Hráči
         List<ParticipantDTO> players = league.getPlayers().stream()
                 .map(player -> {
                     String name = ParticipantNameUtils.buildPlayerName(player);
-                    int progress = playerStatsService.playerProgress(league.getId(), player.getId());
+                    int progress = playerProgressMap.getOrDefault(player.getId(), 0);
                     return new ParticipantDTO(player.getId(), name, player.isActive(), progress);
                 })
                 .toList();
@@ -291,7 +312,7 @@ public class LeagueServiceBean implements LeagueService {
         List<ParticipantDTO> teams = league.getTeams().stream()
                 .map(team -> {
                     String name = ParticipantNameUtils.buildTeamShortName(team);
-                    int progress = teamStatsService.teamProgress(league.getId(), team.getId());
+                    int progress = teamProgressMap.getOrDefault(team.getId(), 0);
                     return new ParticipantDTO(team.getId(), name, team.isActive(), progress);
                 })
                 .toList();
@@ -303,7 +324,8 @@ public class LeagueServiceBean implements LeagueService {
         }
 
         // Progress
-        dto.setLeagueProgress(calculateProgress(league.getId()));
+        dto.setLeagueProgress(
+                calculateProgress(evaluatedMatches, allMatches));
 
         return dto;
     }
@@ -324,9 +346,15 @@ public class LeagueServiceBean implements LeagueService {
         }
     }
 
-    private int calculateProgress(String leagueId) {
-        int played = matchService.getPlayedMatchesCount(leagueId);
-        int total = matchService.getTotalMatchesCount(leagueId);
-        return total == 0 ? 0 : (int) ((double) played / total * 100);
+    private int calculateProgress(
+            List<Match> evaluatedMatches,
+            List<Match> allMatches) {
+
+        long played = evaluatedMatches.size();
+        long total = allMatches.size();
+
+        return total == 0
+                ? 0
+                : (int) ((played * 100) / total);
     }
 }
