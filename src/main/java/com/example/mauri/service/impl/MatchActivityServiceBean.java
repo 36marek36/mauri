@@ -88,12 +88,18 @@ public class MatchActivityServiceBean implements MatchActivityService {
                         return null;
                     }
 
+                    String matchTypeText = switch (match.getMatchType()) {
+                        case SINGLES -> "Dvojhra";
+                        case DOUBLES -> "Štvorhra";
+                    };
+
                     MatchActivityDTO dto = new MatchActivityDTO();
                     dto.setMatch(matchMapper.mapMatchToDTO(match));
                     dto.setPlayedAt(activity.getCreatedAt());
 
                     dto.setLeagueName(
-                            leagueNameMap.get(match.getLeagueId())
+                            matchTypeText + " " +
+                                    leagueNameMap.get(match.getLeagueId())
                     );
 
                     return dto;
