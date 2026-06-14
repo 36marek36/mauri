@@ -35,6 +35,7 @@ public class MatchServiceBean implements MatchService {
     private final MatchResultService matchResultService;
     private final MatchMapper matchMapper;
     private final MatchActivityService matchActivityService;
+    private final MatchActivityRepository matchActivityRepository;
 
     @Override
     public List<MatchResponseDTO> getMatches() {
@@ -178,6 +179,8 @@ public class MatchServiceBean implements MatchService {
         match.setStatus(MatchStatus.CREATED);
         match.setResult(null);
         matchRepository.save(match);
+
+        matchActivityRepository.deleteByMatchId(matchId);
     }
 
     @Override

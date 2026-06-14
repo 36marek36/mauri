@@ -13,4 +13,6 @@ public interface MatchActivityRepository extends JpaRepository<MatchActivity, St
     List<MatchActivity> findByCreatedAtAfterOrderByCreatedAtDesc(Instant date);
 
     long deleteByCreatedAtBefore(Instant date);
+
+    void deleteByMatchId(String matchId);
 }
