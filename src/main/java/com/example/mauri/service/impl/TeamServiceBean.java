@@ -6,6 +6,7 @@ import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
+import com.example.mauri.model.dto.update.UpdateTeamDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.TeamService;
 import lombok.NonNull;
@@ -165,5 +166,26 @@ public class TeamServiceBean implements TeamService {
         return teams.stream()
                 .map(teamMapper::mapToResponseDTO)
                 .toList();
+    }
+
+    @Override
+    public TeamResponseDTO updateTeam(String teamId, UpdateTeamDTO updatedTeam) {
+        Team existingTeam = getTeamOrThrow(teamId);
+        if (updatedTeam.getActive() != null) {
+            existingTeam.setActive(updatedTeam.getActive());
+
+            if (updatedTeam.getActive()) {
+                existingTeam.setDeletedDate(null);
+            }else {
+                existingTeam.setDeletedDate(LocalDate.now());
+            }
+        }
+        Team updated = teamRepository.save(existingTeam);
+        return teamMapper.mapToResponseDTO(updated);
+    }
+
+    private Team getTeamOrThrow(String id) {
+        return teamRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + id));
     }
 }
