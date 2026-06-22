@@ -21,6 +21,9 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -60,6 +63,11 @@ public class LeagueServiceBean implements LeagueService {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info("{} viewed league details: {}", username, league.getName());
+
         return getFullLeagueDTO(league);
     }
 
@@ -80,6 +88,9 @@ public class LeagueServiceBean implements LeagueService {
                 .build();
 
         league = leagueRepository.save(league);
+
+        log.info("League {} created successfully", league.getName());
+
         return leagueMapper.mapLeagueToDTO(league);
     }
 
@@ -129,6 +140,7 @@ public class LeagueServiceBean implements LeagueService {
         return "Účastníci boli úspešne pridaní do ligy.";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Override
     @Transactional
     public String removeParticipantFromLeague(String leagueId, String participantId) {
@@ -177,11 +189,17 @@ public class LeagueServiceBean implements LeagueService {
 
         leagueRepository.save(league);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info("{} removed '{}' from league '{}'", username, participantName, league.getName());
+
         return "Účastník '" + participantName + "' bol úspešne odstránený z ligy a "
                 + (affectedMatches.isEmpty() ? "nebol zapojený do žiadneho zápasu." :
                 "a všetky jeho zapasy (" + affectedMatches.size() + ") boli zmazané.");
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @Override
     public String dropParticipantFromLeague(String leagueId, String participantId) {
@@ -246,6 +264,11 @@ public class LeagueServiceBean implements LeagueService {
 
         league.getDroppedParticipantsIds().add(participantId);
         leagueRepository.save(league);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info("{} dropped '{}' from league '{}'", username, participantName, league.getName());
 
         return "Účastník '" + participantName + "' bol úspešne odhlásený z ligy a všetky svoje zapasy (" + affectedMatches.size() + ") boli zrušené.";
     }

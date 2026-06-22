@@ -189,6 +189,8 @@ public class SeasonServiceBean implements SeasonService {
         season.setStartDate(LocalDate.now());
         seasonRepository.save(season);
 
+        log.info("Season {} has been successfully started.", season.getYear());
+
         return "Sezóna " + season.getYear() + " bola úspešne odštartovaná.";
     }
 
@@ -214,6 +216,9 @@ public class SeasonServiceBean implements SeasonService {
         season.setStatus(SeasonStatus.FINISHED);
         season.setEndDate(LocalDate.now());
         seasonRepository.save(season);
+
+        log.info("Season {} has successfully finished.", season.getYear());
+
         return "Sezóna " + season.getYear() + " bola ukončená spolu s jej ligami.";
     }
 

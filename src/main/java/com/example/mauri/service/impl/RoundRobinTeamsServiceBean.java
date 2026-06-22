@@ -62,12 +62,12 @@ public class RoundRobinTeamsServiceBean implements RoundRobinTeamsService {
         }
 
         // Výpis do konzoly (debug)
-        for (Team t : teams) {
-            if (t == null) continue;
-            long home = matches.stream().filter(m -> m.getHomeTeam().equals(t)).count();
-            long away = matches.stream().filter(m -> m.getAwayTeam().equals(t)).count();
-            System.out.println(t + ": Home = " + home + ", Away = " + away);
-        }
+//        for (Team t : teams) {
+//            if (t == null) continue;
+//            long home = matches.stream().filter(m -> m.getHomeTeam().equals(t)).count();
+//            long away = matches.stream().filter(m -> m.getAwayTeam().equals(t)).count();
+//            System.out.println(t + ": Home = " + home + ", Away = " + away);
+//        }
 
         return matches;
     }
