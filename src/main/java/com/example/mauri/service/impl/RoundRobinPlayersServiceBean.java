@@ -62,12 +62,12 @@ public class RoundRobinPlayersServiceBean implements RoundRobinPlayersService {
         }
 
         // Výpis do konzoly (debug)
-        for (Player p : players) {
-            if (p == null) continue;
-            long home = matches.stream().filter(m -> m.getHomePlayer().equals(p)).count();
-            long away = matches.stream().filter(m -> m.getAwayPlayer().equals(p)).count();
-            System.out.println(p + ": Home = " + home + ", Away = " + away);
-        }
+//        for (Player p : players) {
+//            if (p == null) continue;
+//            long home = matches.stream().filter(m -> m.getHomePlayer().equals(p)).count();
+//            long away = matches.stream().filter(m -> m.getAwayPlayer().equals(p)).count();
+//            System.out.println(p + ": Home = " + home + ", Away = " + away);
+//        }
 
         return matches;
     }

@@ -15,6 +15,7 @@ import com.example.mauri.security.dto.RegisterRequest;
 import com.example.mauri.security.dto.RegisterResponse;
 import com.example.mauri.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -27,6 +28,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceBean implements AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -41,6 +43,7 @@ public class AuthServiceBean implements AuthService {
                     new UsernamePasswordAuthenticationToken(request.username(), request.password())
             );
         } catch (AuthenticationException e) {
+            log.warn("Failed login attempt for user '{}'", request.username());
             throw new InvalidCredentialsException("Neplatné prihlasovacie údaje");
         }
 
@@ -53,6 +56,16 @@ public class AuthServiceBean implements AuthService {
         userRepository.save(user);
 
         var token = jwtUtil.generateToken(userDetails.getUsername());
+
+        if (user.getPlayer() != null) {
+            log.info("'{}' logged in successfully - {} {}",
+                    user.getUsername(),
+                    user.getPlayer().getFirstName(),
+                    user.getPlayer().getLastName());
+        } else {
+            log.info("'{}' logged in successfully - no player profile", user.getUsername());
+        }
+
         return new LoginResponse(token);
     }
 
@@ -72,6 +85,8 @@ public class AuthServiceBean implements AuthService {
 
         userRepository.save(user); // ulož do DB
 
+        log.info("New user '{}' has registered successfully", user.getUsername());
+
         // 3. Vráť len správu, že používateľ bol vytvorený
         return new RegisterResponse("Užívateľ bol úspešne vytvorený");
     }
@@ -81,9 +96,11 @@ public class AuthServiceBean implements AuthService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            log.warn("'{}' failed to change password", currentUsername);
             throw new InvalidOldPasswordException("Nesprávne staré heslo!");
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+        log.info("'{}' changed password successfully", currentUsername);
     }
 }

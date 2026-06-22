@@ -15,6 +15,8 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -95,6 +97,7 @@ public class MatchServiceBean implements MatchService {
         League league = leagueRepository.findById(match.getLeagueId()).orElseThrow();
         Season season = league.getSeason();
 
+
         if (season.getStatus() == SeasonStatus.FINISHED) {
             throw new IllegalStateException("Sezóna je ukončená, úpravy nie sú povolené.");
         }
@@ -113,13 +116,23 @@ public class MatchServiceBean implements MatchService {
 
         matchActivityService.createActivity(savedMatch.getId());
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info(
+                "{} added result for match '{}', status={}",
+                username,
+                savedMatch.getId(),
+                savedMatch.getStatus()
+        );
+
         return savedMatch;
     }
 
     @Override
     @Transactional
     public List<MatchResponseDTO> generateMatchesForLeague(String leagueId) {
-        log.info("Začiatok generovania zápasov pre ligu s ID: {}", leagueId);
+//        log.info("Začiatok generovania zápasov pre ligu s ID: {}", leagueId);
 
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("No League found with id: " + leagueId));
@@ -179,6 +192,15 @@ public class MatchServiceBean implements MatchService {
         match.setStatus(MatchStatus.CREATED);
         match.setResult(null);
         matchRepository.save(match);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info(
+                "{} cancelled result for match '{}'",
+                username,
+                match.getId()
+        );
 
         matchActivityRepository.deleteByMatchId(matchId);
     }

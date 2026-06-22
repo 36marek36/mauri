@@ -19,6 +19,7 @@ import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PlayerServiceBean implements PlayerService {
 
     private final PlayerRepository playerRepository;
@@ -83,6 +85,7 @@ public class PlayerServiceBean implements PlayerService {
             Player myPlayer = user.getPlayer();
 
             if (myPlayer == null || !myPlayer.getId().equals(player.getId())) {
+                log.warn("{} tried to get player details for player: {}", username, player.getFirstName() + ' ' + player.getLastName() + " without competition");
                 throw new AccessDeniedException("Nemáte povolenie zobraziť detail tohto hráča.");
             }
         }
