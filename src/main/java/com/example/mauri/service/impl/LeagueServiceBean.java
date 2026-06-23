@@ -66,7 +66,7 @@ public class LeagueServiceBean implements LeagueService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        log.info("{} viewed league details: {}", username, league.getName());
+        log.info("{} viewed league details: {} in season {}", username, league.getName(),league.getSeason().getYear());
 
         return getFullLeagueDTO(league);
     }

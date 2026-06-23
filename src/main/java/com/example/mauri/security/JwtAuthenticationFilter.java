@@ -57,7 +57,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     logger.warn("Neplatný JWT token");
                 }
             } catch (ExpiredJwtException e) {
-                logger.warn("JWT token expiroval: {}", e.getMessage());
+                String username = e.getClaims().getSubject();
+                logger.warn("Expired JWT token for user: {}", username);
             }
         }
 
