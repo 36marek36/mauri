@@ -85,10 +85,16 @@ public class PlayerServiceBean implements PlayerService {
             Player myPlayer = user.getPlayer();
 
             if (myPlayer == null || !myPlayer.getId().equals(player.getId())) {
-                log.warn("{} tried to get player details for player: {}", username, player.getFirstName() + ' ' + player.getLastName() + " without competition");
+                log.warn("{} tried to get player details for player: {}", username, ParticipantNameUtils.buildPlayerName(player) + " without competition");
                 throw new AccessDeniedException("Nemáte povolenie zobraziť detail tohto hráča.");
             }
         }
+
+        log.info(
+                "{} viewed player details: {}",
+                username,
+                ParticipantNameUtils.buildPlayerName(player)
+        );
 
         // 4. Vráť DTO
         return mapFullPlayer(player);

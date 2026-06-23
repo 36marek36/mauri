@@ -14,10 +14,12 @@ import com.example.mauri.security.dto.LoginResponse;
 import com.example.mauri.security.dto.RegisterRequest;
 import com.example.mauri.security.dto.RegisterResponse;
 import com.example.mauri.service.AuthService;
+import com.example.mauri.util.ParticipantNameUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,10 +60,9 @@ public class AuthServiceBean implements AuthService {
         var token = jwtUtil.generateToken(userDetails.getUsername());
 
         if (user.getPlayer() != null) {
-            log.info("'{}' logged in successfully - {} {}",
+            log.info("'{}' logged in successfully - {}",
                     user.getUsername(),
-                    user.getPlayer().getFirstName(),
-                    user.getPlayer().getLastName());
+                    ParticipantNameUtils.buildPlayerName(user.getPlayer()));
         } else {
             log.info("'{}' logged in successfully - no player profile", user.getUsername());
         }
@@ -102,5 +103,11 @@ public class AuthServiceBean implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         log.info("'{}' changed password successfully", currentUsername);
+    }
+
+    @Override
+    public void logout(Authentication authentication) {
+        String username = authentication.getName();
+        log.info("'{}' logged out", username);
     }
 }
