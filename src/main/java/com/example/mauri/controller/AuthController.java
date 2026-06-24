@@ -1,14 +1,16 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.request.ChangePasswordDTO;
+import com.example.mauri.model.dto.request.ResetPasswordDTO;
 import com.example.mauri.security.dto.LoginRequest;
 import com.example.mauri.security.dto.LoginResponse;
 import com.example.mauri.security.dto.RegisterRequest;
 import com.example.mauri.security.dto.RegisterResponse;
 import com.example.mauri.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,17 +30,18 @@ public class AuthController {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(Authentication authentication) {
-        authService.logout(authentication);
-        return ResponseEntity.ok().build();
-    }
-
     @PatchMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordDTO request) {
         String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
         authService.changePassword(currentUserName, request);
         return ResponseEntity.ok("Heslo bolo úspešne zmenené");
+    }
+
+    @PatchMapping("/admin/users/{userId}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> resetPassword(@PathVariable String userId,@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
+        authService.resetPassword(userId, resetPasswordDTO.getNewPassword());
+        return ResponseEntity.ok("Heslo bolo úspešne resetnuté");
     }
 
 }
