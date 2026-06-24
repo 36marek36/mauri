@@ -8,10 +8,8 @@ import com.example.mauri.model.User;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.TeamService;
-import com.example.mauri.util.ParticipantNameUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +19,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamServiceBean implements TeamService {
@@ -74,7 +71,6 @@ public class TeamServiceBean implements TeamService {
             Player myPlayer = user.getPlayer();
 
             if (myPlayer == null) {
-                log.warn("{} tried to get team details for team: {}", username, ParticipantNameUtils.buildTeamShortName(team) + " without competition");
                 throw new AccessDeniedException("Nemáte povolenie zobraziť detail tímu."); // 403
             }
 
@@ -86,8 +82,6 @@ public class TeamServiceBean implements TeamService {
                 throw new AccessDeniedException("Nemáte povolenie zobraziť detail tímu."); // 403
             }
         }
-
-        log.info("{} viewed team details: {}", username, ParticipantNameUtils.buildTeamShortName(team));
 
         // 4. Vráť DTO
         return teamMapper.mapToResponseDTO(team);
