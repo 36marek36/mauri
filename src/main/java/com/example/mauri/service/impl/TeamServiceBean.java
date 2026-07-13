@@ -6,9 +6,11 @@ import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
+import com.example.mauri.model.dto.update.ChangeTeamDTO;
 import com.example.mauri.model.dto.update.UpdateTeamDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.TeamService;
+import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -169,6 +171,25 @@ public class TeamServiceBean implements TeamService {
     }
 
     @Override
+    @Transactional
+    public void changePlayerInTeam(String teamId, ChangeTeamDTO changeTeamDTO) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("No team found with id: " + teamId));
+
+        if (team.getPlayer1().getId().equals(changeTeamDTO.getNewPlayerId())
+                || team.getPlayer2().getId().equals(changeTeamDTO.getNewPlayerId())) {
+            throw new IllegalArgumentException("Player is already in the team.");
+        }
+        Player newPlayer = playerRepository.findById(changeTeamDTO.getNewPlayerId())
+                .orElseThrow(() -> new ResourceNotFoundException("No player found with id: " + changeTeamDTO.getNewPlayerId()));
+
+        if (team.getPlayer1().getId().equals(changeTeamDTO.getOldPlayerId())) {
+            team.setPlayer1(newPlayer);
+        } else if (team.getPlayer2().getId().equals(changeTeamDTO.getOldPlayerId())) {
+            team.setPlayer2(newPlayer);
+        } else {
+            throw new IllegalArgumentException("Player not found in team.");
+        }
     public TeamResponseDTO updateTeam(String teamId, UpdateTeamDTO updatedTeam) {
         Team existingTeam = getTeamOrThrow(teamId);
         if (updatedTeam.getActive() != null) {

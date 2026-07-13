@@ -2,6 +2,7 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.create.CreateTeamDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
+import com.example.mauri.model.dto.update.ChangeTeamDTO;
 import com.example.mauri.model.dto.update.UpdateTeamDTO;
 import com.example.mauri.service.TeamService;
 import jakarta.validation.Valid;
@@ -53,11 +54,15 @@ public class TeamController {
     }
 
     @PostMapping("/create")
-    ResponseEntity<TeamResponseDTO> createTeam(@Valid @RequestBody CreateTeamDTO team) {
+    public ResponseEntity<TeamResponseDTO> createTeam(@Valid @RequestBody CreateTeamDTO team) {
         TeamResponseDTO created = teamService.createTeam(team.getPlayer1Id(), team.getPlayer2Id());
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
+    @PatchMapping("/{teamId}/change-player")
+    public ResponseEntity<Void> changePlayer (@PathVariable String teamId, @RequestBody ChangeTeamDTO changeTeamDTO) {
+        teamService.changePlayerInTeam(teamId, changeTeamDTO);
+        return ResponseEntity.noContent().build();
     @PatchMapping("/{id}")
     public ResponseEntity<TeamResponseDTO> updateTeam(@PathVariable String id, @RequestBody UpdateTeamDTO updatedTeam) {
 

@@ -2,6 +2,7 @@ package com.example.mauri.service;
 
 import com.example.mauri.model.Team;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
+import com.example.mauri.model.dto.update.ChangeTeamDTO;
 import com.example.mauri.model.dto.update.UpdateTeamDTO;
 import lombok.NonNull;
 
@@ -29,5 +30,7 @@ public interface TeamService {
 
     List<TeamResponseDTO> getTeamsNotInLeague(String leagueId);
     TeamResponseDTO updateTeam(String teamId, UpdateTeamDTO updatedTeam);
+
+    void changePlayerInTeam(String teamId, ChangeTeamDTO changeTeamDTO);
 
 }
