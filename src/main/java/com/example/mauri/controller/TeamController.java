@@ -63,6 +63,8 @@ public class TeamController {
     public ResponseEntity<Void> changePlayer (@PathVariable String teamId, @RequestBody ChangeTeamDTO changeTeamDTO) {
         teamService.changePlayerInTeam(teamId, changeTeamDTO);
         return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<TeamResponseDTO> updateTeam(@PathVariable String id, @RequestBody UpdateTeamDTO updatedTeam) {
 

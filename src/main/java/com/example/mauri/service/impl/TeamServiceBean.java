@@ -190,6 +190,9 @@ public class TeamServiceBean implements TeamService {
         } else {
             throw new IllegalArgumentException("Player not found in team.");
         }
+    }
+
+    @Override
     public TeamResponseDTO updateTeam(String teamId, UpdateTeamDTO updatedTeam) {
         Team existingTeam = getTeamOrThrow(teamId);
         if (updatedTeam.getActive() != null) {
