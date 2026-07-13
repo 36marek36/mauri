@@ -400,6 +400,16 @@ public class LeagueServiceBean implements LeagueService {
             if (match.getAwayTeam().getId().equals(oldTeam.getId())) {
                 match.setAwayTeam(newTeam);
             }
+            if (match.getResult() != null) {
+
+                if (oldTeam.getId().equals(match.getResult().getWinnerId())) {
+                    match.getResult().setWinnerId(newTeam.getId());
+                }
+
+                if (oldTeam.getId().equals(match.getResult().getScratchedId())) {
+                    match.getResult().setScratchedId(newTeam.getId());
+                }
+            }
         }
 
         List<Team> teams = league.getTeams();
