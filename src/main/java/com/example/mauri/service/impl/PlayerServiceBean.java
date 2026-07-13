@@ -205,6 +205,17 @@ public class PlayerServiceBean implements PlayerService {
         if (updatedPlayer.getPhone() != null) {
             existingPlayer.setPhone(updatedPlayer.getPhone());
         }
+        if (updatedPlayer.getActive() != null) {
+            existingPlayer.setActive(updatedPlayer.getActive());
+
+            if (updatedPlayer.getActive()) {
+                existingPlayer.setDeletedDate(null);
+            } else {
+                existingPlayer.setDeletedDate(LocalDate.now());
+            }
+        }
+
+
         Player saved = playerRepository.save(existingPlayer);
         return playerMapper.mapToResponseDTO(saved);
     }
