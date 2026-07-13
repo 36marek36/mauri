@@ -11,6 +11,7 @@ import com.example.mauri.model.dto.request.ParticipantDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
+import com.example.mauri.model.dto.update.ReplaceTeamDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
@@ -66,7 +67,7 @@ public class LeagueServiceBean implements LeagueService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        log.info("{} viewed league details: {} in season {}", username, league.getName(),league.getSeason().getYear());
+        log.info("{} viewed league details: {} in season {}", username, league.getName(), league.getSeason().getYear());
 
         return getFullLeagueDTO(league);
     }
@@ -351,6 +352,64 @@ public class LeagueServiceBean implements LeagueService {
                 calculateProgress(evaluatedMatches, allMatches));
 
         return dto;
+    }
+
+    @Override
+    @Transactional
+    public void replaceTeamInLeague(String leagueId, ReplaceTeamDTO replaceTeamDTO) {
+        Team oldTeam = teamRepository.findById(replaceTeamDTO.getOldTeamId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No team found with id: " + replaceTeamDTO.getOldTeamId()));
+
+        Team newTeam = teamRepository.findById(replaceTeamDTO.getNewTeamId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No team found with id: " + replaceTeamDTO.getNewTeamId()));
+
+        if (oldTeam.getId().equals(newTeam.getId())) {
+            throw new IllegalArgumentException("Old and new team cannot be the same.");
+        }
+
+        League league = leagueRepository.findById(leagueId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No league found with id: " + leagueId));
+
+        boolean oldTeamInLeague = league.getTeams().stream()
+                .anyMatch(team -> team.getId().equals(oldTeam.getId()));
+
+        if (!oldTeamInLeague) {
+            throw new IllegalArgumentException("Old team is not part of this league.");
+        }
+
+        boolean newTeamInLeague = league.getTeams().stream()
+                .anyMatch(team -> team.getId().equals(newTeam.getId()));
+
+        if (newTeamInLeague) {
+            throw new IllegalArgumentException("New team is already part of this league.");
+        }
+
+        List<Match> matches = matchRepository.findByLeagueIdAndTeam(
+                leagueId,
+                oldTeam.getId());
+
+        for (Match match : matches) {
+
+            if (match.getHomeTeam().getId().equals(oldTeam.getId())) {
+                match.setHomeTeam(newTeam);
+            }
+
+            if (match.getAwayTeam().getId().equals(oldTeam.getId())) {
+                match.setAwayTeam(newTeam);
+            }
+        }
+
+        List<Team> teams = league.getTeams();
+
+        for (int i = 0; i < teams.size(); i++) {
+            if (teams.get(i).getId().equals(oldTeam.getId())) {
+                teams.set(i, newTeam);
+                break;
+            }
+        }
     }
 
     private String determineWinnerName(League league) {

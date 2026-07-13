@@ -6,6 +6,7 @@ import com.example.mauri.model.dto.create.CreateLeagueDTO;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
+import com.example.mauri.model.dto.update.ReplaceTeamDTO;
 import com.example.mauri.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,15 @@ public class LeagueController {
             @PathVariable String participantId) {
         String message = leagueService.dropParticipantFromLeague(leagueId, participantId);
         return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/{leagueId}/replace-team")
+    public ResponseEntity<Void> replaceTeamInLeague(
+            @PathVariable String leagueId,
+            @RequestBody ReplaceTeamDTO replaceTeamDTO) {
+
+        leagueService.replaceTeamInLeague(leagueId, replaceTeamDTO);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("{id}")
