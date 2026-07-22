@@ -9,6 +9,7 @@ import com.example.mauri.model.dto.response.VolleyLeagueResponseDTO;
 import com.example.mauri.repository.SeasonRepository;
 import com.example.mauri.repository.VolleyLeagueRepository;
 import com.example.mauri.service.volley.VolleyLeagueService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,11 @@ public class VolleyLeagueServiceBean implements VolleyLeagueService {
     }
 
     @Override
+    @Transactional
     public void deleteLeague(String id) {
-
+        VolleyLeague volleyLeague = volleyLeagueRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Volleyball league not found"));
+        volleyLeagueRepository.delete(volleyLeague);
+        log.info("Volleyball league {} deleted successfully", volleyLeague.getName());
     }
 }
