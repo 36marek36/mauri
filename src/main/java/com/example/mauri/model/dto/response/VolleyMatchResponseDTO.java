@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto.response;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.VolleyMatchResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,4 +17,7 @@ public class VolleyMatchResponseDTO {
     private VolleyTeamResponseDTO volleyHomeTeam;
     private VolleyTeamResponseDTO volleyAwayTeam;
     private VolleyMatchResult result;
+    private Integer roundNumber;
+    private MatchStatus status;
+    private String volleyLeagueId;
 }

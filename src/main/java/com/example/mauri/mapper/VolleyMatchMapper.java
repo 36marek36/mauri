@@ -17,6 +17,9 @@ public class VolleyMatchMapper {
                 .volleyHomeTeam(volleyMatch.getHomeTeam() != null ? volleyTeamMapper.mapToResponseDTO(volleyMatch.getHomeTeam()) : null)
                 .volleyAwayTeam(volleyMatch.getAwayTeam() != null ? volleyTeamMapper.mapToResponseDTO(volleyMatch.getAwayTeam()) : null)
                 .result(volleyMatch.getResult() != null ? volleyMatch.getResult() : null)
+                .roundNumber(volleyMatch.getRoundNumber())
+                .volleyLeagueId(volleyMatch.getVolleyLeagueId())
+                .status(volleyMatch.getStatus())
                 .build();
     }
 }
