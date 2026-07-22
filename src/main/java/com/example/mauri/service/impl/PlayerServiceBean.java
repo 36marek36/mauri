@@ -1,6 +1,6 @@
 package com.example.mauri.service.impl;
 
-import com.example.mauri.exception.PlayerAlreadyExistsException;
+import com.example.mauri.exception.ResourceAlreadyExistsException;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.PlayerMapper;
 import com.example.mauri.model.League;
@@ -98,7 +98,7 @@ public class PlayerServiceBean implements PlayerService {
 
         boolean exists = playerRepository.existsByFirstNameAndLastName(createPlayerDTO.getFirstName(), createPlayerDTO.getLastName());
         if (exists) {
-            throw new PlayerAlreadyExistsException("Hráč s týmto menom už existuje.");
+            throw new ResourceAlreadyExistsException("Hráč s týmto menom už existuje.");
         }
 
         Player player = Player.builder()

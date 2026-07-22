@@ -23,6 +23,11 @@ public class GlobalExceptionHandler {
         return buildException(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<Object> handleResourceAlreadyExistsException(ResourceAlreadyExistsException e, WebRequest request) {
+        return buildException(HttpStatus.CONFLICT, e.getMessage());
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Object> handleIllegalState(IllegalStateException ex, WebRequest request) {
         return buildException(HttpStatus.CONFLICT, ex.getMessage());
@@ -76,10 +81,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         return buildException(HttpStatus.BAD_REQUEST, "Neplatný vstup.");
-    }
-    @ExceptionHandler(PlayerAlreadyExistsException.class)
-    public ResponseEntity<Object> handlePlayerNameExists(PlayerAlreadyExistsException ex) {
-        return buildException(HttpStatus.CONFLICT, ex.getMessage());
     }
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex) {
