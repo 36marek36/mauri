@@ -1,7 +1,6 @@
 package com.example.mauri.model;
 
 import com.example.mauri.enums.SeasonStatus;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,8 +28,11 @@ public class Season {
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("leagueType DESC, name ASC")
-//    @JsonManagedReference
     private List<League> leagues;
+
+    @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("name ASC")
+    private List<VolleyLeague> volleyLeagues;
 
     @Enumerated(EnumType.STRING)
     private SeasonStatus status;

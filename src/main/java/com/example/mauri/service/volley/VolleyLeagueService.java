@@ -1,0 +1,12 @@
+package com.example.mauri.service.volley;
+
+import com.example.mauri.model.dto.create.CreateVolleyLeagueDTO;
+import com.example.mauri.model.dto.response.VolleyLeagueResponseDTO;
+
+import java.util.List;
+
+public interface VolleyLeagueService {
+    List<VolleyLeagueResponseDTO> getLeagues();
+    VolleyLeagueResponseDTO createLeague(CreateVolleyLeagueDTO createVolleyLeagueDTO);
+    void deleteLeague(String id);
+}
