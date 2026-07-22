@@ -19,6 +19,7 @@ public class SeasonResponseDTO {
     private int year;
     private SeasonStatus status;
     private List<LeagueResponseDTO> leagues;
+    private List<VolleyLeagueResponseDTO> volleyLeagues;
 
     private long totalPlayers;
     private long totalTeams;

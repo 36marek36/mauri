@@ -4,6 +4,7 @@ import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.response.LeagueResponseDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
+import com.example.mauri.model.dto.response.VolleyLeagueResponseDTO;
 import com.example.mauri.service.LeagueService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,9 +16,11 @@ import java.util.*;
 public class SeasonMapper {
 
     private final LeagueService leagueService;
+    private final VolleyLeagueMapper volleyLeagueMapper;
 
     public SeasonResponseDTO mapSeasonToDTO(Season season, boolean includeLeagues) {
         List<LeagueResponseDTO> leagueDTOs = new ArrayList<>();
+        List<VolleyLeagueResponseDTO> volleyLeagueDTOs = new ArrayList<>();
         long totalPlayers = 0;
         long totalTeams = 0;
 
@@ -51,11 +54,18 @@ public class SeasonMapper {
                         });
             }
         }
+
+        if (includeLeagues && season.getVolleyLeagues() != null) {
+            volleyLeagueDTOs = season.getVolleyLeagues().stream()
+                    .map(volleyLeagueMapper::mapToResponseDTO)
+                    .toList();
+        }
         return SeasonResponseDTO.builder()
                 .id(season.getId())
                 .year(season.getYear())
                 .status(season.getStatus())
                 .leagues(leagueDTOs)
+                .volleyLeagues(volleyLeagueDTOs)
                 .totalPlayers(totalPlayers)
                 .totalTeams(totalTeams)
                 .totalParticipants(participantIds.size())
