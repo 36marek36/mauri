@@ -1,11 +1,13 @@
 package com.example.mauri.service.volley.impl;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.VolleyMatchMapper;
 import com.example.mauri.model.VolleyMatch;
 import com.example.mauri.model.VolleyMatchResult;
 import com.example.mauri.model.dto.create.CreateVolleyMatchDTO;
 import com.example.mauri.model.dto.response.VolleyMatchResponseDTO;
+import com.example.mauri.repository.VolleyLeagueRepository;
 import com.example.mauri.repository.VolleyMatchRepository;
 import com.example.mauri.repository.VolleyTeamRepository;
 import com.example.mauri.service.volley.VolleyMatchResultService;
@@ -26,6 +28,7 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
     private final VolleyMatchMapper volleyMatchMapper;
     private final VolleyTeamRepository volleyTeamRepository;
     private final VolleyMatchResultService volleyMatchResultService;
+    private final VolleyLeagueRepository volleyLeagueRepository;
 
     @Override
     public List<VolleyMatchResponseDTO> getMatches() {
@@ -37,15 +40,22 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
 
     @Override
     public VolleyMatchResponseDTO createMatch(CreateVolleyMatchDTO createVolleyMatchDTO) {
+        volleyLeagueRepository.findById(createVolleyMatchDTO.getVolleyLeagueId())
+                .orElseThrow(() -> new ResourceNotFoundException("Volleyball league not found"));
+
         VolleyMatch match = VolleyMatch.builder()
                 .id(UUID.randomUUID().toString())
+                .volleyLeagueId(createVolleyMatchDTO.getVolleyLeagueId())
+                .roundNumber(createVolleyMatchDTO.getRoundNumber())
                 .build();
+
         match.setHomeTeam(volleyTeamRepository.findById(createVolleyMatchDTO.getHomeTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Home team not found")));
         match.setAwayTeam(volleyTeamRepository.findById(createVolleyMatchDTO.getAwayTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Away team not found")));
 
-        volleyMatchRepository.save(match);
+        match = volleyMatchRepository.save(match);
+        log.info("Volleyball match {} created successfully", match.getId());
         return volleyMatchMapper.toVolleyMatchResponse(match);
     }
 
@@ -64,6 +74,8 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
 
         VolleyMatchResult finalResult = volleyMatchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
+
+        match.setStatus(MatchStatus.FINISHED);
 
         VolleyMatch savedMatch = volleyMatchRepository.save(match);
 

@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class CreateVolleyMatchDTO {
     private String homeTeamId;
     private String awayTeamId;
+    private String volleyLeagueId;
+    private Integer roundNumber;
 }
