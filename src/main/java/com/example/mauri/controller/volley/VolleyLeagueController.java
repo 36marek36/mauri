@@ -31,4 +31,10 @@ public class VolleyLeagueController {
         VolleyLeagueResponseDTO createdLeague = volleyLeagueService.createLeague(createVolleyLeagueDTO);
         return new ResponseEntity<>(createdLeague, HttpStatus.CREATED);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteVolleyLeague(@PathVariable String id) {
+        volleyLeagueService.deleteLeague(id);
+        return ResponseEntity.ok("League deleted successfully");
+    }
 }
