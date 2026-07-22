@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/rest/matches/**").permitAll()
                         .requestMatchers("/rest/seasons/**").permitAll()
                         .requestMatchers("/rest/match-activities/recent").permitAll()
+                        .requestMatchers("/rest/volleyball/**").permitAll()
                         .requestMatchers("/rest/players/without-user").hasRole("ADMIN")
                         .requestMatchers("/rest/players/").permitAll()
                         .requestMatchers("/rest/teams/").permitAll()
