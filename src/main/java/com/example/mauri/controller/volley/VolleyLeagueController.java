@@ -45,4 +45,22 @@ public class VolleyLeagueController {
         return ResponseEntity.ok(message);
     }
 
+    @PatchMapping("/{leagueId}/removeTeam/{teamId}")
+    public ResponseEntity<String> removeTeamFromLeague(@PathVariable String leagueId, @PathVariable String teamId) {
+        String message = volleyLeagueService.removeTeamFromLeague(leagueId, teamId);
+        return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/{leagueId}/start")
+    public ResponseEntity<String> startLeague(@PathVariable String leagueId) {
+        String message = volleyLeagueService.startLeague(leagueId);
+        return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/{leagueId}/finish")
+    public ResponseEntity<String> finishLeague(@PathVariable String leagueId) {
+        String message = volleyLeagueService.finishLeague(leagueId);
+        return ResponseEntity.ok(message);
+    }
+
 }
