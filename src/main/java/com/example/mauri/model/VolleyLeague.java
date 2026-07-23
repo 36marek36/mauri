@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity(name = "volleyball_leagues")
 @Data
@@ -27,7 +28,8 @@ public class VolleyLeague {
     @JoinTable(name = ("volley_league_teams"),
             joinColumns = @JoinColumn(name = ("volley_league_id")),
             inverseJoinColumns = @JoinColumn(name = ("volley_team_id")))
-    private List<VolleyTeam> teams;
+    @Builder.Default
+    private Set<VolleyTeam> teams = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private LeagueStatus status;

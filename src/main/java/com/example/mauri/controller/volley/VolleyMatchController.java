@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +26,12 @@ public class VolleyMatchController {
     public ResponseEntity<List<VolleyMatchResponseDTO>> getMatches() {
         List<VolleyMatchResponseDTO> matches = volleyMatchService.getMatches();
         return ResponseEntity.ok(matches);
+    }
+
+    @GetMapping("/{leagueId}/grouped-by-round")
+    public ResponseEntity<Map<Integer, List<VolleyMatchResponseDTO>>> getMatchesGroupedByRound(@PathVariable String leagueId) {
+        Map<Integer, List<VolleyMatchResponseDTO>> groupedMatches = volleyMatchService.getMatchesGroupedByRound(leagueId);
+        return ResponseEntity.ok(groupedMatches);
     }
 
     @PostMapping("/create")

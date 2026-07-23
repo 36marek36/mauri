@@ -10,12 +10,15 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class VolleyLeagueMapper {
-    public VolleyLeagueResponseDTO mapToResponseDTO (VolleyLeague league) {
+    private final VolleyTeamMapper volleyTeamMapper;
+
+    public VolleyLeagueResponseDTO mapToResponseDTO(VolleyLeague league) {
         return VolleyLeagueResponseDTO.builder()
                 .leagueId(league.getId())
                 .leagueName(league.getName())
-                .seasonYear(league.getSeason() !=null? league.getSeason().getYear() : null)
+                .seasonYear(league.getSeason() != null ? league.getSeason().getYear() : null)
                 .leagueStatus(league.getStatus())
+                .teams(league.getTeams() != null ? league.getTeams().stream().map(volleyTeamMapper::mapToResponseDTO).toList() : null)
                 .build();
     }
 }

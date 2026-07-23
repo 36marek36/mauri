@@ -9,4 +9,5 @@ public interface VolleyLeagueService {
     List<VolleyLeagueResponseDTO> getLeagues();
     VolleyLeagueResponseDTO createLeague(CreateVolleyLeagueDTO createVolleyLeagueDTO);
     void deleteLeague(String id);
+    String addTeamsToLeague(String leagueId, List<String> teamIds);
 }

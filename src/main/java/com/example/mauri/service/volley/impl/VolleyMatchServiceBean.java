@@ -17,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,5 +82,13 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
         VolleyMatch savedMatch = volleyMatchRepository.save(match);
 
         return savedMatch;
+    }
+
+    @Override
+    public Map<Integer, List<VolleyMatchResponseDTO>> getMatchesGroupedByRound(String leagueId) {
+        List<VolleyMatch> matches = volleyMatchRepository.findByVolleyLeagueId(leagueId);
+        return matches.stream()
+                .map(volleyMatchMapper::toVolleyMatchResponse)
+                .collect(Collectors.groupingBy(VolleyMatchResponseDTO::getRoundNumber));
     }
 }
