@@ -1,6 +1,7 @@
 package com.example.mauri.controller.volley;
 
 import com.example.mauri.model.dto.create.CreateVolleyLeagueDTO;
+import com.example.mauri.model.dto.request.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.response.VolleyLeagueResponseDTO;
 import com.example.mauri.service.volley.VolleyLeagueService;
 import jakarta.validation.Valid;
@@ -37,4 +38,11 @@ public class VolleyLeagueController {
         volleyLeagueService.deleteLeague(id);
         return ResponseEntity.ok("League deleted successfully");
     }
+
+    @PatchMapping("/{leagueId}/addTeams")
+    public ResponseEntity<String> addTeamsToLeague(@PathVariable String leagueId, @RequestBody AddParticipantsToLeagueDTO dto) {
+        String message = volleyLeagueService.addTeamsToLeague(leagueId, dto.getParticipantIds());
+        return ResponseEntity.ok(message);
+    }
+
 }

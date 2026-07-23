@@ -6,10 +6,12 @@ import com.example.mauri.model.dto.create.CreateVolleyMatchDTO;
 import com.example.mauri.model.dto.response.VolleyMatchResponseDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface VolleyMatchService {
     List<VolleyMatchResponseDTO> getMatches();
     VolleyMatchResponseDTO createMatch(CreateVolleyMatchDTO createVolleyMatchDTO);
     void deleteMatch(String id);
     VolleyMatch addResult (String matchId, VolleyMatchResult matchResult);
+    Map<Integer, List<VolleyMatchResponseDTO>> getMatchesGroupedByRound(String leagueId);
 }
