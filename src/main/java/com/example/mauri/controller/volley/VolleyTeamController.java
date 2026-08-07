@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rest/volleyball/teams")
@@ -20,8 +21,14 @@ public class VolleyTeamController {
     private final VolleyTeamService volleyTeamService;
 
     @GetMapping("/")
-    public ResponseEntity<List<VolleyTeamResponseDTO>> getAllTeams() {
-        List<VolleyTeamResponseDTO> teams = volleyTeamService.getVolleyTeams();
+    public ResponseEntity<List<VolleyTeamResponseDTO>> getActiveTeams() {
+        List<VolleyTeamResponseDTO> teams = volleyTeamService.getActiveVolleyTeams();
+        return ResponseEntity.ok(teams);
+    }
+
+    @GetMapping("/inactive")
+    public ResponseEntity<List<VolleyTeamResponseDTO>> getInactiveTeams() {
+        List<VolleyTeamResponseDTO> teams = volleyTeamService.getInactiveVolleyTeams();
         return ResponseEntity.ok(teams);
     }
 
@@ -32,9 +39,10 @@ public class VolleyTeamController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteVolleyTeam(@PathVariable String id) {
-        volleyTeamService.deleteVolleyTeam(id);
-        return ResponseEntity.ok("Team deleted successfully");
+    public ResponseEntity<Map<String,String>> deleteVolleyTeam(@PathVariable String id) {
+        String status = volleyTeamService.deleteVolleyTeam(id);
+        Map<String, String> response = Map.of("status", status);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PatchMapping("/{teamId}/add")

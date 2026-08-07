@@ -18,4 +18,5 @@ public class VolleyTeamResponseDTO {
     private PlayerResponseDTO captain;
     private LocalDate createdAt;
     private Set<String> players;
+    private boolean active;
 }

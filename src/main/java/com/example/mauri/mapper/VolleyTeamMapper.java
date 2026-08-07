@@ -13,6 +13,7 @@ public class VolleyTeamMapper {
                 .name(volleyTeam.getName())
                 .captain(volleyTeam.getCaptain() != null ? new PlayerMapper().mapToResponseDTO(volleyTeam.getCaptain()) : null)
                 .createdAt(volleyTeam.getCreatedAt())
+                .active(volleyTeam.isActive())
                 .players(volleyTeam.getPlayers())
                 .build();
     }

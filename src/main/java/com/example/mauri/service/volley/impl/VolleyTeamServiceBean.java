@@ -8,8 +8,11 @@ import com.example.mauri.model.VolleyTeam;
 import com.example.mauri.model.dto.request.VolleyTeamPlayerNameRequest;
 import com.example.mauri.model.dto.response.VolleyTeamResponseDTO;
 import com.example.mauri.repository.PlayerRepository;
+import com.example.mauri.repository.VolleyLeagueRepository;
+import com.example.mauri.repository.VolleyMatchRepository;
 import com.example.mauri.repository.VolleyTeamRepository;
 import com.example.mauri.service.volley.VolleyTeamService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +26,20 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
     private final VolleyTeamRepository volleyTeamRepository;
     private final VolleyTeamMapper volleyTeamMapper;
     private final PlayerRepository playerRepository;
+    private final VolleyLeagueRepository volleyLeagueRepository;
+    private final VolleyMatchRepository volleyMatchRepository;
 
     @Override
-    public List<VolleyTeamResponseDTO> getVolleyTeams() {
-        List<VolleyTeam> volleyTeams = volleyTeamRepository.findAll();
+    public List<VolleyTeamResponseDTO> getActiveVolleyTeams() {
+        List<VolleyTeam> volleyTeams = volleyTeamRepository.findByActiveTrue();
+        return volleyTeams.stream()
+                .map(volleyTeamMapper::mapToResponseDTO)
+                .toList();
+    }
+
+    @Override
+    public List<VolleyTeamResponseDTO> getInactiveVolleyTeams() {
+        List<VolleyTeam> volleyTeams = volleyTeamRepository.findByActiveFalse();
         return volleyTeams.stream()
                 .map(volleyTeamMapper::mapToResponseDTO)
                 .toList();
@@ -54,11 +67,20 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
     }
 
     @Override
-    public void deleteVolleyTeam(String id) {
+    public String deleteVolleyTeam(String id) {
         VolleyTeam volleyTeam = volleyTeamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Volley team not found"));
 
-        volleyTeamRepository.delete(volleyTeam);
+        boolean isInVolleyLeagues = !volleyLeagueRepository.findVolleyLeagueByVolleyTeamId(id).isEmpty();
+        boolean isInVolleyMatch = volleyMatchRepository.existsByHomeTeamIdOrAwayTeamId(id, id);
+
+        if (isInVolleyLeagues || isInVolleyMatch) {
+           deactivateTeam(id);
+            return "deactivated";
+        } else {
+            volleyTeamRepository.delete(volleyTeam);
+            return "deleted";
+        }
     }
 
     @Override
@@ -86,6 +108,14 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
             throw new ResourceNotFoundException("Player not found in team");
         }
 
+        volleyTeamRepository.save(team);
+    }
+
+    @Override
+    public void deactivateTeam(@NonNull String id) {
+        VolleyTeam team = volleyTeamRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Volley team not found"));
+        team.setActive(false);
         volleyTeamRepository.save(team);
     }
 }

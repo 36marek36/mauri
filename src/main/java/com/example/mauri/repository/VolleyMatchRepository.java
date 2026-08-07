@@ -14,4 +14,6 @@ public interface VolleyMatchRepository extends JpaRepository<VolleyMatch, String
 
     @Query("SELECT m FROM volleyball_matches m WHERE m.volleyLeagueId = :leagueId AND (m.homeTeam.id = :teamId or m.awayTeam.id = :teamId)")
     List<VolleyMatch> findMatchesByLeagueAndTeam(@Param("leagueId") String leagueId, @Param("teamId") String teamId);
+
+    boolean existsByHomeTeamIdOrAwayTeamId(String homeTeamId, String awayTeamId);
 }
