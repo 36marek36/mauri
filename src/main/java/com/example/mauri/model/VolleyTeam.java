@@ -31,8 +31,11 @@ public class VolleyTeam {
 
     private LocalDate createdAt;
 
+    private boolean active;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDate.now();
+        active = true;
     }
 }
