@@ -1,14 +1,14 @@
 package com.example.mauri.model.dto.create;
 
+import com.example.mauri.enums.Sport;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
-import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -26,5 +26,5 @@ public class CreatePlayerDTO {
     @Pattern(regexp = "^$|^[0-9+ ]{7,15}$", message = "Nesprávny formát telefónneho čísla")
     private String phone;
 
-    private LocalDate registrationDate;
+    private Set<Sport> sports=new HashSet<>();
 }

@@ -5,6 +5,8 @@ import com.example.mauri.model.dto.response.PlayerResponseDTO;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+
 @Component
 public class PlayerMapper {
 
@@ -19,6 +21,7 @@ public class PlayerMapper {
                 .registrationDate(player.getRegistrationDate())
                 .deletedDate(player.getDeletedDate())
                 .active(player.isActive())
+                .sports(new ArrayList<>(player.getSports()))
                 .build();
     }
 }

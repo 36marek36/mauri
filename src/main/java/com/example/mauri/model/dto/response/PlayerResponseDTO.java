@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto.response;
 
+import com.example.mauri.enums.Sport;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -29,4 +30,5 @@ public class PlayerResponseDTO {
     private boolean active;
     private List<TeamShortDTO> teams;
     private List<LeagueShortDTO> leagues;
+    private List<Sport> sports;
 }
