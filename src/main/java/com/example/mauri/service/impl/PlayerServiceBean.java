@@ -1,5 +1,6 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.Sport;
 import com.example.mauri.exception.ResourceAlreadyExistsException;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.PlayerMapper;
@@ -258,6 +259,15 @@ public class PlayerServiceBean implements PlayerService {
                 .toList());
 
         return dto;
+    }
+
+    @Transactional
+    @Override
+    public void addTennisToAllPlayers(){
+        List<Player> players = playerRepository.findAll();
+        for (Player player : players){
+            player.getSports().add(Sport.TENNIS);
+        }
     }
 
 }
