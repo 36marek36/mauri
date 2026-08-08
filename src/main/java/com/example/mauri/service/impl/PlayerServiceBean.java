@@ -107,6 +107,7 @@ public class PlayerServiceBean implements PlayerService {
                 .lastName(lastName)
                 .email(createPlayerDTO.getEmail())
                 .phone(createPlayerDTO.getPhone())
+                .sports(createPlayerDTO.getSports())
                 .build();
 
         Player saved = playerRepository.save(player);
