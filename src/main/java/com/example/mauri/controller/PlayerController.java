@@ -102,4 +102,10 @@ public class PlayerController {
         Map<String, String> response = Map.of("status", status);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @PatchMapping("/addTennisToAllPlayers")
+    public ResponseEntity<Void> addTennisToAllPlayers(){
+        playerService.addTennisToAllPlayers();
+        return ResponseEntity.ok().build();
+    }
 }

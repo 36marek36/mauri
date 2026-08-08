@@ -36,4 +36,6 @@ public interface PlayerService {
 
     List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId);
 
+    void addTennisToAllPlayers();
+
 }
