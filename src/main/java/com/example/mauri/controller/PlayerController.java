@@ -25,15 +25,27 @@ public class PlayerController {
     private final PlayerService playerService;
     private final UserService userService;
 
+    @GetMapping("/all")
+    public ResponseEntity<List<PlayerResponseDTO>> getAllPlayers() {
+        List<PlayerResponseDTO> players = playerService.getAllPlayers();
+        return ResponseEntity.ok(players);
+    }
+
     @GetMapping("/")
     public ResponseEntity<List<PlayerResponseDTO>> getActivePlayers() {
-        List<PlayerResponseDTO> players = playerService.getActivePlayers();
+        List<PlayerResponseDTO> players = playerService.getActiveTennisPlayers();
         return ResponseEntity.ok(players);
     }
 
     @GetMapping("/inactive")
     public ResponseEntity<List<PlayerResponseDTO>> getInactivePlayers() {
-        List<PlayerResponseDTO> players = playerService.getInactivePlayers();
+        List<PlayerResponseDTO> players = playerService.getInactiveTennisPlayers();
+        return ResponseEntity.ok(players);
+    }
+
+    @GetMapping("/volleyball")
+    public ResponseEntity<List<PlayerResponseDTO>> getActiveVolleyballPlayers() {
+        List<PlayerResponseDTO> players = playerService.getActiveVolleyballPlayers();
         return ResponseEntity.ok(players);
     }
 

@@ -9,6 +9,7 @@ import java.util.List;
 public interface VolleyTeamService {
     List<VolleyTeamResponseDTO> getActiveVolleyTeams();
     List<VolleyTeamResponseDTO> getInactiveVolleyTeams();
+    VolleyTeamResponseDTO getVolleyTeamById(String id);
     VolleyTeamResponseDTO createVolleyTeam(String teamName, String captainId);
     String deleteVolleyTeam(String id);
     void addPlayerToTeam(String teamId, VolleyTeamPlayerNameRequest playerName);

@@ -32,6 +32,12 @@ public class VolleyTeamController {
         return ResponseEntity.ok(teams);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<VolleyTeamResponseDTO> getVolleyTeamById(@PathVariable String id) {
+        VolleyTeamResponseDTO team = volleyTeamService.getVolleyTeamById(id);
+        return ResponseEntity.ok(team);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<VolleyTeamResponseDTO> createVolleyTeam(@Valid @RequestBody CreateVolleyTeamDTO volleyTeamResponseDTO) {
         VolleyTeamResponseDTO created = volleyTeamService.createVolleyTeam(volleyTeamResponseDTO.getName(), volleyTeamResponseDTO.getCaptainId());

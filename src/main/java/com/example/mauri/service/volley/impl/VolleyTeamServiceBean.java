@@ -46,6 +46,12 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
     }
 
     @Override
+    public VolleyTeamResponseDTO getVolleyTeamById(String id) {
+        return volleyTeamMapper.mapToResponseDTO(volleyTeamRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Volley team not found")));
+    }
+
+    @Override
     public VolleyTeamResponseDTO createVolleyTeam(String teamName, String captainId) {
         Player captain = playerRepository.findById(captainId)
                 .orElseThrow(() -> new ResourceNotFoundException("Captain not found"));

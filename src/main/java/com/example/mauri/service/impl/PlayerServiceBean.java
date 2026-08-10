@@ -43,8 +43,16 @@ public class PlayerServiceBean implements PlayerService {
 
 
     @Override
-    public List<PlayerResponseDTO> getActivePlayers() {
-        List<Player> players = playerRepository.findByActiveTrueOrderByLastNameAsc();
+    public List<PlayerResponseDTO> getAllPlayers() {
+        List<Player> players = playerRepository.findAll();
+        return players.stream()
+                .map(this::mapFullPlayer)
+                .toList();
+    }
+
+    @Override
+    public List<PlayerResponseDTO> getActiveTennisPlayers() {
+        List<Player> players = playerRepository.findByActiveTrueAndSportsContainingOrderByLastNameAsc(Sport.TENNIS);
 
         return players.stream()
                 .map(this::mapFullPlayer) // každý Player sa zmení na PlayerResponseDTO
@@ -52,8 +60,16 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
-    public List<PlayerResponseDTO> getInactivePlayers() {
-        List<Player> players = playerRepository.findByActiveFalseOrderByLastNameAsc();
+    public List<PlayerResponseDTO> getInactiveTennisPlayers() {
+        List<Player> players = playerRepository.findByActiveFalseAndSportsContainingOrderByLastNameAsc(Sport.TENNIS);
+        return players.stream()
+                .map(this::mapFullPlayer)
+                .toList();
+    }
+
+    @Override
+    public List<PlayerResponseDTO> getActiveVolleyballPlayers() {
+        List<Player> players = playerRepository.findByActiveTrueAndSportsContainingOrderByLastNameAsc(Sport.VOLLEYBALL);
         return players.stream()
                 .map(this::mapFullPlayer)
                 .toList();
@@ -207,6 +223,10 @@ public class PlayerServiceBean implements PlayerService {
         if (updatedPlayer.getPhone() != null) {
             existingPlayer.setPhone(updatedPlayer.getPhone());
         }
+
+        if (updatedPlayer.getSports() != null) {
+            existingPlayer.setSports(updatedPlayer.getSports());
+        }
         if (updatedPlayer.getActive() != null) {
             existingPlayer.setActive(updatedPlayer.getActive());
 
@@ -263,9 +283,9 @@ public class PlayerServiceBean implements PlayerService {
 
     @Transactional
     @Override
-    public void addTennisToAllPlayers(){
+    public void addTennisToAllPlayers() {
         List<Player> players = playerRepository.findAll();
-        for (Player player : players){
+        for (Player player : players) {
             player.getSports().add(Sport.TENNIS);
         }
     }
