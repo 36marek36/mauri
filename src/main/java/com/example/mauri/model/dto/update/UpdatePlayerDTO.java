@@ -1,10 +1,15 @@
 package com.example.mauri.model.dto.update;
 
+import com.example.mauri.enums.Sport;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -22,4 +27,7 @@ public class UpdatePlayerDTO {
     private String phone;
 
     private Boolean active;
+
+    @Size(min = 1, message = "Hráč musí mať vybraný aspoň jeden šport")
+    private Set<Sport> sports = new HashSet<>();
 }

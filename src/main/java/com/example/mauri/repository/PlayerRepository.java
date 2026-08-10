@@ -1,5 +1,6 @@
 package com.example.mauri.repository;
 
+import com.example.mauri.enums.Sport;
 import com.example.mauri.model.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,9 +18,9 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
     @Query("SELECT p FROM players p WHERE p.active = true AND p.id NOT IN (SELECT u.player.id FROM users u WHERE u.player IS NOT NULL)")
     List<Player> findActivePlayersWithoutUser();
 
-    List<Player> findByActiveTrueOrderByLastNameAsc();
+    List<Player> findByActiveTrueAndSportsContainingOrderByLastNameAsc(Sport sport);
 
-    List<Player> findByActiveFalseOrderByLastNameAsc();
+    List<Player> findByActiveFalseAndSportsContainingOrderByLastNameAsc(Sport sport);
 
     boolean existsByFirstNameAndLastName(String firstName, String lastName);
 

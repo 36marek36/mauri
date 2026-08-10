@@ -3,6 +3,7 @@ package com.example.mauri.model.dto.create;
 import com.example.mauri.enums.Sport;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,5 +27,6 @@ public class CreatePlayerDTO {
     @Pattern(regexp = "^$|^[0-9+ ]{7,15}$", message = "Nesprávny formát telefónneho čísla")
     private String phone;
 
+    @NotEmpty(message = "Aspoň jeden šport je povinný")
     private Set<Sport> sports=new HashSet<>();
 }

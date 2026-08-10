@@ -10,9 +10,13 @@ import java.util.List;
 
 public interface PlayerService {
 
-    List<PlayerResponseDTO> getActivePlayers();
+    List<PlayerResponseDTO> getAllPlayers();
 
-    List<PlayerResponseDTO> getInactivePlayers();
+    List<PlayerResponseDTO> getActiveTennisPlayers();
+
+    List<PlayerResponseDTO> getInactiveTennisPlayers();
+
+    List<PlayerResponseDTO> getActiveVolleyballPlayers();
 
     Player getPlayer(@NonNull String id);
 
