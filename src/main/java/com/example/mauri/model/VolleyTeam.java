@@ -27,6 +27,7 @@ public class VolleyTeam {
     private Player captain;
 
     @ElementCollection
+    @Builder.Default
     private Set<String> players = new HashSet<>();
 
     private LocalDate createdAt;

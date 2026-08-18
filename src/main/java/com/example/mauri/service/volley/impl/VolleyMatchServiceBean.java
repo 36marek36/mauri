@@ -12,6 +12,7 @@ import com.example.mauri.repository.VolleyMatchRepository;
 import com.example.mauri.repository.VolleyTeamRepository;
 import com.example.mauri.service.volley.VolleyMatchResultService;
 import com.example.mauri.service.volley.VolleyMatchService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,11 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
         VolleyMatchResult finalResult = volleyMatchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
 
-        match.setStatus(MatchStatus.FINISHED);
+        if (finalResult.getScratchedId() != null) {
+            match.setStatus(MatchStatus.SCRATCHED);
+        }else {
+            match.setStatus(MatchStatus.FINISHED);
+        }
 
         VolleyMatch savedMatch = volleyMatchRepository.save(match);
 
@@ -90,5 +95,16 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
         return matches.stream()
                 .map(volleyMatchMapper::toVolleyMatchResponse)
                 .collect(Collectors.groupingBy(VolleyMatchResponseDTO::getRoundNumber));
+    }
+
+    @Override
+    @Transactional
+    public void cancelResult(String matchId) {
+        VolleyMatch match = volleyMatchRepository.findById(matchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Match not found"));
+        match.setResult(null);
+        match.setStatus(MatchStatus.CREATED);
+        volleyMatchRepository.save(match);
+
     }
 }

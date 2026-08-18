@@ -33,6 +33,7 @@ public class Player {
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "player_sports", joinColumns = @JoinColumn(name = "player_id"))
     @Column(name = "sport")
+    @Builder.Default
     private Set<Sport> sports = new HashSet<>();
 
     @PrePersist

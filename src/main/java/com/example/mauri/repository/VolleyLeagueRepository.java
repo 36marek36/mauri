@@ -1,5 +1,6 @@
 package com.example.mauri.repository;
 
+import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.VolleyLeague;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,5 @@ public interface VolleyLeagueRepository extends JpaRepository<VolleyLeague, Stri
 
     @Query("SELECT v FROM volleyball_leagues v join v.teams t WHERE t.id = :teamId")
     List<VolleyLeague> findVolleyLeagueByVolleyTeamId(@Param("teamId") @NonNull String teamId);
+    List<VolleyLeague> findAllBySeasonStatus (SeasonStatus status);
 }

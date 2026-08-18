@@ -14,4 +14,5 @@ public interface VolleyMatchService {
     void deleteMatch(String id);
     VolleyMatch addResult (String matchId, VolleyMatchResult matchResult);
     Map<Integer, List<VolleyMatchResponseDTO>> getMatchesGroupedByRound(String leagueId);
+    void cancelResult(String matchId);
 }

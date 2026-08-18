@@ -2,6 +2,7 @@ package com.example.mauri.service.volley.impl;
 
 import com.example.mauri.enums.LeagueStatus;
 import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.VolleyLeagueMapper;
 import com.example.mauri.model.Season;
@@ -133,5 +134,14 @@ public class VolleyLeagueServiceBean implements VolleyLeagueService {
         }
         volleyMatchRepository.saveAll(matches);
         return "Liga bola uspešne ukončená";
+    }
+
+    @Override
+    public List<VolleyLeagueResponseDTO> getCurrentVolleyLeagues() {
+        return volleyLeagueRepository
+                .findAllBySeasonStatus(SeasonStatus.ACTIVE)
+                .stream()
+                .map(volleyLeagueMapper::mapToResponseDTO)
+                .toList();
     }
 }
