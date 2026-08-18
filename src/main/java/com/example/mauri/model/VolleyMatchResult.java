@@ -19,6 +19,7 @@ public class VolleyMatchResult {
     private Integer homeTeamScore;
     private Integer awayTeamScore;
     private String winnerId;
+    private String scratchedId;
     private Integer homeTeamPoints;
     private Integer awayTeamPoints;
 

@@ -6,6 +6,7 @@ import com.example.mauri.service.volley.VolleyMatchResultService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -14,9 +15,11 @@ public class VolleyMatchResultServiceBean implements VolleyMatchResultService {
 
     @Override
     public VolleyMatchResult processResult(VolleyMatch volleyMatch, VolleyMatchResult result) {
-
-        validateSetScores(result.getSetScores());
-
+        if (result.getScratchedId() != null) {
+            result.setSetScores(generateVolleyScratchResult(volleyMatch, result.getScratchedId()));
+        } else {
+            validateSetScores(result.getSetScores());
+        }
 
         if (!result.getSetScores().isEmpty()) {
             numberSets(result.getSetScores());
@@ -27,6 +30,29 @@ public class VolleyMatchResultServiceBean implements VolleyMatchResultService {
         }
 
         return result;
+    }
+
+    private List<SetScore> generateVolleyScratchResult(VolleyMatch match, String scratchedId) {
+        // Overíme, či skrečoval domáci tím (porovnáme s volleyHomeTeam)
+        boolean scratchedIsHome = scratchedId.equals(match.getHomeTeam().getId());
+
+        List<SetScore> sets = new ArrayList<>();
+
+        // Vo volejbale generujeme 3 sety pre jednoznačný kontumačný výsledok 0:3
+        for (int i = 1; i <= 3; i++) {
+            SetScore set = new SetScore();
+            set.setSetNumber(i);
+
+            if (scratchedIsHome) {
+                set.setScore1(0);  // Skrečoval domáci -> dostáva 0 bodov
+                set.setScore2(21); // Hosťujúci vyhráva set s 21 bodmi
+            } else {
+                set.setScore1(21); // Skrečoval hosť -> domáci vyhráva set s 21 bodmi
+                set.setScore2(0);  // Hosťujúci dostáva 0 bodov
+            }
+            sets.add(set);
+        }
+        return sets;
     }
 
     private void validateSetScores(List<SetScore> setScores) {

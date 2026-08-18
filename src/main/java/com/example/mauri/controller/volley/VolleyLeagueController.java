@@ -27,6 +27,11 @@ public class VolleyLeagueController {
         return ResponseEntity.ok(leagues);
     }
 
+    @GetMapping("/current_season")
+    public List<VolleyLeagueResponseDTO> getCurrentVolleyLeagues() {
+        return volleyLeagueService.getCurrentVolleyLeagues();
+    }
+
     @PostMapping("/create")
     public ResponseEntity<VolleyLeagueResponseDTO> createVolleyLeague (@RequestBody @Valid CreateVolleyLeagueDTO createVolleyLeagueDTO){
         VolleyLeagueResponseDTO createdLeague = volleyLeagueService.createLeague(createVolleyLeagueDTO);

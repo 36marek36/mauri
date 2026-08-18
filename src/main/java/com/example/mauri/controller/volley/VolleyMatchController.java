@@ -51,4 +51,9 @@ public class VolleyMatchController {
         VolleyMatch match = volleyMatchService.addResult(matchId, volleyMatchResult);
         return new ResponseEntity<>(match, HttpStatus.OK);
     }
+    @PatchMapping("/{matchId}/cancel-result")
+    public ResponseEntity<?> cancelMatchResult(@PathVariable String matchId) {
+        volleyMatchService.cancelResult(matchId);
+        return ResponseEntity.ok().body("Match cancelled");
+    }
 }
