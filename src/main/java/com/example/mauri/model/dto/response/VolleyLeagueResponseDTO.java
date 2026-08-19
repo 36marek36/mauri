@@ -18,4 +18,5 @@ public class VolleyLeagueResponseDTO {
     private Integer seasonYear;
     private LeagueStatus leagueStatus;
     private List<VolleyTeamResponseDTO> teams;
+    private List<String> droppedTeamIds;
 }

@@ -3,7 +3,9 @@ package com.example.mauri.controller.volley;
 import com.example.mauri.model.dto.create.CreateVolleyLeagueDTO;
 import com.example.mauri.model.dto.request.AddParticipantsToLeagueDTO;
 import com.example.mauri.model.dto.response.VolleyLeagueResponseDTO;
+import com.example.mauri.model.dto.response.VolleyTeamStatsDTO;
 import com.example.mauri.service.volley.VolleyLeagueService;
+import com.example.mauri.service.volley.VolleyLeagueStatsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import java.util.List;
 public class VolleyLeagueController {
 
     private final VolleyLeagueService volleyLeagueService;
+    private final VolleyLeagueStatsService volleyLeagueStatsService;
 
     @GetMapping("/")
     public ResponseEntity<List<VolleyLeagueResponseDTO>> getAllLeagues() {
@@ -32,8 +35,14 @@ public class VolleyLeagueController {
         return volleyLeagueService.getCurrentVolleyLeagues();
     }
 
+    @GetMapping("/{leagueId}/stats")
+    public List<VolleyTeamStatsDTO> getTeamStatsForLeague(@PathVariable String leagueId) {
+        return volleyLeagueStatsService.getAllStatsForLeague(leagueId);
+
+    }
+
     @PostMapping("/create")
-    public ResponseEntity<VolleyLeagueResponseDTO> createVolleyLeague (@RequestBody @Valid CreateVolleyLeagueDTO createVolleyLeagueDTO){
+    public ResponseEntity<VolleyLeagueResponseDTO> createVolleyLeague(@RequestBody @Valid CreateVolleyLeagueDTO createVolleyLeagueDTO) {
         VolleyLeagueResponseDTO createdLeague = volleyLeagueService.createLeague(createVolleyLeagueDTO);
         return new ResponseEntity<>(createdLeague, HttpStatus.CREATED);
     }
@@ -65,6 +74,12 @@ public class VolleyLeagueController {
     @PatchMapping("/{leagueId}/finish")
     public ResponseEntity<String> finishLeague(@PathVariable String leagueId) {
         String message = volleyLeagueService.finishLeague(leagueId);
+        return ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/{leagueId}/dropTeam/{teamId}")
+    public ResponseEntity<String> dropTeamFromLeague(@PathVariable String leagueId, @PathVariable String teamId) {
+        String message = volleyLeagueService.dropTeamFromLeague(leagueId, teamId);
         return ResponseEntity.ok(message);
     }
 

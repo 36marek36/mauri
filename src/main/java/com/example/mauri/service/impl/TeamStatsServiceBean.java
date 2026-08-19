@@ -19,30 +19,17 @@ import java.util.stream.Collectors;
 public class TeamStatsServiceBean implements TeamStatsService {
     private final MatchRepository matchRepository;
     private final LeagueRepository leagueRepository;
-    private final TeamService teamService;
 
     @Override
-    public TeamStatsDTO getTeamStats(
-            String leagueId,
-            String teamId) {
-        League league = leagueRepository.findById(leagueId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "League not found with id: " + leagueId));
-        List<Match> matches =
-                matchRepository.findByLeagueId(leagueId);
-        Map<String, Integer> teamProgressMap =
-                calculateTeamProgress(matches, league.getTeams());
+    public TeamStatsDTO getTeamStats(String leagueId, String teamId) {
+        // Zavoláme metódu pre celú ligu, ktorá už vráti kompletne napočítané štatistiky vrátane 'droppedFromLeague'
+        List<TeamStatsDTO> leagueStats = getAllStatsForLeague(leagueId);
 
-        Team team = teamService.getTeamById(teamId);
-        TeamStatsDTO stats =
-                calculateTeamStats(team, matches, teamProgressMap);
-        List<String> droppedIds =
-                league.getDroppedParticipantsIds();
-        stats.setDroppedFromLeague(
-                droppedIds != null &&
-                        droppedIds.contains(teamId));
-        return stats;
+        return leagueStats.stream()
+                .filter(s -> s.getTeamId().equals(teamId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Tím s id " + teamId + " sa nenašiel v lige " + leagueId));
     }
 
     @Override
