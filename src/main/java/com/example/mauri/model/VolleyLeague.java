@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity(name = "volleyball_leagues")
@@ -33,6 +34,8 @@ public class VolleyLeague {
 
     @Enumerated(EnumType.STRING)
     private LeagueStatus status;
+
+    private List<String> droppedTeamIds;
 
     @PrePersist
     protected void onCreate() {

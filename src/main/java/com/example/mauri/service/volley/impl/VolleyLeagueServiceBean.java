@@ -23,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -100,6 +101,30 @@ public class VolleyLeagueServiceBean implements VolleyLeagueService {
         league.getTeams().remove(team);
 
         return "Tím bol z ligy úspešne odstránený";
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public String dropTeamFromLeague(String leagueId, String teamId) {
+        VolleyLeague league = volleyLeagueRepository.findById(leagueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Volleyball league not found"));
+        if (league.getDroppedTeamIds() == null) {
+            league.setDroppedTeamIds(new ArrayList<>());
+        }
+        if (league.getDroppedTeamIds().contains(teamId)) {
+            return "Tim už je označený ako odstúpený z ligy.";
+        }
+        if (league.getStatus() == LeagueStatus.CREATED) {
+            return "Je zbytočné tím odhlasovať z neaktívnej ligy. Možeš ho z ligy radšej odstrániť.";
+        }
+        List<VolleyMatch> affectedMatches = volleyMatchRepository.findMatchesByLeagueAndTeam(leagueId, teamId);
+        for (VolleyMatch match : affectedMatches) {
+            match.setStatus(MatchStatus.CANCELLED);
+        }
+        league.getDroppedTeamIds().add(teamId);
+        volleyLeagueRepository.save(league);
+        return "Tím bol úspešne odhlásený z ligy a všetky jeho zápasy boli zrušené.";
     }
 
     @Override

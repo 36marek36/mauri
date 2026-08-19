@@ -19,6 +19,7 @@ public class VolleyLeagueMapper {
                 .seasonYear(league.getSeason() != null ? league.getSeason().getYear() : null)
                 .leagueStatus(league.getStatus())
                 .teams(league.getTeams() != null ? league.getTeams().stream().map(volleyTeamMapper::mapToResponseDTO).toList() : null)
+                .droppedTeamIds(league.getDroppedTeamIds())
                 .build();
     }
 }

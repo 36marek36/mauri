@@ -11,6 +11,7 @@ public interface VolleyLeagueService {
     void deleteLeague(String id);
     String addTeamsToLeague(String leagueId, List<String> teamIds);
     String removeTeamFromLeague(String leagueId, String teamId);
+    String dropTeamFromLeague(String leagueId, String teamId);
     String startLeague(String leagueId);
     String finishLeague(String leagueId);
     List<VolleyLeagueResponseDTO> getCurrentVolleyLeagues();
