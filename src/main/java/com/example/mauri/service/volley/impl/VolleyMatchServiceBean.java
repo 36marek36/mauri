@@ -7,9 +7,11 @@ import com.example.mauri.model.VolleyMatch;
 import com.example.mauri.model.VolleyMatchResult;
 import com.example.mauri.model.dto.create.CreateVolleyMatchDTO;
 import com.example.mauri.model.dto.response.VolleyMatchResponseDTO;
+import com.example.mauri.repository.MatchActivityRepository;
 import com.example.mauri.repository.VolleyLeagueRepository;
 import com.example.mauri.repository.VolleyMatchRepository;
 import com.example.mauri.repository.VolleyTeamRepository;
+import com.example.mauri.service.volley.VolleyMatchActivityService;
 import com.example.mauri.service.volley.VolleyMatchResultService;
 import com.example.mauri.service.volley.VolleyMatchService;
 import jakarta.transaction.Transactional;
@@ -32,6 +34,8 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
     private final VolleyTeamRepository volleyTeamRepository;
     private final VolleyMatchResultService volleyMatchResultService;
     private final VolleyLeagueRepository volleyLeagueRepository;
+    private final VolleyMatchActivityService volleyMatchActivityService;
+    private final MatchActivityRepository matchActivityRepository;
 
     @Override
     public List<VolleyMatchResponseDTO> getMatches() {
@@ -80,11 +84,13 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
 
         if (finalResult.getScratchedId() != null) {
             match.setStatus(MatchStatus.SCRATCHED);
-        }else {
+        } else {
             match.setStatus(MatchStatus.FINISHED);
         }
 
         VolleyMatch savedMatch = volleyMatchRepository.save(match);
+        volleyMatchActivityService.createActivity(savedMatch.getId());
+        log.info("Volleyball match {} result added successfully", savedMatch.getId());
 
         return savedMatch;
     }
@@ -105,6 +111,8 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
         match.setResult(null);
         match.setStatus(MatchStatus.CREATED);
         volleyMatchRepository.save(match);
+        log.info("Volleyball match {} result cancelled successfully", matchId);
+        matchActivityRepository.deleteByMatchId(matchId);
 
     }
 }

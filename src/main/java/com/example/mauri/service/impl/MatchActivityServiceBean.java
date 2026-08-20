@@ -116,7 +116,7 @@ public class MatchActivityServiceBean implements MatchActivityService {
         log.info("Deleting old activities...");
 
         Instant limit =
-                Instant.now().minus(4, ChronoUnit.DAYS);
+                Instant.now().minus(6, ChronoUnit.DAYS);
 
         long deleted =
                 matchActivityRepository
