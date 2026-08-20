@@ -1,5 +1,6 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.Sport;
 import com.example.mauri.mapper.MatchMapper;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Match;
@@ -39,6 +40,7 @@ public class MatchActivityServiceBean implements MatchActivityService {
 
         MatchActivity activity = new MatchActivity();
         activity.setMatchId(matchId);
+        activity.setSport(Sport.TENNIS);
         activity.setCreatedAt(Instant.now());
 
         matchActivityRepository.save(activity);
@@ -50,9 +52,8 @@ public class MatchActivityServiceBean implements MatchActivityService {
         Instant threeDaysAgo =
                 Instant.now().minus(3, ChronoUnit.DAYS);
 
-        List<MatchActivity> activities =
-                matchActivityRepository
-                        .findByCreatedAtAfterOrderByCreatedAtDesc(threeDaysAgo);
+        List<MatchActivity> activities = matchActivityRepository
+                .findBySportAndCreatedAtAfterOrderByCreatedAtDesc(Sport.TENNIS, threeDaysAgo);
 
         List<String> matchIds = activities.stream()
                 .map(MatchActivity::getMatchId)
@@ -122,5 +123,29 @@ public class MatchActivityServiceBean implements MatchActivityService {
                         .deleteByCreatedAtBefore(limit);
 
         log.info("Deleted {} old activities", deleted);
+    }
+
+    @Override
+    @Transactional
+    public long migrateOldActivitiesToTennis() {
+        log.info("Starting manual migration of old activities...");
+
+        List<MatchActivity> oldActivities = matchActivityRepository.findBySportIsNull();
+
+        if (oldActivities.isEmpty()) {
+            log.info("No old activities found for migration.");
+            return 0;
+        }
+
+        log.info("Found {} activities to migrate. Setting sport to TENNIS...", oldActivities.size());
+
+        for (MatchActivity activity : oldActivities) {
+            activity.setSport(Sport.TENNIS);
+        }
+
+        matchActivityRepository.saveAll(oldActivities);
+        log.info("Migration finished successfully.");
+
+        return oldActivities.size();
     }
 }

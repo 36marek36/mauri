@@ -8,4 +8,5 @@ public interface MatchActivityService {
     void createActivity(String matchId);
     List<MatchActivityDTO> getRecentActivities();
     void cleanupOldActivities();
+    long migrateOldActivitiesToTennis();
 }
