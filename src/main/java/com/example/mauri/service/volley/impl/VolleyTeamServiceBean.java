@@ -14,6 +14,9 @@ import com.example.mauri.repository.VolleyTeamRepository;
 import com.example.mauri.service.volley.VolleyTeamService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VolleyTeamServiceBean implements VolleyTeamService {
 
     private final VolleyTeamRepository volleyTeamRepository;
@@ -47,6 +51,10 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
 
     @Override
     public VolleyTeamResponseDTO getVolleyTeamById(String id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        log.info("{} viewed volleyball team detail", username);
         return volleyTeamMapper.mapToResponseDTO(volleyTeamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Volley team not found")));
     }
