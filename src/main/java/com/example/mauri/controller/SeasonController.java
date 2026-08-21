@@ -3,6 +3,7 @@ package com.example.mauri.controller;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
+import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.service.SeasonService;
@@ -41,6 +42,18 @@ public class SeasonController {
     @GetMapping("/current")
     public ResponseEntity<SeasonResponseDTO> getCurrentSeason() {
         SeasonResponseDTO current = seasonService.getCurrentSeason();
+        return ResponseEntity.ok(current);
+    }
+
+    @GetMapping("/current/exists")
+    public ResponseEntity<Boolean> isSeasonActive() {
+        boolean exists = seasonService.isSeasonActive();
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/current/short")
+    public ResponseEntity<SeasonShortDTO> getCurrentSeasonShort() {
+        SeasonShortDTO current = seasonService.getCurrentSeasonShort();
         return ResponseEntity.ok(current);
     }
 
