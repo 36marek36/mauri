@@ -7,6 +7,7 @@ import com.example.mauri.mapper.SeasonMapper;
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
+import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
@@ -94,6 +95,22 @@ public class SeasonServiceBean implements SeasonService {
         }
         Season saved = seasonRepository.save(existingSeason);
         return seasonMapper.mapSeasonToDTO(saved, false);
+    }
+
+    @Override
+    public boolean isSeasonActive() {
+        return seasonRepository.findByStatus(SeasonStatus.ACTIVE).isPresent();
+    }
+
+    @Override
+    public SeasonShortDTO getCurrentSeasonShort() {
+        return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
+                .map(season -> SeasonShortDTO.builder()
+                        .id(season.getId())
+                        .year(season.getYear())
+                        .status(season.getStatus())
+                        .build())
+                .orElse(null);
     }
 
     @Override
