@@ -17,6 +17,8 @@ import com.example.mauri.service.volley.VolleyMatchService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -90,7 +92,9 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
 
         VolleyMatch savedMatch = volleyMatchRepository.save(match);
         volleyMatchActivityService.createActivity(savedMatch.getId());
-        log.info("Volleyball match {} result added successfully", savedMatch.getId());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        log.info("Volleyball match {} result added successfully by {}", savedMatch.getId(), username);
 
         return savedMatch;
     }
@@ -111,7 +115,9 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
         match.setResult(null);
         match.setStatus(MatchStatus.CREATED);
         volleyMatchRepository.save(match);
-        log.info("Volleyball match {} result cancelled successfully", matchId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        log.info("Volleyball match {} result cancelled successfully by {}", matchId, username);
         matchActivityRepository.deleteByMatchId(matchId);
 
     }

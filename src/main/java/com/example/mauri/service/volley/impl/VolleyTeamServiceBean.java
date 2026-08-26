@@ -15,8 +15,6 @@ import com.example.mauri.service.volley.VolleyTeamService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,10 +49,6 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
 
     @Override
     public VolleyTeamResponseDTO getVolleyTeamById(String id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        log.info("{} viewed volleyball team detail", username);
         return volleyTeamMapper.mapToResponseDTO(volleyTeamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Volley team not found")));
     }
@@ -89,7 +83,7 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
         boolean isInVolleyMatch = volleyMatchRepository.existsByHomeTeamIdOrAwayTeamId(id, id);
 
         if (isInVolleyLeagues || isInVolleyMatch) {
-           deactivateTeam(id);
+            deactivateTeam(id);
             return "deactivated";
         } else {
             volleyTeamRepository.delete(volleyTeam);
@@ -108,6 +102,8 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
             throw new ResourceAlreadyExistsException("Player already exists in team");
         }
 
+        log.info("Player {} added to team {}", playerName.getPlayerName(), teamId);
+
         volleyTeamRepository.save(team);
     }
 
@@ -121,6 +117,8 @@ public class VolleyTeamServiceBean implements VolleyTeamService {
         if (!removed) {
             throw new ResourceNotFoundException("Player not found in team");
         }
+
+        log.info("Player {} removed from team {}", playerName.getPlayerName(), teamId);
 
         volleyTeamRepository.save(team);
     }

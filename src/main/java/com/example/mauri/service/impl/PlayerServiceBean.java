@@ -46,7 +46,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getAllPlayers() {
         List<Player> players = playerRepository.findAll();
         return players.stream()
-                .map(this::mapFullPlayer)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -55,7 +55,7 @@ public class PlayerServiceBean implements PlayerService {
         List<Player> players = playerRepository.findByActiveTrueAndSportsContainingOrderByLastNameAsc(Sport.TENNIS);
 
         return players.stream()
-                .map(this::mapFullPlayer) // každý Player sa zmení na PlayerResponseDTO
+                .map(playerMapper::mapToResponseDTO) // každý Player sa zmení na PlayerResponseDTO
                 .toList();                   // a všetky sa uložia do zoznamu
     }
 
@@ -63,7 +63,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getInactiveTennisPlayers() {
         List<Player> players = playerRepository.findByActiveFalseAndSportsContainingOrderByLastNameAsc(Sport.TENNIS);
         return players.stream()
-                .map(this::mapFullPlayer)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -71,7 +71,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getActiveVolleyballPlayers() {
         List<Player> players = playerRepository.findByActiveTrueAndSportsContainingOrderByLastNameAsc(Sport.VOLLEYBALL);
         return players.stream()
-                .map(this::mapFullPlayer)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -187,7 +187,7 @@ public class PlayerServiceBean implements PlayerService {
         List<Player> freePlayers = playerRepository.findActivePlayersWithoutActiveLeague();
 
         return freePlayers.stream()
-                .map(this::mapFullPlayer)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -195,7 +195,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getPlayersWithoutUser() {
         List<Player> players = playerRepository.findActivePlayersWithoutUser();
         return players.stream()
-                .map(this::mapFullPlayer)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
@@ -247,7 +247,7 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId) {
         List<Player> players = playerRepository.findPlayersNotInLeague(leagueId);
         return players.stream()
-                .map(this::mapFullPlayer)
+                .map(playerMapper::mapToResponseDTO)
                 .toList();
     }
 
