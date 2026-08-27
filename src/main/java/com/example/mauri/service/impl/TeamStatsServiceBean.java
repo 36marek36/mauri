@@ -5,7 +5,6 @@ import com.example.mauri.model.*;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
-import com.example.mauri.service.TeamService;
 import com.example.mauri.service.TeamStatsService;
 import com.example.mauri.util.ParticipantNameUtils;
 import lombok.RequiredArgsConstructor;
@@ -64,9 +63,18 @@ public class TeamStatsServiceBean implements TeamStatsService {
                     droppedIds.contains(team.getId()));
             statsList.add(stats);
         }
-
-        return sortLeagueTable(statsList, evaluatedMatches);
-    }
+            List<TeamStatsDTO> sorted = sortLeagueTable(statsList, evaluatedMatches);
+            // Rank iba pre aktívne tímy
+            int rank = 1;
+            for (TeamStatsDTO sortedTeam : sorted) {
+                if (!sortedTeam.isDroppedFromLeague()) {
+                    sortedTeam.setRank(rank++);
+                } else {
+                    sortedTeam.setRank(0);
+                }
+            }
+            return sorted;
+        }
 
     /**
      * =========================

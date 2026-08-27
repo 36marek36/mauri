@@ -12,9 +12,11 @@ import com.example.mauri.model.dto.create.CreatePlayerDTO;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
+import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.PlayerService;
+import com.example.mauri.service.PlayerStatsService;
 import com.example.mauri.service.TeamService;
 import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
@@ -40,6 +42,7 @@ public class PlayerServiceBean implements PlayerService {
     private final MatchRepository matchRepository;
     private final TeamService teamService;
     private final PlayerMapper playerMapper;
+    private final PlayerStatsService playerStatsService;
 
 
     @Override
@@ -275,7 +278,23 @@ public class PlayerServiceBean implements PlayerService {
                 .toList());
 
         dto.setLeagues(leagues.stream()
-                .map(league -> new LeagueShortDTO(league.getId(), league.getName(), league.getSeason().getYear(), league.getLeagueType(), league.getStatus()))
+                .map(league -> {
+
+                    PlayerStatsDTO playerStats = playerStatsService.getAllStatsForLeague(league.getId())
+                            .stream()
+                            .filter(stats -> stats.getPlayerId().equals(player.getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    return new LeagueShortDTO(
+                            league.getId(),
+                            league.getName(),
+                            league.getSeason().getYear(),
+                            league.getLeagueType(),
+                            league.getStatus(),
+                            playerStats != null ? playerStats.getRank() : null
+                    );
+                })
                 .toList());
 
         return dto;

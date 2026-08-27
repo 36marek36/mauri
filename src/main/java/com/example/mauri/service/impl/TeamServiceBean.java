@@ -2,14 +2,18 @@ package com.example.mauri.service.impl;
 
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.TeamMapper;
+import com.example.mauri.model.League;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
 import com.example.mauri.model.User;
+import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
+import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.model.dto.update.ChangeTeamDTO;
 import com.example.mauri.model.dto.update.UpdateTeamDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.TeamService;
+import com.example.mauri.service.TeamStatsService;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +36,7 @@ public class TeamServiceBean implements TeamService {
     private final LeagueRepository leagueRepository;
     private final MatchRepository matchRepository;
     private final TeamMapper teamMapper;
+    private final TeamStatsService teamStatsService;
 
 
     @Override
@@ -87,7 +92,7 @@ public class TeamServiceBean implements TeamService {
         }
 
         // 4. Vráť DTO
-        return teamMapper.mapToResponseDTO(team);
+        return mapFullTeam(team);
     }
 
     @Override
@@ -200,7 +205,7 @@ public class TeamServiceBean implements TeamService {
 
             if (updatedTeam.getActive()) {
                 existingTeam.setDeletedDate(null);
-            }else {
+            } else {
                 existingTeam.setDeletedDate(LocalDate.now());
             }
         }
@@ -211,5 +216,28 @@ public class TeamServiceBean implements TeamService {
     private Team getTeamOrThrow(String id) {
         return teamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + id));
+    }
+
+    private TeamResponseDTO mapFullTeam(Team team) {
+        List<League> leagues = leagueRepository.findLeaguesByTeamId(team.getId());
+        TeamResponseDTO teamResponseDTO = teamMapper.mapToResponseDTO(team);
+        teamResponseDTO.setLeagues(leagues.stream()
+                .map(league -> {
+                    TeamStatsDTO teamStats = teamStatsService.getAllStatsForLeague(league.getId())
+                            .stream()
+                            .filter(stats -> stats.getTeamId().equals(team.getId()))
+                            .findFirst()
+                            .orElse(null);
+                    return new LeagueShortDTO(
+                            league.getId(),
+                            league.getName(),
+                            league.getSeason().getYear(),
+                            league.getLeagueType(),
+                            league.getStatus(),
+                            teamStats != null ? teamStats.getRank() : null
+                    );
+                })
+                .toList());
+        return teamResponseDTO;
     }
 }
