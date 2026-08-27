@@ -86,7 +86,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
             if (!stats.isDroppedFromLeague()) {
                 stats.setRank(rank++);
             } else {
-                stats.setRank(null);
+                stats.setRank(0);
             }
         }
         return sorted;

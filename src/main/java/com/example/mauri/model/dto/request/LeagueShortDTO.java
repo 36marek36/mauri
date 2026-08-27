@@ -16,4 +16,5 @@ public class LeagueShortDTO {
     private Integer seasonYear;
     private MatchType leagueType;
     private LeagueStatus leagueStatus;
+    private Integer participantRank;
 }
