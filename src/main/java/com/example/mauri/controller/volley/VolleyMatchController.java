@@ -1,5 +1,6 @@
 package com.example.mauri.controller.volley;
 
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.model.VolleyMatch;
 import com.example.mauri.model.VolleyMatchResult;
 import com.example.mauri.model.dto.create.CreateVolleyMatchDTO;
@@ -32,6 +33,14 @@ public class VolleyMatchController {
     public ResponseEntity<Map<Integer, List<VolleyMatchResponseDTO>>> getMatchesGroupedByRound(@PathVariable String leagueId) {
         Map<Integer, List<VolleyMatchResponseDTO>> groupedMatches = volleyMatchService.getMatchesGroupedByRound(leagueId);
         return ResponseEntity.ok(groupedMatches);
+    }
+
+    @GetMapping("/team/{teamId}/status/{status}")
+    public ResponseEntity<List<VolleyMatchResponseDTO>> getVolleyTeamMatchesInActiveSeason(
+            @PathVariable String teamId,
+            @PathVariable MatchStatus status) {
+        List<VolleyMatchResponseDTO> matches = volleyMatchService.getMatchesForVolleyTeamInActiveSeason(teamId,status);
+        return ResponseEntity.ok(matches);
     }
 
     @PostMapping("/create")

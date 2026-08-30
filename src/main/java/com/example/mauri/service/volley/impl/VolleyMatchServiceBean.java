@@ -1,16 +1,16 @@
 package com.example.mauri.service.volley.impl;
 
 import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.VolleyMatchMapper;
+import com.example.mauri.model.Season;
+import com.example.mauri.model.VolleyLeague;
 import com.example.mauri.model.VolleyMatch;
 import com.example.mauri.model.VolleyMatchResult;
 import com.example.mauri.model.dto.create.CreateVolleyMatchDTO;
 import com.example.mauri.model.dto.response.VolleyMatchResponseDTO;
-import com.example.mauri.repository.MatchActivityRepository;
-import com.example.mauri.repository.VolleyLeagueRepository;
-import com.example.mauri.repository.VolleyMatchRepository;
-import com.example.mauri.repository.VolleyTeamRepository;
+import com.example.mauri.repository.*;
 import com.example.mauri.service.volley.VolleyMatchActivityService;
 import com.example.mauri.service.volley.VolleyMatchResultService;
 import com.example.mauri.service.volley.VolleyMatchService;
@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,6 +39,7 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
     private final VolleyLeagueRepository volleyLeagueRepository;
     private final VolleyMatchActivityService volleyMatchActivityService;
     private final MatchActivityRepository matchActivityRepository;
+    private final SeasonRepository seasonRepository;
 
     @Override
     public List<VolleyMatchResponseDTO> getMatches() {
@@ -120,5 +122,31 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
         log.info("Volleyball match {} result cancelled successfully by {}", matchId, username);
         matchActivityRepository.deleteByMatchId(matchId);
 
+    }
+
+    @Override
+    public List<VolleyMatchResponseDTO> getMatchesForVolleyTeamInActiveSeason(String teamId, MatchStatus status) {
+
+        List<String> leagueIds = getActiveSeasonVolleyLeagueIds();
+        if (leagueIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<VolleyMatch> matches = volleyMatchRepository.findByVolleyTeamStatusAndLeagueIds(teamId, status, leagueIds);
+        return matches.stream()
+                .map(volleyMatchMapper::toVolleyMatchResponse)
+                .toList();
+    }
+
+    private List<String> getActiveSeasonVolleyLeagueIds() {
+        Season activeSeason = seasonRepository.findByStatus(SeasonStatus.ACTIVE).orElse(null);
+
+        if (activeSeason == null) {
+            return new ArrayList<>();
+        }
+        List<String> leagueIds = new ArrayList<>();
+        for (VolleyLeague league : activeSeason.getVolleyLeagues()) {
+            leagueIds.add(league.getId());
+        }
+        return leagueIds;
     }
 }
