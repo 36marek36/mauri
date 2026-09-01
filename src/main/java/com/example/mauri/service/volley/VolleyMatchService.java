@@ -23,4 +23,5 @@ public interface VolleyMatchService {
     void cancelResult(String matchId);
 
     List<VolleyMatchResponseDTO> getMatchesForVolleyTeamInActiveSeason(String teamId, MatchStatus status);
+    void recalculateLeague(String leagueId);
 }
