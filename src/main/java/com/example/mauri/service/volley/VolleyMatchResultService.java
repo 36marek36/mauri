@@ -5,4 +5,5 @@ import com.example.mauri.model.VolleyMatchResult;
 
 public interface VolleyMatchResultService {
     VolleyMatchResult processResult(VolleyMatch volleyMatch, VolleyMatchResult result);
+    void recalculate(VolleyMatch match, VolleyMatchResult result);
 }

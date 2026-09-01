@@ -137,6 +137,24 @@ public class VolleyMatchServiceBean implements VolleyMatchService {
                 .toList();
     }
 
+    @Transactional
+    @Override
+    public void recalculateLeague(String leagueId) {
+        List<VolleyMatch> matches = volleyMatchRepository.findByVolleyLeagueId(leagueId);
+        for (VolleyMatch match : matches) {
+            if (match.getStatus() != MatchStatus.FINISHED
+                    && match.getStatus() != MatchStatus.SCRATCHED) {
+                continue;
+            }
+            VolleyMatchResult result = match.getResult();
+            if (result == null) {
+                continue;
+            }
+            volleyMatchResultService.recalculate(match, result);
+        }
+        volleyMatchRepository.saveAll(matches);
+    }
+
     private List<String> getActiveSeasonVolleyLeagueIds() {
         Season activeSeason = seasonRepository.findByStatus(SeasonStatus.ACTIVE).orElse(null);
 

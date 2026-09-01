@@ -32,6 +32,14 @@ public class VolleyMatchResultServiceBean implements VolleyMatchResultService {
         return result;
     }
 
+    @Override
+    public void recalculate(VolleyMatch match, VolleyMatchResult result) {
+        calculateScore(result);
+        calculatePoints(result);
+        validateMatch(result);
+        determineWinner(match, result);
+    }
+
     private List<SetScore> generateVolleyScratchResult(VolleyMatch match, String scratchedId) {
         // Overíme, či skrečoval domáci tím (porovnáme s volleyHomeTeam)
         boolean scratchedIsHome = scratchedId.equals(match.getHomeTeam().getId());
@@ -155,37 +163,60 @@ public class VolleyMatchResultServiceBean implements VolleyMatchResultService {
         matchResult.setWinnerId(winnerId);
     }
 
+//    private void calculatePoints(VolleyMatchResult matchResult) {
+//
+//        int setsWon1 = matchResult.getHomeTeamScore();
+//        int setsWon2 = matchResult.getAwayTeamScore();
+//
+//        int points1;
+//        int points2;
+//
+//        if (setsWon1 > setsWon2) {
+//
+//            if (setsWon2 <= 1) {
+//                points1 = 3;
+//                points2 = 0;
+//            } else {
+//                points1 = 2;
+//                points2 = 1;
+//            }
+//
+//        } else {
+//
+//            if (setsWon1 <= 1) {
+//                points2 = 3;
+//                points1 = 0;
+//            } else {
+//                points2 = 2;
+//                points1 = 1;
+//            }
+//        }
+//
+//        matchResult.setHomeTeamPoints(points1);
+//        matchResult.setAwayTeamPoints(points2);
+//
+//    }
+
     private void calculatePoints(VolleyMatchResult matchResult) {
-
-        int setsWon1 = matchResult.getHomeTeamScore();
-        int setsWon2 = matchResult.getAwayTeamScore();
-
-        int points1;
-        int points2;
-
-        if (setsWon1 > setsWon2) {
-
-            if (setsWon2 <= 1) {
-                points1 = 3;
-                points2 = 0;
+        if (matchResult.getScratchedId() != null) {
+            // Skreč - skrečujúci tím dostáva 0 bodov,
+            // súper dostáva 2 body
+            if (matchResult.getHomeTeamScore() > matchResult.getAwayTeamScore()) {
+                matchResult.setHomeTeamPoints(2);
+                matchResult.setAwayTeamPoints(0);
             } else {
-                points1 = 2;
-                points2 = 1;
+                matchResult.setHomeTeamPoints(0);
+                matchResult.setAwayTeamPoints(2);
             }
-
         } else {
-
-            if (setsWon1 <= 1) {
-                points2 = 3;
-                points1 = 0;
+            // Bežný zápas - víťaz 2 body, porazený 1 bod
+            if (matchResult.getHomeTeamScore() > matchResult.getAwayTeamScore()) {
+                matchResult.setHomeTeamPoints(2);
+                matchResult.setAwayTeamPoints(1);
             } else {
-                points2 = 2;
-                points1 = 1;
+                matchResult.setHomeTeamPoints(1);
+                matchResult.setAwayTeamPoints(2);
             }
         }
-
-        matchResult.setHomeTeamPoints(points1);
-        matchResult.setAwayTeamPoints(points2);
-
     }
 }

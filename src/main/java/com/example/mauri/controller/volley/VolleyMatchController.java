@@ -65,4 +65,10 @@ public class VolleyMatchController {
         volleyMatchService.cancelResult(matchId);
         return ResponseEntity.ok().body("Match cancelled");
     }
+
+    @PatchMapping("/{leagueId}/recalculate")
+    public ResponseEntity<?> recalculateLeague(@PathVariable String leagueId) {
+        volleyMatchService.recalculateLeague(leagueId);
+        return ResponseEntity.ok().body("League recalculated");
+    }
 }
