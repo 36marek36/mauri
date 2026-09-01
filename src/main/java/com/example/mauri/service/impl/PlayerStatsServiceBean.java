@@ -108,7 +108,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 String id = match.getHomePlayer().getId();
                 total.merge(id, 1, Integer::sum);
 
-                if (match.getStatus().isPlayed()) {
+                if (match.getStatus().isCompleted()) {
                     played.merge(id, 1, Integer::sum);
                 }
             }
@@ -117,7 +117,7 @@ public class PlayerStatsServiceBean implements PlayerStatsService {
                 String id = match.getAwayPlayer().getId();
                 total.merge(id, 1, Integer::sum);
 
-                if (match.getStatus().isPlayed()) {
+                if (match.getStatus().isCompleted()) {
                     played.merge(id, 1, Integer::sum);
                 }
             }

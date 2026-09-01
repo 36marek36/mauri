@@ -307,7 +307,7 @@ public class LeagueServiceBean implements LeagueService {
 
         // PLAYED matches
         List<Match> evaluatedMatches = allMatches.stream()
-                .filter(m -> m.getStatus().isPlayed())
+                .filter(m -> m.getStatus().isCompleted())
                 .toList();
 
         // Progress mapy
