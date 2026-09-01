@@ -7,4 +7,9 @@ public enum MatchStatus {
         return this == FINISHED
                 || this == SCRATCHED;
     }
+
+    public boolean isCompleted() {
+        return isPlayed()
+                || this == CANCELLED;
+    }
 }

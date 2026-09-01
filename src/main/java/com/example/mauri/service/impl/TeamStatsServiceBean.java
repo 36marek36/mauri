@@ -92,7 +92,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 String id = match.getHomeTeam().getId();
                 total.merge(id, 1, Integer::sum);
 
-                if (match.getStatus().isPlayed()) {
+                if (match.getStatus().isCompleted()) {
                     played.merge(id, 1, Integer::sum);
                 }
             }
@@ -101,7 +101,7 @@ public class TeamStatsServiceBean implements TeamStatsService {
                 String id = match.getAwayTeam().getId();
                 total.merge(id, 1, Integer::sum);
 
-                if (match.getStatus().isPlayed()) {
+                if (match.getStatus().isCompleted()) {
                     played.merge(id, 1, Integer::sum);
                 }
             }
