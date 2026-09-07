@@ -2,9 +2,7 @@ package com.example.mauri.mapper;
 
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
-import com.example.mauri.model.dto.response.LeagueResponseDTO;
-import com.example.mauri.model.dto.response.SeasonResponseDTO;
-import com.example.mauri.model.dto.response.VolleyLeagueResponseDTO;
+import com.example.mauri.model.dto.response.*;
 import com.example.mauri.service.LeagueService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -70,6 +68,62 @@ public class SeasonMapper {
                 .totalTeams(totalTeams)
                 .totalParticipants(participantIds.size())
                 .createdAt(season.getCreatedAt())
+                .startDate(season.getStartDate())
+                .endDate(season.getEndDate())
+                .build();
+    }
+
+    public TennisSeasonListResponseDTO mapToTennisSeasonListDTO(
+            Season season,
+            long totalLeagues,
+            long totalPlayers,
+            long totalTeams,
+            long totalParticipants,
+            long totalMatches,
+            long totalFinishedMatches,
+            long totalScratchedMatches,
+            long totalCancelledMatches,
+            long totalCompletedMatches
+    ) {
+        return TennisSeasonListResponseDTO.builder()
+                .id(season.getId())
+                .year(season.getYear())
+                .status(season.getStatus())
+                .totalLeagues(totalLeagues)
+                .totalPlayers(totalPlayers)
+                .totalTeams(totalTeams)
+                .totalParticipants(totalParticipants)
+                .totalMatches(totalMatches)
+                .totalFinishedMatches(totalFinishedMatches)
+                .totalScratchedMatches(totalScratchedMatches)
+                .totalCancelledMatches(totalCancelledMatches)
+                .totalCompletedMatches(totalCompletedMatches)
+                .startDate(season.getStartDate())
+                .endDate(season.getEndDate())
+                .build();
+    }
+
+    public VolleySeasonListResponseDTO mapToVolleySeasonListDTO(
+            Season season,
+            long totalLeagues,
+            long totalTeams,
+            long totalMatches,
+            long totalFinishedMatches,
+            long totalScratchedMatches,
+            long totalCancelledMatches,
+            long totalCompletedMatches
+    ) {
+        return VolleySeasonListResponseDTO.builder()
+                .id(season.getId())
+                .year(season.getYear())
+                .status(season.getStatus())
+                .totalLeagues(totalLeagues)
+                .totalTeams(totalTeams)
+                .totalMatches(totalMatches)
+                .totalFinishedMatches(totalFinishedMatches)
+                .totalScratchedMatches(totalScratchedMatches)
+                .totalCancelledMatches(totalCancelledMatches)
+                .totalCompletedMatches(totalCompletedMatches)
                 .startDate(season.getStartDate())
                 .endDate(season.getEndDate())
                 .build();

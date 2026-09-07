@@ -1,10 +1,13 @@
 package com.example.mauri.controller;
 
+import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
 import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
+import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
+import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
 import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.service.SeasonService;
 import jakarta.validation.Valid;
@@ -39,11 +42,22 @@ public class SeasonController {
         return ResponseEntity.ok(seasonStats);
     }
 
-    @GetMapping("/current")
-    public ResponseEntity<SeasonResponseDTO> getCurrentSeason() {
-        SeasonResponseDTO current = seasonService.getCurrentSeason();
-        return ResponseEntity.ok(current);
+    @GetMapping("/tennis")
+    public ResponseEntity<List<TennisSeasonListResponseDTO>> getTennisSeasons(@RequestParam(required = false) List<SeasonStatus> status) {
+        return ResponseEntity.ok(seasonService.getTennisSeasons(status));
     }
+
+    @GetMapping("/volley")
+    public ResponseEntity<List<VolleySeasonListResponseDTO>> getVolleySeasons(@RequestParam(required = false) List<SeasonStatus> status) {
+        return ResponseEntity.ok(seasonService.getVolleySeasons(status));
+    }
+
+
+//    @GetMapping("/current")
+//    public ResponseEntity<SeasonResponseDTO> getCurrentSeason() {
+//        SeasonResponseDTO current = seasonService.getCurrentSeason();
+//        return ResponseEntity.ok(current);
+//    }
 
     @GetMapping("/current/exists")
     public ResponseEntity<Boolean> isSeasonActive() {

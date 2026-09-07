@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface MatchRepository extends JpaRepository<Match, String> {
@@ -48,5 +49,7 @@ public interface MatchRepository extends JpaRepository<Match, String> {
     boolean existsByHomePlayerIdOrAwayPlayerId(String homePlayerId, String awayPlayerId);
 
     boolean existsByHomeTeamIdOrAwayTeamId(String homeTeamId, String awayTeamId);
+
+    List<Match> findByLeagueIdIn(Set<String> leagueIds);
 
 }
