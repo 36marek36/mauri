@@ -186,15 +186,6 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
-    public List<PlayerResponseDTO> getActivePlayersNotInAnyActiveLeague() {
-        List<Player> freePlayers = playerRepository.findActivePlayersWithoutActiveLeague();
-
-        return freePlayers.stream()
-                .map(playerMapper::mapToResponseDTO)
-                .toList();
-    }
-
-    @Override
     public List<PlayerResponseDTO> getPlayersWithoutUser() {
         List<Player> players = playerRepository.findActivePlayersWithoutUser();
         return players.stream()
@@ -248,7 +239,7 @@ public class PlayerServiceBean implements PlayerService {
 
     @Override
     public List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId) {
-        List<Player> players = playerRepository.findPlayersNotInLeague(leagueId);
+        List<Player> players = playerRepository.findPlayersNotInLeagueBySport(leagueId, Sport.TENNIS);
         return players.stream()
                 .map(playerMapper::mapToResponseDTO)
                 .toList();
