@@ -55,12 +55,6 @@ public class PlayerController {
         return ResponseEntity.ok(player);
     }
 
-    @GetMapping("/not-in-any-active-league")
-    public ResponseEntity<List<PlayerResponseDTO>> getFreePlayers() {
-        List<PlayerResponseDTO> freePlayersDTO = playerService.getActivePlayersNotInAnyActiveLeague();
-        return ResponseEntity.ok(freePlayersDTO);
-    }
-
     @GetMapping("/without-user")
     public ResponseEntity<List<PlayerResponseDTO>> getPlayersWithoutUser() {
         List<PlayerResponseDTO> players = playerService.getPlayersWithoutUser();

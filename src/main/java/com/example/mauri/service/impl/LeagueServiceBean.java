@@ -64,11 +64,6 @@ public class LeagueServiceBean implements LeagueService {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new ResourceNotFoundException("League not found with id: " + leagueId));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-
-        log.info("{} viewed league details: {} in season {}", username, league.getName(), league.getSeason().getYear());
-
         return getFullLeagueDTO(league);
     }
 

@@ -12,9 +12,6 @@ import java.util.List;
 @Repository
 public interface PlayerRepository extends JpaRepository<Player, String> {
 
-    @Query("SELECT p FROM players p WHERE p.active = true AND p.id NOT IN (SELECT pl.id FROM leagues l JOIN l.players pl WHERE l.status = 'CREATED' or l.status = 'ACTIVE')")
-    List<Player> findActivePlayersWithoutActiveLeague();
-
     @Query("SELECT p FROM players p WHERE p.active = true AND p.id NOT IN (SELECT u.player.id FROM users u WHERE u.player IS NOT NULL)")
     List<Player> findActivePlayersWithoutUser();
 
@@ -24,7 +21,13 @@ public interface PlayerRepository extends JpaRepository<Player, String> {
 
     boolean existsByFirstNameAndLastName(String firstName, String lastName);
 
-    @Query("SELECT p FROM players p WHERE p.active = true and p.id NOT IN (SELECT pl.id FROM leagues l join l.players pl WHERE l.id = :leagueId) order by p.lastName ASC ")
-    List<Player> findPlayersNotInLeague(@Param("leagueId") String leagueId);
+    @Query("SELECT p FROM players p WHERE p.active = true " +
+            "AND :sport MEMBER OF p.sports " +
+            "AND p.id NOT IN (SELECT pl.id FROM leagues l JOIN l.players pl WHERE l.id = :leagueId) " +
+            "ORDER BY p.lastName ASC")
+    List<Player> findPlayersNotInLeagueBySport(
+            @Param("leagueId") String leagueId,
+            @Param("sport") Sport sport
+    );
 
 }

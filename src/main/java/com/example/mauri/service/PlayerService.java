@@ -30,8 +30,6 @@ public interface PlayerService {
 
     String deletePlayer(@NonNull String id);
 
-    List<PlayerResponseDTO> getActivePlayersNotInAnyActiveLeague();
-
     List<PlayerResponseDTO> getPlayersWithoutUser();
 
     void deactivatePlayer(String playerId);
