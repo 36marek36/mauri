@@ -1,17 +1,24 @@
 package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.LeagueStatus;
+import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.SeasonMapper;
 import com.example.mauri.model.League;
+import com.example.mauri.model.Match;
 import com.example.mauri.model.Season;
+import com.example.mauri.model.VolleyLeague;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
 import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
+import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
+import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
 import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
+import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.SeasonRepository;
+import com.example.mauri.repository.VolleyLeagueRepository;
 import com.example.mauri.service.LeagueService;
 import com.example.mauri.service.MatchService;
 import com.example.mauri.service.SeasonService;
@@ -24,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +43,8 @@ public class SeasonServiceBean implements SeasonService {
     private final LeagueService leagueService;
     private final MatchService matchService;
     private final SeasonMapper seasonMapper;
+    private final MatchRepository matchRepository;
+    private final VolleyLeagueRepository volleyLeagueRepository;
 
 
     @Override
@@ -60,12 +70,12 @@ public class SeasonServiceBean implements SeasonService {
         return seasonMapper.mapSeasonToDTO(season, true);
     }
 
-    @Override
-    public SeasonResponseDTO getCurrentSeason() {
-        return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
-                .map(season -> seasonMapper.mapSeasonToDTO(season, true))
-                .orElseThrow(() -> new ResourceNotFoundException("Žiadna aktuálna sezóna nie je dostupná."));
-    }
+//    @Override
+//    public SeasonResponseDTO getCurrentSeason() {
+//        return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
+//                .map(season -> seasonMapper.mapSeasonToDTO(season, true))
+//                .orElseThrow(() -> new ResourceNotFoundException("Žiadna aktuálna sezóna nie je dostupná."));
+//    }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -112,6 +122,255 @@ public class SeasonServiceBean implements SeasonService {
                         .build())
                 .orElse(null);
     }
+
+    @Override
+    @Transactional
+    public List<TennisSeasonListResponseDTO> getTennisSeasons(List<SeasonStatus> statuses) {
+
+        List<Season> seasons;
+
+        if (statuses == null || statuses.isEmpty()) {
+            seasons = seasonRepository.findAllByOrderByYearDesc();
+        } else {
+            seasons = seasonRepository.findByStatusInOrderByYearDesc(statuses);
+        }
+
+        if (seasons.isEmpty()) {
+            return List.of();
+        }
+
+        Set<String> seasonIds = seasons.stream()
+                .map(Season::getId)
+                .collect(Collectors.toSet());
+
+        List<League> leagues =
+                leagueRepository.findBySeasonIdIn(seasonIds);
+
+        Set<String> leagueIds = leagues.stream()
+                .map(League::getId)
+                .collect(Collectors.toSet());
+
+        List<Match> matches =
+                leagueIds.isEmpty()
+                        ? List.of()
+                        : matchRepository.findByLeagueIdIn(leagueIds);
+
+        Map<String, List<League>> leaguesBySeason =
+                leagues.stream()
+                        .collect(Collectors.groupingBy(
+                                league -> league.getSeason().getId()
+                        ));
+
+        Map<String, List<Match>> matchesByLeague =
+                matches.stream()
+                        .collect(Collectors.groupingBy(
+                                Match::getLeagueId
+                        ));
+
+        return seasons.stream()
+                .map(season -> {
+
+                    List<League> seasonLeagues =
+                            leaguesBySeason.getOrDefault(
+                                    season.getId(),
+                                    List.of()
+                            );
+
+                    Set<String> participantIds = new HashSet<>();
+
+                    long totalPlayers = 0;
+                    long totalTeams = 0;
+                    long totalMatches = 0;
+                    long totalFinishedMatches = 0;
+                    long totalScratchedMatches = 0;
+                    long totalCancelledMatches = 0;
+                    long totalCompletedMatches = 0;
+
+                    for (League league : seasonLeagues) {
+
+                        // Singles
+                        if (league.getPlayers() != null) {
+                            totalPlayers += league.getPlayers().size();
+
+                            league.getPlayers().forEach(player ->
+                                    participantIds.add(player.getId())
+                            );
+                        }
+
+                        // Doubles
+                        if (league.getTeams() != null) {
+                            totalTeams += league.getTeams().size();
+
+                            league.getTeams().forEach(team -> {
+
+                                if (team.getPlayer1() != null) {
+                                    participantIds.add(
+                                            team.getPlayer1().getId()
+                                    );
+                                }
+
+                                if (team.getPlayer2() != null) {
+                                    participantIds.add(
+                                            team.getPlayer2().getId()
+                                    );
+                                }
+                            });
+                        }
+
+                        // Matches
+                        List<Match> leagueMatches =
+                                matchesByLeague.getOrDefault(
+                                        league.getId(),
+                                        List.of()
+                                );
+
+                        totalMatches += leagueMatches.size();
+
+                        totalFinishedMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus() == MatchStatus.FINISHED)
+                                .count();
+
+                        totalScratchedMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus() == MatchStatus.SCRATCHED)
+                                .count();
+
+                        totalCancelledMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus() == MatchStatus.CANCELLED)
+                                .count();
+
+                        totalCompletedMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus().isCompleted())
+                                .count();
+                    }
+
+                    return seasonMapper.mapToTennisSeasonListDTO(
+                            season,
+                            seasonLeagues.size(),
+                            totalPlayers,
+                            totalTeams,
+                            participantIds.size(),
+                            totalMatches,
+                            totalFinishedMatches,
+                            totalScratchedMatches,
+                            totalCancelledMatches,
+                            totalCompletedMatches
+                    );
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public List<VolleySeasonListResponseDTO> getVolleySeasons(
+            List<SeasonStatus> statuses) {
+
+        List<Season> seasons;
+
+        if (statuses == null || statuses.isEmpty()) {
+            seasons = seasonRepository.findAllByOrderByYearDesc();
+        } else {
+            seasons = seasonRepository.findByStatusInOrderByYearDesc(statuses);
+        }
+
+        if (seasons.isEmpty()) {
+            return List.of();
+        }
+
+        Set<String> seasonIds = seasons.stream()
+                .map(Season::getId)
+                .collect(Collectors.toSet());
+
+        List<VolleyLeague> volleyLeagues =
+                volleyLeagueRepository.findBySeasonIdInWithTeams(seasonIds);
+
+        Map<String, List<VolleyLeague>> leaguesBySeason =
+                volleyLeagues.stream()
+                        .collect(Collectors.groupingBy(
+                                league -> league.getSeason().getId()
+                        ));
+
+        // Nechceme sezóny bez volleyball ligy
+        seasons = seasons.stream()
+                .filter(season -> leaguesBySeason.containsKey(season.getId()))
+                .toList();
+
+        if (seasons.isEmpty()) {
+            return List.of();
+        }
+
+        Set<String> leagueIds = volleyLeagues.stream()
+                .map(VolleyLeague::getId)
+                .collect(Collectors.toSet());
+
+        List<Match> matches =
+                leagueIds.isEmpty()
+                        ? List.of()
+                        : matchRepository.findByLeagueIdIn(leagueIds);
+
+        Map<String, List<Match>> matchesByLeague =
+                matches.stream()
+                        .collect(Collectors.groupingBy(
+                                Match::getLeagueId
+                        ));
+
+        return seasons.stream()
+                .map(season -> {
+
+                    List<VolleyLeague> seasonLeagues =
+                            leaguesBySeason.get(season.getId());
+
+                    long totalTeams = 0;
+                    long totalMatches = 0;
+                    long totalFinishedMatches = 0;
+                    long totalScratchedMatches = 0;
+                    long totalCancelledMatches = 0;
+                    long totalCompletedMatches = 0;
+
+                    for (VolleyLeague league : seasonLeagues) {
+
+                        if (league.getTeams() != null) {
+                            totalTeams += league.getTeams().size();
+                        }
+
+                        List<Match> leagueMatches =
+                                matchesByLeague.getOrDefault(
+                                        league.getId(),
+                                        List.of()
+                                );
+
+                        totalMatches += leagueMatches.size();
+
+                        totalFinishedMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus() == MatchStatus.FINISHED)
+                                .count();
+
+                        totalScratchedMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus() == MatchStatus.SCRATCHED)
+                                .count();
+
+                        totalCancelledMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus() == MatchStatus.CANCELLED)
+                                .count();
+
+                        totalCompletedMatches += leagueMatches.stream()
+                                .filter(match -> match.getStatus().isCompleted())
+                                .count();
+                    }
+
+                    return seasonMapper.mapToVolleySeasonListDTO(
+                            season,
+                            seasonLeagues.size(),
+                            totalTeams,
+                            totalMatches,
+                            totalFinishedMatches,
+                            totalScratchedMatches,
+                            totalCancelledMatches,
+                            totalCompletedMatches
+                    );
+                })
+                .toList();
+    }
+
 
     @Override
     public SeasonResponseDTO createSeason(CreateSeasonDTO createSeasonDTO) {

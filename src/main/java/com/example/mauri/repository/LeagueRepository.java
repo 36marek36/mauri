@@ -8,6 +8,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface LeagueRepository extends JpaRepository<League, String> {
@@ -19,5 +20,7 @@ public interface LeagueRepository extends JpaRepository<League, String> {
     List<League> findLeaguesByTeamId(@Param("teamId") @NonNull String teamId);
 
     List<League> findAllBySeasonId(String seasonId);
+
+    List<League> findBySeasonIdIn(Set<String> seasonIds);
 
 }
