@@ -10,7 +10,6 @@ import com.example.mauri.model.Match;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.VolleyLeague;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
 import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
@@ -70,13 +69,6 @@ public class SeasonServiceBean implements SeasonService {
         return seasonMapper.mapSeasonToDTO(season, true);
     }
 
-//    @Override
-//    public SeasonResponseDTO getCurrentSeason() {
-//        return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
-//                .map(season -> seasonMapper.mapSeasonToDTO(season, true))
-//                .orElseThrow(() -> new ResourceNotFoundException("Žiadna aktuálna sezóna nie je dostupná."));
-//    }
-
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public SeasonResponseDTO updateSeason(String seasonId, UpdateSeasonDTO updateSeasonDTO) {
@@ -110,17 +102,6 @@ public class SeasonServiceBean implements SeasonService {
     @Override
     public boolean isSeasonActive() {
         return seasonRepository.findByStatus(SeasonStatus.ACTIVE).isPresent();
-    }
-
-    @Override
-    public SeasonShortDTO getCurrentSeasonShort() {
-        return seasonRepository.findByStatus(SeasonStatus.ACTIVE)
-                .map(season -> SeasonShortDTO.builder()
-                        .id(season.getId())
-                        .year(season.getYear())
-                        .status(season.getStatus())
-                        .build())
-                .orElse(null);
     }
 
     @Override
