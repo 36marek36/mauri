@@ -2,7 +2,6 @@ package com.example.mauri.service;
 
 import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
 import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
@@ -26,12 +25,9 @@ public interface SeasonService {
 
     SeasonResponseDTO getSeasonStats(String seasonId);
 
-    //    SeasonResponseDTO getCurrentSeason();
     SeasonResponseDTO updateSeason(String seasonId, UpdateSeasonDTO updateSeasonDTO);
 
     boolean isSeasonActive();
-
-    SeasonShortDTO getCurrentSeasonShort();
 
     List<TennisSeasonListResponseDTO> getTennisSeasons(List<SeasonStatus> statuses);
     List<VolleySeasonListResponseDTO> getVolleySeasons(List<SeasonStatus> statuses);

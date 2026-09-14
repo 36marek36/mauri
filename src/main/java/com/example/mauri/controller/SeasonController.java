@@ -4,7 +4,6 @@ import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.request.SeasonShortDTO;
 import com.example.mauri.model.dto.response.SeasonResponseDTO;
 import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
 import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
@@ -52,23 +51,10 @@ public class SeasonController {
         return ResponseEntity.ok(seasonService.getVolleySeasons(status));
     }
 
-
-//    @GetMapping("/current")
-//    public ResponseEntity<SeasonResponseDTO> getCurrentSeason() {
-//        SeasonResponseDTO current = seasonService.getCurrentSeason();
-//        return ResponseEntity.ok(current);
-//    }
-
     @GetMapping("/current/exists")
     public ResponseEntity<Boolean> isSeasonActive() {
         boolean exists = seasonService.isSeasonActive();
         return ResponseEntity.ok(exists);
-    }
-
-    @GetMapping("/current/short")
-    public ResponseEntity<SeasonShortDTO> getCurrentSeasonShort() {
-        SeasonShortDTO current = seasonService.getCurrentSeasonShort();
-        return ResponseEntity.ok(current);
     }
 
     @PostMapping("/create")
