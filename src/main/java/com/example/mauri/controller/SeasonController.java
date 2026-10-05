@@ -4,9 +4,7 @@ import com.example.mauri.enums.SeasonStatus;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.dto.request.AddLeagueToSeasonDTO;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.response.SeasonResponseDTO;
-import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
-import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
+import com.example.mauri.model.dto.response.*;
 import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.service.SeasonService;
 import jakarta.validation.Valid;
@@ -43,7 +41,19 @@ public class SeasonController {
 
     @GetMapping("/tennis")
     public ResponseEntity<List<TennisSeasonListResponseDTO>> getTennisSeasons(@RequestParam(required = false) List<SeasonStatus> status) {
-        return ResponseEntity.ok(seasonService.getTennisSeasons(status));
+        return ResponseEntity.ok(seasonService.getTennisSeasonsList(status));
+    }
+
+    @GetMapping("/tennis/{seasonId}")
+    public ResponseEntity<TennisSeasonDetailResponseDTO> getTennisSeasonDetail(@PathVariable String seasonId) {
+        return ResponseEntity.ok(seasonService.getTennisSeasonDetail(seasonId));
+    }
+
+    @GetMapping("/admin/current")
+    public ResponseEntity<SeasonManagementResponseDTO> getCurrentManagedSeason() {
+        return ResponseEntity.ok(
+                seasonService.getCurrentManagedSeason()
+        );
     }
 
     @GetMapping("/volley")
