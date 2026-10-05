@@ -2,6 +2,7 @@ package com.example.mauri.controller;
 
 import com.example.mauri.model.dto.request.AssignPlayerDTO;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.request.PlayerShortDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.UserResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
@@ -62,8 +63,8 @@ public class PlayerController {
     }
 
     @GetMapping("/not-in-league/{leagueId}")
-    public ResponseEntity<List<PlayerResponseDTO>> getPlayersNotInLeague(@PathVariable String leagueId) {
-        List<PlayerResponseDTO> players = playerService.getPlayersNotInLeague(leagueId);
+    public ResponseEntity<List<PlayerShortDTO>> getPlayersNotInLeague(@PathVariable String leagueId) {
+        List<PlayerShortDTO> players = playerService.getPlayersNotInLeague(leagueId);
         return ResponseEntity.ok(players);
     }
 

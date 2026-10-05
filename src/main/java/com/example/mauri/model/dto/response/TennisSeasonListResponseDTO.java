@@ -18,16 +18,11 @@ public class TennisSeasonListResponseDTO {
     private int year;
     private SeasonStatus status;
 
+    private long totalParticipants;
     private long totalLeagues;
     private long totalPlayers;
     private long totalTeams;
-    private long totalParticipants;
-
     private long totalMatches;
-    private long totalFinishedMatches;
-    private long totalScratchedMatches;
-    private long totalCancelledMatches;
-    private long totalCompletedMatches;
 
     @JsonFormat(pattern = "dd.MM.yyyy")
     private LocalDate startDate;

@@ -7,6 +7,7 @@ import com.example.mauri.model.Player;
 import com.example.mauri.model.Team;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
+import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.model.dto.update.ChangeTeamDTO;
@@ -168,10 +169,10 @@ public class TeamServiceBean implements TeamService {
     }
 
     @Override
-    public List<TeamResponseDTO> getTeamsNotInLeague(String leagueId) {
+    public List<TeamShortDTO> getTeamsNotInLeague(String leagueId) {
         List<Team> teams = teamRepository.findTeamsNotInLeague(leagueId);
         return teams.stream()
-                .map(teamMapper::mapToResponseDTO)
+                .map(teamMapper::mapToTeamShortDTO)
                 .toList();
     }
 

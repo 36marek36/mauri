@@ -417,7 +417,8 @@ public class LeagueServiceBean implements LeagueService {
         }
     }
 
-    private String determineWinnerName(League league) {
+    @Override
+    public String determineWinnerName(League league) {
         if (league.getLeagueType() == MatchType.SINGLES) {
             List<PlayerStatsDTO> stats = playerStatsService.getAllStatsForLeague(league.getId());
             if (stats.isEmpty() || stats.stream().allMatch(s -> s.getMatches() == 0)) {
@@ -433,7 +434,8 @@ public class LeagueServiceBean implements LeagueService {
         }
     }
 
-    private int calculateProgress(
+    @Override
+    public int calculateProgress(
             List<Match> evaluatedMatches,
             List<Match> allMatches) {
 

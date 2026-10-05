@@ -10,9 +10,8 @@ import com.example.mauri.model.Match;
 import com.example.mauri.model.Season;
 import com.example.mauri.model.VolleyLeague;
 import com.example.mauri.model.dto.create.CreateSeasonDTO;
-import com.example.mauri.model.dto.response.SeasonResponseDTO;
-import com.example.mauri.model.dto.response.TennisSeasonListResponseDTO;
-import com.example.mauri.model.dto.response.VolleySeasonListResponseDTO;
+import com.example.mauri.model.dto.request.SeasonTennisLeagueSummaryDTO;
+import com.example.mauri.model.dto.response.*;
 import com.example.mauri.model.dto.update.UpdateSeasonDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
@@ -105,9 +104,7 @@ public class SeasonServiceBean implements SeasonService {
     }
 
     @Override
-    @Transactional
-    public List<TennisSeasonListResponseDTO> getTennisSeasons(List<SeasonStatus> statuses) {
-
+    public List<TennisSeasonListResponseDTO> getTennisSeasonsList(List<SeasonStatus> statuses) {
         List<Season> seasons;
 
         if (statuses == null || statuses.isEmpty()) {
@@ -150,22 +147,13 @@ public class SeasonServiceBean implements SeasonService {
 
         return seasons.stream()
                 .map(season -> {
-
-                    List<League> seasonLeagues =
-                            leaguesBySeason.getOrDefault(
-                                    season.getId(),
-                                    List.of()
-                            );
+                    List<League> seasonLeagues = leaguesBySeason.getOrDefault(season.getId(), List.of());
 
                     Set<String> participantIds = new HashSet<>();
 
                     long totalPlayers = 0;
                     long totalTeams = 0;
                     long totalMatches = 0;
-                    long totalFinishedMatches = 0;
-                    long totalScratchedMatches = 0;
-                    long totalCancelledMatches = 0;
-                    long totalCompletedMatches = 0;
 
                     for (League league : seasonLeagues) {
 
@@ -173,71 +161,172 @@ public class SeasonServiceBean implements SeasonService {
                         if (league.getPlayers() != null) {
                             totalPlayers += league.getPlayers().size();
 
-                            league.getPlayers().forEach(player ->
-                                    participantIds.add(player.getId())
-                            );
+                            league.getPlayers().forEach(player -> participantIds.add(player.getId()));
                         }
 
                         // Doubles
                         if (league.getTeams() != null) {
                             totalTeams += league.getTeams().size();
-
                             league.getTeams().forEach(team -> {
-
                                 if (team.getPlayer1() != null) {
-                                    participantIds.add(
-                                            team.getPlayer1().getId()
-                                    );
+                                    participantIds.add(team.getPlayer1().getId());
                                 }
 
                                 if (team.getPlayer2() != null) {
-                                    participantIds.add(
-                                            team.getPlayer2().getId()
-                                    );
+                                    participantIds.add(team.getPlayer2().getId());
                                 }
                             });
                         }
 
                         // Matches
-                        List<Match> leagueMatches =
-                                matchesByLeague.getOrDefault(
-                                        league.getId(),
-                                        List.of()
-                                );
-
+                        List<Match> leagueMatches = matchesByLeague.getOrDefault(league.getId(), List.of());
                         totalMatches += leagueMatches.size();
-
-                        totalFinishedMatches += leagueMatches.stream()
-                                .filter(match -> match.getStatus() == MatchStatus.FINISHED)
-                                .count();
-
-                        totalScratchedMatches += leagueMatches.stream()
-                                .filter(match -> match.getStatus() == MatchStatus.SCRATCHED)
-                                .count();
-
-                        totalCancelledMatches += leagueMatches.stream()
-                                .filter(match -> match.getStatus() == MatchStatus.CANCELLED)
-                                .count();
-
-                        totalCompletedMatches += leagueMatches.stream()
-                                .filter(match -> match.getStatus().isCompleted())
-                                .count();
                     }
 
-                    return seasonMapper.mapToTennisSeasonListDTO(
+                    return seasonMapper.mapToSeasonTennisLeaguesDTO(
                             season,
                             seasonLeagues.size(),
                             totalPlayers,
                             totalTeams,
                             participantIds.size(),
-                            totalMatches,
-                            totalFinishedMatches,
-                            totalScratchedMatches,
-                            totalCancelledMatches,
-                            totalCompletedMatches
+                            totalMatches
                     );
                 })
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public TennisSeasonDetailResponseDTO getTennisSeasonDetail(String seasonId) {
+
+        Season season = getSeasonOrThrow(seasonId);
+
+        List<League> leagues = leagueRepository.findAllBySeasonId(seasonId);
+
+        if (leagues.isEmpty()) {
+            return seasonMapper.mapToTennisSeasonDetailDTO(
+                    season,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    Collections.emptyList()
+            );
+        }
+
+        Set<String> leagueIds = leagues.stream()
+                .map(League::getId)
+                .collect(Collectors.toSet());
+
+        List<Match> matches = matchRepository.findByLeagueIdIn(leagueIds);
+
+        Map<String, List<Match>> matchesByLeague = matches.stream()
+                .collect(Collectors.groupingBy(Match::getLeagueId));
+
+        Set<String> participantIds = new HashSet<>();
+
+        long totalPlayers = 0;
+        long totalTeams = 0;
+
+        for (League league : leagues) {
+
+            if (league.getPlayers() != null) {
+
+                totalPlayers += league.getPlayers().size();
+
+                league.getPlayers().forEach(player ->
+                        participantIds.add(player.getId())
+                );
+            }
+
+            if (league.getTeams() != null) {
+
+                totalTeams += league.getTeams().size();
+
+                league.getTeams().forEach(team -> {
+
+                    if (team.getPlayer1() != null) {
+                        participantIds.add(team.getPlayer1().getId());
+                    }
+
+                    if (team.getPlayer2() != null) {
+                        participantIds.add(team.getPlayer2().getId());
+                    }
+                });
+            }
+        }
+
+        long totalMatches = matches.size();
+
+        long totalFinishedMatches = 0;
+        long totalScratchedMatches = 0;
+        long totalCancelledMatches = 0;
+        long totalCompletedMatches = 0;
+
+        for (Match match : matches) {
+
+            MatchStatus status = match.getStatus();
+
+            switch (status) {
+                case FINISHED -> totalFinishedMatches++;
+                case SCRATCHED -> totalScratchedMatches++;
+                case CANCELLED -> totalCancelledMatches++;
+                default -> {
+                }
+            }
+
+            if (status.isCompleted()) {
+                totalCompletedMatches++;
+            }
+        }
+
+        List<SeasonTennisLeagueSummaryDTO> leagueSummaries = leagues.stream()
+                .sorted(Comparator.comparingInt(this::priority))
+                .map(league -> {
+
+                    List<Match> leagueMatches = matchesByLeague.getOrDefault(league.getId(), Collections.emptyList());
+
+                    List<Match> completedMatches = leagueMatches.stream()
+                            .filter(match -> match.getStatus().isCompleted())
+                            .toList();
+
+                    SeasonTennisLeagueSummaryDTO dto = new SeasonTennisLeagueSummaryDTO();
+
+                    dto.setId(league.getId());
+                    dto.setName(league.getName());
+
+                    dto.setParticipants((league.getPlayers() != null ? league.getPlayers().size() : 0) + (league.getTeams() != null ? league.getTeams().size() : 0));
+
+                    dto.setLeagueType(league.getLeagueType());
+
+                    if (league.getStatus() == LeagueStatus.FINISHED) {
+                        dto.setWinnerName(leagueService.determineWinnerName(league));
+                    }
+
+                    dto.setLeagueProgress(leagueService.calculateProgress(completedMatches, leagueMatches));
+
+                    return dto;
+                })
+                .toList();
+
+        return seasonMapper.mapToTennisSeasonDetailDTO(
+                season,
+                leagues.size(),
+                totalPlayers,
+                totalTeams,
+                participantIds.size(),
+                totalMatches,
+                totalFinishedMatches,
+                totalScratchedMatches,
+                totalCancelledMatches,
+                totalCompletedMatches,
+                leagueSummaries
+        );
     }
 
     @Override
@@ -352,6 +441,18 @@ public class SeasonServiceBean implements SeasonService {
                 .toList();
     }
 
+    @Override
+    public SeasonManagementResponseDTO getCurrentManagedSeason() {
+
+        Season season = seasonRepository
+                .findByStatus(SeasonStatus.ACTIVE)
+                .or(() -> seasonRepository.findByStatus(SeasonStatus.CREATED))
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("No active or created season found")
+                );
+
+        return seasonMapper.mapSeasonToManagementDTO(season);
+    }
 
     @Override
     public SeasonResponseDTO createSeason(CreateSeasonDTO createSeasonDTO) {
@@ -482,5 +583,15 @@ public class SeasonServiceBean implements SeasonService {
     private Season getSeasonOrThrow(String id) {
         return seasonRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No season found with id: " + id));
+    }
+
+    private int priority(League league) {
+        String name = league.getName().toLowerCase();
+
+        if (name.contains("ženy")) return 0;
+        if (name.contains("extraliga")) return 1;
+        if (name.matches(".*mu([žz])i.*[1-3].*")) return 2;
+
+        return 3;
     }
 }

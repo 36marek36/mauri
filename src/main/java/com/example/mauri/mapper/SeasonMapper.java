@@ -2,8 +2,14 @@ package com.example.mauri.mapper;
 
 import com.example.mauri.model.League;
 import com.example.mauri.model.Season;
+import com.example.mauri.model.VolleyLeague;
+import com.example.mauri.model.dto.request.PlayerShortDTO;
+import com.example.mauri.model.dto.request.SeasonTennisLeagueSummaryDTO;
+import com.example.mauri.model.dto.request.TeamShortDTO;
+import com.example.mauri.model.dto.request.VolleyTeamShortDTO;
 import com.example.mauri.model.dto.response.*;
 import com.example.mauri.service.LeagueService;
+import com.example.mauri.util.ParticipantNameUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -73,7 +79,28 @@ public class SeasonMapper {
                 .build();
     }
 
-    public TennisSeasonListResponseDTO mapToTennisSeasonListDTO(
+    public SeasonManagementResponseDTO mapSeasonToManagementDTO(Season season) {
+
+        List<LeagueManagementResponseDTO> leagues = season.getLeagues() == null ? List.of() : season.getLeagues()
+                .stream()
+                .map(this::mapLeagueToManagementDTO)
+                .toList();
+
+        List<VolleyLeagueManagementResponseDTO> volleyLeagues = season.getVolleyLeagues() == null ? List.of() : season.getVolleyLeagues()
+                .stream()
+                .map(this::mapVolleyLeagueToManagementDTO)
+                .toList();
+
+        return SeasonManagementResponseDTO.builder()
+                .id(season.getId())
+                .year(season.getYear())
+                .status(season.getStatus())
+                .leagues(leagues)
+                .volleyLeagues(volleyLeagues)
+                .build();
+    }
+
+    public TennisSeasonDetailResponseDTO mapToTennisSeasonDetailDTO(
             Season season,
             long totalLeagues,
             long totalPlayers,
@@ -83,9 +110,10 @@ public class SeasonMapper {
             long totalFinishedMatches,
             long totalScratchedMatches,
             long totalCancelledMatches,
-            long totalCompletedMatches
+            long totalCompletedMatches,
+            List<SeasonTennisLeagueSummaryDTO> leagueSummaries
     ) {
-        return TennisSeasonListResponseDTO.builder()
+        return TennisSeasonDetailResponseDTO.builder()
                 .id(season.getId())
                 .year(season.getYear())
                 .status(season.getStatus())
@@ -98,6 +126,29 @@ public class SeasonMapper {
                 .totalScratchedMatches(totalScratchedMatches)
                 .totalCancelledMatches(totalCancelledMatches)
                 .totalCompletedMatches(totalCompletedMatches)
+                .startDate(season.getStartDate())
+                .endDate(season.getEndDate())
+                .leagues(leagueSummaries)
+                .build();
+    }
+
+    public TennisSeasonListResponseDTO mapToSeasonTennisLeaguesDTO(
+            Season season,
+            long totalLeagues,
+            long totalPlayers,
+            long totalTeams,
+            long totalParticipants,
+            long totalMatches
+    ) {
+        return TennisSeasonListResponseDTO.builder()
+                .id(season.getId())
+                .year(season.getYear())
+                .status(season.getStatus())
+                .totalLeagues(totalLeagues)
+                .totalPlayers(totalPlayers)
+                .totalTeams(totalTeams)
+                .totalParticipants(totalParticipants)
+                .totalMatches(totalMatches)
                 .startDate(season.getStartDate())
                 .endDate(season.getEndDate())
                 .build();
@@ -126,6 +177,49 @@ public class SeasonMapper {
                 .totalCompletedMatches(totalCompletedMatches)
                 .startDate(season.getStartDate())
                 .endDate(season.getEndDate())
+                .build();
+    }
+
+    private LeagueManagementResponseDTO mapLeagueToManagementDTO(League league) {
+
+        List<PlayerShortDTO> players = league.getPlayers() == null ? List.of() : league.getPlayers()
+                .stream()
+                .map(player -> new PlayerShortDTO(
+                        player.getId(),
+                        ParticipantNameUtils.buildPlayerName(player)
+                ))
+                .toList();
+
+        List<TeamShortDTO> teams = league.getTeams() == null ? List.of() : league.getTeams()
+                .stream()
+                .map(team -> new TeamShortDTO(
+                        team.getId(),
+                        ParticipantNameUtils.buildTeamName(team)
+                ))
+                .toList();
+
+        return LeagueManagementResponseDTO.builder()
+                .id(league.getId())
+                .name(league.getName())
+                .leagueType(league.getLeagueType())
+                .players(players)
+                .teams(teams)
+                .build();
+    }
+
+    private VolleyLeagueManagementResponseDTO mapVolleyLeagueToManagementDTO(VolleyLeague league) {
+        List<VolleyTeamShortDTO> teams = league.getTeams() == null ? List.of() : league.getTeams()
+                .stream()
+                .map(team -> new VolleyTeamShortDTO(
+                        team.getId(),
+                        team.getName()
+                ))
+                .toList();
+
+        return VolleyLeagueManagementResponseDTO.builder()
+                .id(league.getId())
+                .name(league.getName())
+                .teams(teams)
                 .build();
     }
 

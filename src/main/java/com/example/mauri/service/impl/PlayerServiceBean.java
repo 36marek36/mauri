@@ -10,6 +10,7 @@ import com.example.mauri.model.Team;
 import com.example.mauri.model.User;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
+import com.example.mauri.model.dto.request.PlayerShortDTO;
 import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
@@ -238,10 +239,10 @@ public class PlayerServiceBean implements PlayerService {
 
 
     @Override
-    public List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId) {
+    public List<PlayerShortDTO> getPlayersNotInLeague(String leagueId) {
         List<Player> players = playerRepository.findPlayersNotInLeagueBySport(leagueId, Sport.TENNIS);
         return players.stream()
-                .map(playerMapper::mapToResponseDTO)
+                .map(playerMapper::mapToPlayerShortDTO)
                 .toList();
     }
 

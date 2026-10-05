@@ -1,6 +1,7 @@
 package com.example.mauri.mapper;
 
 import com.example.mauri.model.Team;
+import com.example.mauri.model.dto.request.TeamShortDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
 import com.example.mauri.util.ParticipantNameUtils;
@@ -37,5 +38,13 @@ public class TeamMapper {
                 .deletedDate(team.getDeletedDate())
                 .registrationDate(team.getCreatedAt())
                 .build();
+    }
+
+    public TeamShortDTO mapToTeamShortDTO(Team team) {
+        return TeamShortDTO.builder()
+                .id(team.getId())
+                .name(ParticipantNameUtils.buildTeamShortName(team))
+                .build();
+
     }
 }

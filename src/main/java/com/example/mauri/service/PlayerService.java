@@ -2,6 +2,7 @@ package com.example.mauri.service;
 
 import com.example.mauri.model.Player;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
+import com.example.mauri.model.dto.request.PlayerShortDTO;
 import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import lombok.NonNull;
@@ -36,7 +37,7 @@ public interface PlayerService {
 
     PlayerResponseDTO updatePlayer(String playerId, UpdatePlayerDTO updatedPlayer);
 
-    List<PlayerResponseDTO> getPlayersNotInLeague(String leagueId);
+    List<PlayerShortDTO> getPlayersNotInLeague(String leagueId);
 
     void addTennisToAllPlayers();
 
