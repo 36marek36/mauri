@@ -1,13 +1,11 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.PlayerLevel;
 import com.example.mauri.enums.Sport;
 import com.example.mauri.exception.ResourceAlreadyExistsException;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.PlayerMapper;
-import com.example.mauri.model.League;
-import com.example.mauri.model.Player;
-import com.example.mauri.model.Team;
-import com.example.mauri.model.User;
+import com.example.mauri.model.*;
 import com.example.mauri.model.dto.create.CreatePlayerDTO;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.request.PlayerShortDTO;
@@ -16,6 +14,7 @@ import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.PlayerStatsDTO;
 import com.example.mauri.model.dto.update.UpdatePlayerDTO;
 import com.example.mauri.repository.*;
+import com.example.mauri.service.PlayerRatingService;
 import com.example.mauri.service.PlayerService;
 import com.example.mauri.service.PlayerStatsService;
 import com.example.mauri.service.TeamService;
@@ -29,8 +28,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,13 +46,32 @@ public class PlayerServiceBean implements PlayerService {
     private final TeamService teamService;
     private final PlayerMapper playerMapper;
     private final PlayerStatsService playerStatsService;
+    private final PlayerRatingService playerRatingService;
+
+    private final PlayerRatingRepository playerRatingRepository;
 
 
     @Override
     public List<PlayerResponseDTO> getAllPlayers() {
         List<Player> players = playerRepository.findAll();
+
+        List<Player> tennisPlayers = players.stream()
+                .filter(player -> player.getSports().contains(Sport.TENNIS))
+                .toList();
+
+        Map<String, Integer> ratingsByPlayerId = getRatingsByPlayerIds(tennisPlayers);
+
         return players.stream()
-                .map(playerMapper::mapToResponseDTO)
+                .map(player -> {
+                    PlayerResponseDTO dto = playerMapper.mapToResponseDTO(player);
+
+                    if (player.getSports().contains(Sport.TENNIS)) {
+                        setRatingAndLevel(dto, ratingsByPlayerId.get(player.getId())
+                        );
+                    }
+
+                    return dto;
+                })
                 .toList();
     }
 
@@ -58,16 +79,31 @@ public class PlayerServiceBean implements PlayerService {
     public List<PlayerResponseDTO> getActiveTennisPlayers() {
         List<Player> players = playerRepository.findByActiveTrueAndSportsContainingOrderByLastNameAsc(Sport.TENNIS);
 
+        Map<String, Integer> ratingsByPlayerId = getRatingsByPlayerIds(players);
+
         return players.stream()
-                .map(playerMapper::mapToResponseDTO) // každý Player sa zmení na PlayerResponseDTO
-                .toList();                   // a všetky sa uložia do zoznamu
+                .map(player -> {
+                    PlayerResponseDTO dto = playerMapper.mapToResponseDTO(player);
+                    setRatingAndLevel(dto, ratingsByPlayerId.get(player.getId())
+                    );
+                    return dto;
+                })
+                .toList();              // a všetky sa uložia do zoznamu
     }
 
     @Override
     public List<PlayerResponseDTO> getInactiveTennisPlayers() {
         List<Player> players = playerRepository.findByActiveFalseAndSportsContainingOrderByLastNameAsc(Sport.TENNIS);
+
+        Map<String, Integer> ratingsByPlayerId = getRatingsByPlayerIds(players);
+
         return players.stream()
-                .map(playerMapper::mapToResponseDTO)
+                .map(player -> {
+                    PlayerResponseDTO dto = playerMapper.mapToResponseDTO(player);
+                    setRatingAndLevel(dto, ratingsByPlayerId.get(player.getId())
+                    );
+                    return dto;
+                })
                 .toList();
     }
 
@@ -113,11 +149,12 @@ public class PlayerServiceBean implements PlayerService {
     }
 
     @Override
+    @Transactional
     public PlayerResponseDTO createPlayer(CreatePlayerDTO createPlayerDTO) {
         String firstName = ParticipantNameUtils.capitalizeNamePart(createPlayerDTO.getFirstName());
         String lastName = ParticipantNameUtils.capitalizeNamePart(createPlayerDTO.getLastName());
 
-        boolean exists = playerRepository.existsByFirstNameAndLastName(createPlayerDTO.getFirstName(), createPlayerDTO.getLastName());
+        boolean exists = playerRepository.existsByFirstNameAndLastName(firstName, lastName);
         if (exists) {
             throw new ResourceAlreadyExistsException("Hráč s týmto menom už existuje.");
         }
@@ -132,7 +169,19 @@ public class PlayerServiceBean implements PlayerService {
                 .build();
 
         Player saved = playerRepository.save(player);
-        return playerMapper.mapToResponseDTO(saved);
+
+        boolean isTennisPlayer = saved.getSports().contains(Sport.TENNIS);
+
+        if (isTennisPlayer) {
+            playerRatingService.createRatingIfNotExists(saved);
+        }
+
+        PlayerResponseDTO responseDTO = playerMapper.mapToResponseDTO(saved);
+
+        if (isTennisPlayer) {
+            responseDTO.setRating(playerRatingService.getRating(saved.getId()));
+        }
+        return responseDTO;
     }
 
     @Override
@@ -209,19 +258,31 @@ public class PlayerServiceBean implements PlayerService {
         if (updatedPlayer.getFirstName() != null) {
             existingPlayer.setFirstName(updatedPlayer.getFirstName());
         }
+
         if (updatedPlayer.getLastName() != null) {
             existingPlayer.setLastName(updatedPlayer.getLastName());
         }
+
         if (updatedPlayer.getEmail() != null) {
             existingPlayer.setEmail(updatedPlayer.getEmail());
         }
+
         if (updatedPlayer.getPhone() != null) {
             existingPlayer.setPhone(updatedPlayer.getPhone());
         }
 
         if (updatedPlayer.getSports() != null) {
+
+            boolean wasTennisPlayer = existingPlayer.getSports().contains(Sport.TENNIS);
+            boolean willBeTennisPlayer = updatedPlayer.getSports().contains(Sport.TENNIS);
+
             existingPlayer.setSports(updatedPlayer.getSports());
+
+            if (!wasTennisPlayer && willBeTennisPlayer) {
+                playerRatingService.createRatingIfNotExists(existingPlayer);
+            }
         }
+
         if (updatedPlayer.getActive() != null) {
             existingPlayer.setActive(updatedPlayer.getActive());
 
@@ -232,9 +293,16 @@ public class PlayerServiceBean implements PlayerService {
             }
         }
 
-
         Player saved = playerRepository.save(existingPlayer);
-        return playerMapper.mapToResponseDTO(saved);
+
+        PlayerResponseDTO responseDTO = playerMapper.mapToResponseDTO(saved);
+
+        if (saved.getSports().contains(Sport.TENNIS)) {
+            Integer rating = playerRatingService.getRating(saved.getId());
+            setRatingAndLevel(responseDTO, rating);
+        }
+
+        return responseDTO;
     }
 
 
@@ -265,6 +333,12 @@ public class PlayerServiceBean implements PlayerService {
 
         PlayerResponseDTO dto = playerMapper.mapToResponseDTO(player);
 
+        if (player.getSports().contains(Sport.TENNIS)) {
+            Integer rating = playerRatingService.getRating(player.getId());
+
+            setRatingAndLevel(dto, rating);
+        }
+
         dto.setTeams(teams.stream()
                 .map(team -> new TeamShortDTO(team.getId(), ParticipantNameUtils.buildTeamShortName(team)))
                 .toList());
@@ -290,6 +364,30 @@ public class PlayerServiceBean implements PlayerService {
                 .toList());
 
         return dto;
+    }
+
+    private Map<String, Integer> getRatingsByPlayerIds(List<Player> players) {
+        if (players.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<String> playerIds = players.stream()
+                .map(Player::getId)
+                .toList();
+
+        return playerRatingRepository.findByPlayerIdIn(playerIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        rating -> rating.getPlayer().getId(),
+                        PlayerRating::getRating
+                ));
+    }
+
+    private void setRatingAndLevel(PlayerResponseDTO dto, Integer rating) {
+        dto.setRating(rating);
+
+        if (rating != null) {
+            dto.setLevel(PlayerLevel.fromRating(rating));
+        }
     }
 
     @Transactional

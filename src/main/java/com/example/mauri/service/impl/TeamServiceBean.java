@@ -1,13 +1,13 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.PlayerLevel;
+import com.example.mauri.enums.Sport;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.TeamMapper;
-import com.example.mauri.model.League;
-import com.example.mauri.model.Player;
-import com.example.mauri.model.Team;
-import com.example.mauri.model.User;
+import com.example.mauri.model.*;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.request.TeamShortDTO;
+import com.example.mauri.model.dto.response.PlayerResponseDTO;
 import com.example.mauri.model.dto.response.TeamResponseDTO;
 import com.example.mauri.model.dto.response.TeamStatsDTO;
 import com.example.mauri.model.dto.update.ChangeTeamDTO;
@@ -24,8 +24,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -39,20 +40,65 @@ public class TeamServiceBean implements TeamService {
     private final TeamMapper teamMapper;
     private final TeamStatsService teamStatsService;
 
+    private final PlayerRatingServiceBean playerRatingService;
+    private final PlayerRatingRepository playerRatingRepository;
+
 
     @Override
     public List<TeamResponseDTO> getActiveTeams() {
         List<Team> teams = teamRepository.findByActiveTrueOrderByPlayer1LastNameAsc();
+
+        Map<String, Integer> ratingsByPlayerId = getRatingsByPlayerIds(teams);
+
         return teams.stream()
-                .map(teamMapper::mapToResponseDTO)
+                .map(team -> {
+                    TeamResponseDTO dto = teamMapper.mapToResponseDTO(team);
+
+                    if (dto.getPlayer1() != null) {
+                        setRatingAndLevel(
+                                dto.getPlayer1(),
+                                ratingsByPlayerId.get(dto.getPlayer1().getId())
+                        );
+                    }
+
+                    if (dto.getPlayer2() != null) {
+                        setRatingAndLevel(
+                                dto.getPlayer2(),
+                                ratingsByPlayerId.get(dto.getPlayer2().getId())
+                        );
+                    }
+
+                    return dto;
+                })
                 .toList();
     }
 
     @Override
     public List<TeamResponseDTO> getInactiveTeams() {
         List<Team> teams = teamRepository.findByActiveFalseOrderByPlayer1LastNameAsc();
+
+        Map<String, Integer> ratingsByPlayerId = getRatingsByPlayerIds(teams);
+
         return teams.stream()
-                .map(teamMapper::mapToResponseDTO)
+                .map(team -> {
+                    TeamResponseDTO dto = teamMapper.mapToResponseDTO(team);
+
+                    if (dto.getPlayer1() != null) {
+                        setRatingAndLevel(
+                                dto.getPlayer1(),
+                                ratingsByPlayerId.get(dto.getPlayer1().getId())
+                        );
+                    }
+
+                    if (dto.getPlayer2() != null) {
+                        setRatingAndLevel(
+                                dto.getPlayer2(),
+                                ratingsByPlayerId.get(dto.getPlayer2().getId())
+                        );
+                    }
+
+                    return dto;
+                })
                 .toList();
     }
 
@@ -219,9 +265,54 @@ public class TeamServiceBean implements TeamService {
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found with id: " + id));
     }
 
+    private Map<String, Integer> getRatingsByPlayerIds(List<Team> teams) {
+        List<String> playerIds = teams.stream()
+                .flatMap(team -> Stream.of(team.getPlayer1(), team.getPlayer2()))
+                .filter(Objects::nonNull)
+                .filter(player -> player.getSports().contains(Sport.TENNIS))
+                .map(Player::getId)
+                .distinct()
+                .toList();
+
+        if (playerIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return playerRatingRepository.findByPlayerIdIn(playerIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        rating -> rating.getPlayer().getId(),
+                        PlayerRating::getRating
+                ));
+    }
+
+    private void setRatingAndLevel(PlayerResponseDTO dto, Integer rating) {
+        dto.setRating(rating);
+
+        if (rating != null) {
+            dto.setLevel(PlayerLevel.fromRating(rating));
+        }
+    }
+
     private TeamResponseDTO mapFullTeam(Team team) {
         List<League> leagues = leagueRepository.findLeaguesByTeamId(team.getId());
+
         TeamResponseDTO teamResponseDTO = teamMapper.mapToResponseDTO(team);
+
+        if (teamResponseDTO.getPlayer1() != null
+                && team.getPlayer1().getSports().contains(Sport.TENNIS)) {
+
+            Integer rating = playerRatingService.getRating(team.getPlayer1().getId());
+            setRatingAndLevel(teamResponseDTO.getPlayer1(), rating);
+        }
+
+        if (teamResponseDTO.getPlayer2() != null
+                && team.getPlayer2().getSports().contains(Sport.TENNIS)) {
+
+            Integer rating = playerRatingService.getRating(team.getPlayer2().getId());
+            setRatingAndLevel(teamResponseDTO.getPlayer2(), rating);
+        }
+
         teamResponseDTO.setLeagues(leagues.stream()
                 .map(league -> {
                     TeamStatsDTO teamStats = teamStatsService.getAllStatsForLeague(league.getId())
@@ -229,6 +320,7 @@ public class TeamServiceBean implements TeamService {
                             .filter(stats -> stats.getTeamId().equals(team.getId()))
                             .findFirst()
                             .orElse(null);
+
                     return new LeagueShortDTO(
                             league.getId(),
                             league.getName(),
@@ -239,6 +331,7 @@ public class TeamServiceBean implements TeamService {
                     );
                 })
                 .toList());
+
         return teamResponseDTO;
     }
 }
