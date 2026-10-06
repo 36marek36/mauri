@@ -48,9 +48,12 @@ public class Match {
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
+    private boolean ratingCalculated;
+
     @PrePersist
     protected void onCreate() {
         status = MatchStatus.CREATED;
+        ratingCalculated = false;
     }
 
 }

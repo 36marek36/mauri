@@ -29,6 +29,8 @@ public class MatchResponseDTO {
 
     private Integer roundNumber;
 
+    private boolean ratingCalculated;
+
     private MatchStatus status;
 
 }

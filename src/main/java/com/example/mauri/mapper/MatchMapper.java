@@ -51,6 +51,7 @@ public class MatchMapper {
                 .awayPlayer(awayPlayer)
                 .homeTeam(homeTeam)
                 .awayTeam(awayTeam)
+                .ratingCalculated(match.isRatingCalculated())
                 .build();
     }
 }

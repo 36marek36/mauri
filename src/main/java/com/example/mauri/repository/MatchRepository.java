@@ -1,6 +1,7 @@
 package com.example.mauri.repository;
 
 import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.Match;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -51,5 +52,11 @@ public interface MatchRepository extends JpaRepository<Match, String> {
     boolean existsByHomeTeamIdOrAwayTeamId(String homeTeamId, String awayTeamId);
 
     List<Match> findByLeagueIdIn(Set<String> leagueIds);
+
+    List<Match> findByLeagueIdAndStatusAndMatchTypeOrderByRoundNumberAsc(
+            String leagueId,
+            MatchStatus status,
+            MatchType matchType
+    );
 
 }
