@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public class SeasonController {
         return ResponseEntity.ok(seasonService.getTennisSeasonDetail(seasonId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/current")
     public ResponseEntity<SeasonManagementResponseDTO> getCurrentManagedSeason() {
         return ResponseEntity.ok(

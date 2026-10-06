@@ -1,9 +1,12 @@
 package com.example.mauri.controller;
 
+import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 import com.example.mauri.service.PlayerRatingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/rest/player_rating")
@@ -14,6 +17,11 @@ public class PlayerRatingController {
     @GetMapping("/calculate")
     public int calculateRating(@RequestParam int playerRating, @RequestParam int opponentRating, @RequestParam double actualScore) {
         return playerRatingService.calculateNewRating(playerRating, opponentRating, actualScore);
+    }
+
+    @GetMapping("/ranking")
+    public ResponseEntity<List<PlayerRatingResponseDTO>> getRatingRanking() {
+        return ResponseEntity.ok(playerRatingService.getRatingRanking());
     }
 
     @PatchMapping("/{matchId}/update-rating")
@@ -27,7 +35,7 @@ public class PlayerRatingController {
             @PathVariable String leagueId,
             @RequestParam int rating) {
 
-        playerRatingService.initializeRatingsForLeague(leagueId,rating);
+        playerRatingService.initializeRatingsForLeague(leagueId, rating);
 
         return ResponseEntity.ok().build();
     }
