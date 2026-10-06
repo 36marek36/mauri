@@ -1,13 +1,18 @@
 package com.example.mauri.service;
 
 import com.example.mauri.model.Player;
+import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
+
+import java.util.List;
 
 public interface PlayerRatingService {
     Integer getRating(String playerId);
 
     void createRatingIfNotExists(Player player);
 
-    int calculateNewRating(int playerRating,int opponentRating,double actualScore);
+    List<PlayerRatingResponseDTO> getRatingRanking();
+
+    int calculateNewRating(int playerRating, int opponentRating, double actualScore);
 
     void updateRatingsAfterMatch(String matchId);
 

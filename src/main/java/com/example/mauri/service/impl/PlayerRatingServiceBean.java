@@ -2,13 +2,16 @@ package com.example.mauri.service.impl;
 
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
+import com.example.mauri.enums.PlayerLevel;
 import com.example.mauri.enums.Sport;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
+import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.PlayerRatingRepository;
 import com.example.mauri.service.PlayerRatingService;
+import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,25 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                     .build()
             );
         }
+    }
+
+    @Override
+    public List<PlayerRatingResponseDTO> getRatingRanking() {
+        return playerRatingRepository
+                .findByRatingIsNotNullOrderByRatingDesc()
+                .stream()
+                .map(playerRating -> {
+
+                    Player player = playerRating.getPlayer();
+
+                    return PlayerRatingResponseDTO.builder()
+                            .playerId(player.getId())
+                            .playerName(ParticipantNameUtils.buildPlayerName(player))
+                            .rating(playerRating.getRating())
+                            .playerLevel(PlayerLevel.fromRating(playerRating.getRating()))
+                            .build();
+                })
+                .toList();
     }
 
     @Override

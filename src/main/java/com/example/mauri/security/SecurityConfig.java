@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/rest/volleyball/**").permitAll()
                         .requestMatchers("/rest/players/without-user").hasRole("ADMIN")
                         .requestMatchers("/rest/players/").permitAll()
+                        .requestMatchers("/rest/player_rating/ranking").permitAll()
                         .requestMatchers("/rest/teams/").permitAll()
                         .requestMatchers("/rest/users/me/**").authenticated()
                         .requestMatchers("/rest/players/**").authenticated()
