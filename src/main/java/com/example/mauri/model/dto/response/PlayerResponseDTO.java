@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto.response;
 
+import com.example.mauri.enums.PlayerLevel;
 import com.example.mauri.enums.Sport;
 import com.example.mauri.model.dto.request.LeagueShortDTO;
 import com.example.mauri.model.dto.request.TeamShortDTO;
@@ -31,4 +32,6 @@ public class PlayerResponseDTO {
     private List<TeamShortDTO> teams;
     private List<LeagueShortDTO> leagues;
     private List<Sport> sports;
+    private Integer rating;
+    private PlayerLevel level;
 }
