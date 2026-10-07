@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.model.Match;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 
@@ -12,11 +13,11 @@ public interface PlayerRatingService {
 
     List<PlayerRatingResponseDTO> getRatingRanking();
 
-    int calculateNewRating(int playerRating, int opponentRating, double actualScore);
+    int calculateNewRating(int playerRating, int opponentRating, double actualScore,double marginMultiplier);
 
     void updateRatingsAfterMatch(String matchId);
 
-    void updatePlayerRatings(Player winner, Player loser);
+    void updatePlayerRatings(Match match, Player winner, Player loser);
 
     void initializeRatingsForLeague(String leagueId, int ratingValue);
 

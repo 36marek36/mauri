@@ -14,6 +14,7 @@ import com.example.mauri.service.PlayerRatingService;
 import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PlayerRatingServiceBean implements PlayerRatingService {
     private final PlayerRatingRepository playerRatingRepository;
     private final LeagueRepository leagueRepository;
@@ -66,10 +68,12 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
     }
 
     @Override
-    public int calculateNewRating(int playerRating, int opponentRating, double actualScore) {
+    public int calculateNewRating(int playerRating, int opponentRating, double actualScore, double marginMultiplier) {
         double expectedScore = 1.0 / (1.0 + Math.pow(10, (opponentRating - playerRating) / RATING_SCALE));
 
-        return (int) Math.round(playerRating + K_FACTOR * (actualScore - expectedScore));
+        double ratingChange = K_FACTOR * (actualScore - expectedScore) * marginMultiplier;
+
+        return (int) Math.round(playerRating + ratingChange);
     }
 
     @Override
@@ -96,7 +100,9 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
             return;
         }
 
-        if (match.getResult() == null || match.getResult().getWinnerId() == null) {
+        MatchResult result = match.getResult();
+
+        if (result == null || result.getWinnerId() == null) {
             throw new IllegalStateException(
                     "Zápas nemá určeného víťaza."
             );
@@ -128,38 +134,52 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
             );
         }
 
-        updatePlayerRatings(winner, loser);
+        updatePlayerRatings(match, winner, loser);
 
         match.setRatingCalculated(true);
     }
 
     @Override
     @Transactional
-    public void updatePlayerRatings(Player winner, Player loser) {
+    public void updatePlayerRatings(Match match, Player winner, Player loser) {
         PlayerRating winnerRating = playerRatingRepository
                 .findByPlayerId(winner.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Rating víťaza neexistuje."
-                        ));
+                .orElseThrow(() -> new ResourceNotFoundException("Rating víťaza neexistuje."));
 
         PlayerRating loserRating = playerRatingRepository
                 .findByPlayerId(loser.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Rating porazeného neexistuje."
-                        ));
+                .orElseThrow(() -> new ResourceNotFoundException("Rating porazeného neexistuje."));
+
+        MatchResult result = match.getResult();
+
+        int player1games = result.getSetScores().stream()
+                .mapToInt(SetScore::getScore1)
+                .sum();
+        int player2games = result.getSetScores().stream()
+                .mapToInt(SetScore::getScore2)
+                .sum();
+
+        boolean winnerIsPlayer1 = result.getWinnerId().equals(winner.getId());
+
+        int winnerGames = winnerIsPlayer1 ? player1games : player2games;
+        int loserGames = winnerIsPlayer1 ? player2games : player1games;
+
+        double gameFactor = (double) winnerGames / (winnerGames + loserGames);
+
+        double marginMultiplier = 1.0 + (gameFactor - 0.5);
 
         int newWinnerRating = calculateNewRating(
                 winnerRating.getRating(),
                 loserRating.getRating(),
-                1.0
+                1.0,
+                marginMultiplier
         );
 
         int newLoserRating = calculateNewRating(
                 loserRating.getRating(),
                 winnerRating.getRating(),
-                0.0
+                0.0,
+                marginMultiplier
         );
 
         winnerRating.setRating(newWinnerRating);
@@ -211,37 +231,7 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                 continue;
             }
 
-            MatchResult result = match.getResult();
-
-            if (result == null || result.getWinnerId() == null) {
-                continue;
-            }
-
-            Player homePlayer = match.getHomePlayer();
-            Player awayPlayer = match.getAwayPlayer();
-
-            if (homePlayer == null || awayPlayer == null) {
-                continue;
-            }
-
-            Player winner;
-            Player loser;
-
-            if (homePlayer.getId().equals(result.getWinnerId())) {
-                winner = homePlayer;
-                loser = awayPlayer;
-            } else if (awayPlayer.getId().equals(result.getWinnerId())) {
-                winner = awayPlayer;
-                loser = homePlayer;
-            } else {
-                throw new IllegalStateException(
-                        "WinnerId nezodpovedá hráčom v zápase " + match.getId()
-                );
-            }
-
-            updatePlayerRatings(winner, loser);
-
-            match.setRatingCalculated(true);
+            updateRatingsAfterMatch(match.getId());
         }
     }
 
