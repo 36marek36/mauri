@@ -586,12 +586,16 @@ public class SeasonServiceBean implements SeasonService {
     }
 
     private int priority(League league) {
-        String name = league.getName().toLowerCase();
+        String name = league.getName()
+                .toLowerCase()
+                .replaceAll("\\s+", "");
 
         if (name.contains("ženy")) return 0;
         if (name.contains("extraliga")) return 1;
-        if (name.matches(".*mu([žz])i.*[1-3].*")) return 2;
+        if (name.contains("1.liga")) return 2;
+        if (name.contains("2.liga")) return 3;
+        if (name.contains("3.liga")) return 4;
 
-        return 3;
+        return 5;
     }
 }
