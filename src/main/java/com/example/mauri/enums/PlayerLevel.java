@@ -6,14 +6,16 @@ public enum PlayerLevel {
     INTERMEDIATE,
     ADVANCED,
     PROFESSIONAL,
-    MASTER;
+    ELITE,
+    LEGEND;
 
     public static PlayerLevel fromRating(int rating) {
         if (rating < 900) return BEGINNER;
         if (rating < 1100) return AMATEUR;
         if (rating < 1300) return INTERMEDIATE;
         if (rating < 1500) return ADVANCED;
-        if (rating < 1800) return PROFESSIONAL;
-        return MASTER;
+        if (rating < 1700) return PROFESSIONAL;
+        if (rating < 1900) return ELITE;
+        return LEGEND;
     }
 }

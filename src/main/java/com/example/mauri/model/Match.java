@@ -50,6 +50,12 @@ public class Match {
 
     private boolean ratingCalculated;
 
+    @Column(name = "home_player_rating_before")
+    private Integer homePlayerRatingBefore;
+
+    @Column(name = "away_player_rating_before")
+    private Integer awayPlayerRatingBefore;
+
     @PrePersist
     protected void onCreate() {
         status = MatchStatus.CREATED;

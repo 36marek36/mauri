@@ -38,6 +38,8 @@ public class MatchServiceBean implements MatchService {
     private final MatchMapper matchMapper;
     private final MatchActivityService matchActivityService;
     private final MatchActivityRepository matchActivityRepository;
+    private final PlayerRatingRepository playerRatingRepository;
+    private final PlayerRatingService playerRatingService;
 
     @Override
     public List<MatchResponseDTO> getMatches() {
@@ -90,6 +92,7 @@ public class MatchServiceBean implements MatchService {
     }
 
     @Override
+    @Transactional
     public Match addResult(String matchId, MatchResult matchResult) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
@@ -97,15 +100,22 @@ public class MatchServiceBean implements MatchService {
         League league = leagueRepository.findById(match.getLeagueId()).orElseThrow();
         Season season = league.getSeason();
 
-
         if (season.getStatus() == SeasonStatus.FINISHED) {
             throw new IllegalStateException("Sezóna je ukončená, úpravy nie sú povolené.");
+        }
+
+        boolean ratingWasCalculated = match.isRatingCalculated();
+
+        // Ak už bol rating vypočítaný,
+        // vrátime hráčov na stav pred týmto zápasom.
+        if (ratingWasCalculated) {
+            restoreRatingsBeforeMatch(match);
+            match.setRatingCalculated(false);
         }
 
         MatchResult finalResult = matchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
 
-        // Nastavenie statusu zápasu podľa výsledku
         if (finalResult.getScratchedId() != null) {
             match.setStatus(MatchStatus.SCRATCHED);
         } else {
@@ -114,17 +124,17 @@ public class MatchServiceBean implements MatchService {
 
         Match savedMatch = matchRepository.save(match);
 
+        // Rating vypočítame iba pre dokončený singles zápas.
+        if (savedMatch.getStatus() == MatchStatus.FINISHED && savedMatch.getMatchType() == MatchType.SINGLES) {
+            playerRatingService.updateRatingsAfterMatch(savedMatch.getId());
+        }
+
         matchActivityService.createActivity(savedMatch.getId());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        log.info(
-                "{} added result for match '{}', status={}",
-                username,
-                savedMatch.getId(),
-                savedMatch.getStatus()
-        );
+        log.info("{} added/updated result for match '{}', status={}", username, savedMatch.getId(), savedMatch.getStatus());
 
         return savedMatch;
     }
@@ -189,18 +199,27 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
 
+        // Ak bol rating už vypočítaný,
+        // vrátime hráčov na rating pred zápasom.
+        if (match.isRatingCalculated()) {
+            restoreRatingsBeforeMatch(match);
+        }
         match.setStatus(MatchStatus.CREATED);
         match.setResult(null);
+        match.setRatingCalculated(false);
+
+        // Ratingy pred zápasom už nemajú význam,
+        // pretože zápas momentálne nemá výsledok.
+        match.setHomePlayerRatingBefore(null);
+        match.setAwayPlayerRatingBefore(null);
+
         matchRepository.save(match);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         String username = authentication.getName();
 
-        log.info(
-                "{} cancelled result for match '{}'",
-                username,
-                match.getId()
-        );
+        log.info("{} cancelled result for match '{}'", username, match.getId());
 
         matchActivityRepository.deleteByMatchId(matchId);
     }
@@ -259,4 +278,32 @@ public class MatchServiceBean implements MatchService {
         }
         return leagueIds;
     }
+
+    private void restoreRatingsBeforeMatch(Match match) {
+
+        if (match.getHomePlayerRatingBefore() == null || match.getAwayPlayerRatingBefore() == null) {
+            throw new IllegalStateException("Zápas nemá uložené ratingy hráčov pred zápasom.");
+        }
+
+        Player homePlayer = match.getHomePlayer();
+        Player awayPlayer = match.getAwayPlayer();
+
+        if (homePlayer == null || awayPlayer == null) {
+            throw new IllegalStateException("Zápas nemá oboch hráčov.");
+        }
+
+        PlayerRating homePlayerRating = playerRatingRepository
+                .findByPlayerId(homePlayer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Rating hráča neexistuje: " + homePlayer.getId()));
+
+        PlayerRating awayPlayerRating = playerRatingRepository
+                .findByPlayerId(awayPlayer.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Rating hráča neexistuje: " + awayPlayer.getId()));
+
+        homePlayerRating.setRating(match.getHomePlayerRatingBefore());
+
+        awayPlayerRating.setRating(match.getAwayPlayerRatingBefore());
+    }
+
 }
