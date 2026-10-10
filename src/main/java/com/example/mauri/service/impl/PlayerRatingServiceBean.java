@@ -10,6 +10,7 @@ import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 import com.example.mauri.repository.LeagueRepository;
 import com.example.mauri.repository.MatchRepository;
 import com.example.mauri.repository.PlayerRatingRepository;
+import com.example.mauri.repository.PlayerRepository;
 import com.example.mauri.service.PlayerRatingService;
 import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
@@ -27,6 +28,7 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
     private final PlayerRatingRepository playerRatingRepository;
     private final LeagueRepository leagueRepository;
     private final MatchRepository matchRepository;
+    private final PlayerRepository playerRepository;
     private static final double K_FACTOR = 32.0;
     private static final double RATING_SCALE = 400.0;
 
@@ -95,17 +97,12 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
             );
         }
 
-        // Rating zatiaľ počítame iba pre singles.
         if (match.getMatchType() != MatchType.SINGLES) {
             return;
         }
 
-        MatchResult result = match.getResult();
-
-        if (result == null || result.getWinnerId() == null) {
-            throw new IllegalStateException(
-                    "Zápas nemá určeného víťaza."
-            );
+        if (match.getResult() == null || match.getResult().getWinnerId() == null) {
+            throw new IllegalStateException("Zápas nemá určeného víťaza.");
         }
 
         Player homePlayer = match.getHomePlayer();
@@ -134,14 +131,56 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
             );
         }
 
+        /*
+         * Uložíme rating pred zápasom iba pri prvom výpočte.
+         *
+         * Pri oprave výsledku už tieto hodnoty existujú,
+         * takže ich NEPREPÍŠEME.
+         */
+        PlayerRating homePlayerRating = playerRatingRepository
+                .findByPlayerId(homePlayer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Rating hráča neexistuje: " + homePlayer.getId()));
+
+        PlayerRating awayPlayerRating = playerRatingRepository
+                .findByPlayerId(awayPlayer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Rating hráča neexistuje: " + awayPlayer.getId()));
+
+        if (match.getHomePlayerRatingBefore() == null) {
+            match.setHomePlayerRatingBefore(homePlayerRating.getRating());
+        }
+
+        if (match.getAwayPlayerRatingBefore() == null) {
+            match.setAwayPlayerRatingBefore(awayPlayerRating.getRating());
+        }
+
+        // Samotný výpočet nového ratingu.
         updatePlayerRatings(match, winner, loser);
 
         match.setRatingCalculated(true);
+
+        matchRepository.save(match);
     }
 
     @Override
-    @Transactional
-    public void updatePlayerRatings(Match match, Player winner, Player loser) {
+    public void setPlayerRating(String playerId, int ratingValue) {
+
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Hráč neexistuje."));
+
+        PlayerRating playerRating = playerRatingRepository
+                .findByPlayerId(playerId)
+                .orElseGet(() -> PlayerRating.builder()
+                        .id(UUID.randomUUID().toString())
+                        .player(player)
+                        .build());
+
+        playerRating.setRating(ratingValue);
+
+        playerRatingRepository.save(playerRating);
+    }
+
+    private void updatePlayerRatings(Match match, Player winner, Player loser) {
         PlayerRating winnerRating = playerRatingRepository
                 .findByPlayerId(winner.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rating víťaza neexistuje."));
@@ -159,7 +198,7 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                 .mapToInt(SetScore::getScore2)
                 .sum();
 
-        boolean winnerIsPlayer1 = result.getWinnerId().equals(winner.getId());
+        boolean winnerIsPlayer1 = winner.getId().equals(match.getHomePlayer().getId());
 
         int winnerGames = winnerIsPlayer1 ? player1games : player2games;
         int loserGames = winnerIsPlayer1 ? player2games : player1games;
@@ -226,11 +265,9 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                 );
 
         for (Match match : matches) {
-
             if (match.isRatingCalculated()) {
                 continue;
             }
-
             updateRatingsAfterMatch(match.getId());
         }
     }
@@ -247,6 +284,8 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
 
         for (Match match : matches) {
             match.setRatingCalculated(false);
+            match.setHomePlayerRatingBefore(null);
+            match.setAwayPlayerRatingBefore(null);
         }
     }
 }

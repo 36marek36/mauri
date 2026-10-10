@@ -15,13 +15,19 @@ public class PlayerRatingController {
     private final PlayerRatingService playerRatingService;
 
     @GetMapping("/calculate")
-    public int calculateRating(@RequestParam int playerRating, @RequestParam int opponentRating, @RequestParam double actualScore,@RequestParam double marginMultiplier) {
+    public int calculateRating(@RequestParam int playerRating, @RequestParam int opponentRating, @RequestParam double actualScore, @RequestParam double marginMultiplier) {
         return playerRatingService.calculateNewRating(playerRating, opponentRating, actualScore, marginMultiplier);
     }
 
     @GetMapping("/ranking")
     public ResponseEntity<List<PlayerRatingResponseDTO>> getRatingRanking() {
         return ResponseEntity.ok(playerRatingService.getRatingRanking());
+    }
+
+    @PatchMapping("/{playerId}/rating")
+    public ResponseEntity<Void> setPlayerRating(@PathVariable String playerId, @RequestParam int rating) {
+        playerRatingService.setPlayerRating(playerId, rating);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{matchId}/update-rating")

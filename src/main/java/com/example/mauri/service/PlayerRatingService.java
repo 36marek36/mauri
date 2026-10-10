@@ -1,6 +1,5 @@
 package com.example.mauri.service;
 
-import com.example.mauri.model.Match;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 
@@ -17,7 +16,7 @@ public interface PlayerRatingService {
 
     void updateRatingsAfterMatch(String matchId);
 
-    void updatePlayerRatings(Match match, Player winner, Player loser);
+    void setPlayerRating(String playerId, int ratingValue);
 
     void initializeRatingsForLeague(String leagueId, int ratingValue);
 
