@@ -1,5 +1,6 @@
 package com.example.mauri.service;
 
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.Player;
 import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 
@@ -10,13 +11,15 @@ public interface PlayerRatingService {
 
     void createRatingIfNotExists(Player player);
 
-    List<PlayerRatingResponseDTO> getRatingRanking();
+    List<PlayerRatingResponseDTO> getRatingsByType(MatchType matchType);
 
-    int calculateNewRating(int playerRating, int opponentRating, double actualScore,double marginMultiplier);
+    int calculateNewRating(int playerRating, int opponentRating, double actualScore, double marginMultiplier);
 
     void updateRatingsAfterMatch(String matchId);
 
     void setPlayerRating(String playerId, int ratingValue);
+
+    void setPlayerDoubleRating(String playerId, int ratingValue);
 
     void initializeRatingsForLeague(String leagueId, int ratingValue);
 

@@ -27,5 +27,9 @@ public class PlayerRating {
     @Column(nullable = false)
     private int ratingChange;
 
+    @Column(nullable = false)
+    private int doubleRating;
 
+    @Column(nullable = false)
+    private int doubleRatingChange;
 }

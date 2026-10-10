@@ -224,13 +224,19 @@ public class PlayerServiceBean implements PlayerService {
 
         if (isInTeam || isInLeague || isInMatch) {
             deactivatePlayer(id);
+
             if (isInTeam) {
                 teamService.deactivateTeamsWithPlayer(id);
                 return "deactivated_player_in_team";
             }
+
             return "deactivated";
         } else {
+            playerRatingRepository.findByPlayerId(id)
+                    .ifPresent(playerRatingRepository::delete);
+
             playerRepository.delete(player);
+
             return "deleted";
         }
     }

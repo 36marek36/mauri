@@ -1,9 +1,6 @@
 package com.example.mauri.service.impl;
 
-import com.example.mauri.enums.MatchStatus;
-import com.example.mauri.enums.MatchType;
-import com.example.mauri.enums.PlayerLevel;
-import com.example.mauri.enums.Sport;
+import com.example.mauri.enums.*;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.model.*;
 import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
@@ -51,10 +48,18 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
     }
 
     @Override
-    public List<PlayerRatingResponseDTO> getRatingRanking() {
-        return playerRatingRepository
-                .findByRatingIsNotNullOrderByRatingDesc()
-                .stream()
+    public List<PlayerRatingResponseDTO> getRatingsByType(MatchType matchType) {
+        List<PlayerRating> ratings;
+
+        if (matchType == MatchType.SINGLES) {
+            ratings = playerRatingRepository.findAllByOrderByRatingDesc();
+        } else if (matchType == MatchType.DOUBLES) {
+            ratings = playerRatingRepository.findAllByOrderByDoubleRatingDesc();
+        } else {
+            throw new IllegalArgumentException("Neznámy typ disciplíny.");
+        }
+
+        return ratings.stream()
                 .map(playerRating -> {
 
                     Player player = playerRating.getPlayer();
@@ -65,6 +70,9 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                             .rating(playerRating.getRating())
                             .playerLevel(PlayerLevel.fromRating(playerRating.getRating()))
                             .ratingChange(playerRating.getRatingChange())
+                            .doubleRating(playerRating.getDoubleRating())
+                            .doublePlayerLevel(DoublePlayerLevel.fromRating(playerRating.getDoubleRating()))
+                            .doubleRatingChange(playerRating.getDoubleRatingChange())
                             .build();
                 })
                 .toList();
@@ -98,97 +106,99 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
             );
         }
 
-        if (match.getMatchType() != MatchType.SINGLES) {
-            return;
-        }
-
-        if (match.getResult() == null || match.getResult().getWinnerId() == null) {
+        if (match.getResult() == null
+                || match.getResult().getWinnerId() == null) {
             throw new IllegalStateException("Zápas nemá určeného víťaza.");
         }
 
-        Player homePlayer = match.getHomePlayer();
-        Player awayPlayer = match.getAwayPlayer();
-
-        if (homePlayer == null || awayPlayer == null) {
-            throw new IllegalStateException(
-                    "Singles zápas nemá oboch hráčov."
-            );
-        }
-
-        Player winner;
-        Player loser;
-
-        if (homePlayer.getId().equals(match.getResult().getWinnerId())) {
-            winner = homePlayer;
-            loser = awayPlayer;
-
-        } else if (awayPlayer.getId().equals(match.getResult().getWinnerId())) {
-            winner = awayPlayer;
-            loser = homePlayer;
-
+        if (match.getMatchType() == MatchType.SINGLES) {
+            updateSinglesRatingsAfterMatch(match);
+        } else if (match.getMatchType() == MatchType.DOUBLES) {
+            updateDoublesRatingsAfterMatch(match);
         } else {
-            throw new IllegalStateException(
-                    "WinnerId nezodpovedá hráčovi v zápase."
-            );
+            throw new IllegalStateException("Neznámy typ zápasu.");
         }
-
-        /*
-         * Uložíme rating pred zápasom iba pri prvom výpočte.
-         *
-         * Pri oprave výsledku už tieto hodnoty existujú,
-         * takže ich NEPREPÍŠEME.
-         */
-        PlayerRating homePlayerRating = playerRatingRepository
-                .findByPlayerId(homePlayer.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rating hráča neexistuje: " + homePlayer.getId()));
-
-        PlayerRating awayPlayerRating = playerRatingRepository
-                .findByPlayerId(awayPlayer.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rating hráča neexistuje: " + awayPlayer.getId()));
-
-        if (match.getHomePlayerRatingBefore() == null) {
-            match.setHomePlayerRatingBefore(homePlayerRating.getRating());
-        }
-
-        if (match.getAwayPlayerRatingBefore() == null) {
-            match.setAwayPlayerRatingBefore(awayPlayerRating.getRating());
-        }
-
-        // Samotný výpočet nového ratingu.
-        updatePlayerRatings(match, winner, loser);
 
         match.setRatingCalculated(true);
-
         matchRepository.save(match);
     }
 
     @Override
     public void setPlayerRating(String playerId, int ratingValue) {
+        setRatingValue(playerId, ratingValue, MatchType.SINGLES);
+    }
 
-        Player player = playerRepository.findById(playerId)
+    @Override
+    public void setPlayerDoubleRating(String playerId, int ratingValue) {
+        setRatingValue(playerId, ratingValue, MatchType.DOUBLES);
+    }
+
+
+    @Transactional
+    @Override
+    public void initializeRatingsForLeague(String leagueId, int ratingValue) {
+        League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Hráč neexistuje."));
+                        new ResourceNotFoundException("Liga neexistuje."));
 
-        PlayerRating playerRating = playerRatingRepository
-                .findByPlayerId(playerId)
-                .orElseGet(() -> PlayerRating.builder()
-                        .id(UUID.randomUUID().toString())
-                        .player(player)
-                        .build());
+        if (league.getLeagueType() == MatchType.SINGLES) {
 
-        playerRating.setRating(ratingValue);
+            for (Player player : league.getPlayers()) {
+                initializePlayerRating(player, ratingValue, MatchType.SINGLES);
+            }
 
-        playerRatingRepository.save(playerRating);
+        } else if (league.getLeagueType() == MatchType.DOUBLES) {
+
+            for (Team team : league.getTeams()) {
+                initializePlayerRating(team.getPlayer1(), ratingValue, MatchType.DOUBLES);
+                initializePlayerRating(team.getPlayer2(), ratingValue, MatchType.DOUBLES);
+            }
+
+        } else {
+            throw new IllegalStateException("Neznámy typ ligy.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void recalculateRatingsForLeague(String leagueId) {
+        List<Match> matches = getFinishedMatchesForLeague(leagueId);
+
+        for (Match match : matches) {
+            if (match.isRatingCalculated()) {
+                continue;
+            }
+
+            updateRatingsAfterMatch(match.getId());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void resetRatingCalculationForLeague(String leagueId) {
+        List<Match> matches = getFinishedMatchesForLeague(leagueId);
+
+        for (Match match : matches) {
+            match.setRatingCalculated(false);
+
+            if (match.getMatchType() == MatchType.SINGLES) {
+                match.setHomePlayerRatingBefore(null);
+                match.setAwayPlayerRatingBefore(null);
+            } else if (match.getMatchType() == MatchType.DOUBLES) {
+                match.setHomeTeamPlayer1DoubleRatingBefore(null);
+                match.setHomeTeamPlayer2DoubleRatingBefore(null);
+                match.setAwayTeamPlayer1DoubleRatingBefore(null);
+                match.setAwayTeamPlayer2DoubleRatingBefore(null);
+            }
+        }
+
+        matchRepository.saveAll(matches);
     }
 
     private void updatePlayerRatings(Match match, Player winner, Player loser) {
-        PlayerRating winnerRating = playerRatingRepository
-                .findByPlayerId(winner.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rating víťaza neexistuje."));
+        PlayerRating winnerRating = getPlayerRating(winner.getId());
 
-        PlayerRating loserRating = playerRatingRepository
-                .findByPlayerId(loser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rating porazeného neexistuje."));
+        PlayerRating loserRating = getPlayerRating(loser.getId());
 
         MatchResult result = match.getResult();
 
@@ -237,64 +247,299 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
         playerRatingRepository.save(loserRating);
     }
 
-    @Transactional
-    @Override
-    public void initializeRatingsForLeague(String leagueId, int ratingValue) {
+    private void updateDoublesRatings(
+            Match match,
+            Team winner,
+            Team loser
+    ) {
+        PlayerRating winner1Rating = playerRatingRepository
+                .findByPlayerId(winner.getPlayer1().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Rating hráča neexistuje: " + winner.getPlayer1().getId()
+                ));
+
+        PlayerRating winner2Rating = playerRatingRepository
+                .findByPlayerId(winner.getPlayer2().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Rating hráča neexistuje: " + winner.getPlayer2().getId()
+                ));
+
+        PlayerRating loser1Rating = playerRatingRepository
+                .findByPlayerId(loser.getPlayer1().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Rating hráča neexistuje: " + loser.getPlayer1().getId()
+                ));
+
+        PlayerRating loser2Rating = playerRatingRepository
+                .findByPlayerId(loser.getPlayer2().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Rating hráča neexistuje: " + loser.getPlayer2().getId()
+                ));
+
+        MatchResult result = match.getResult();
+
+        int player1Games = result.getSetScores().stream()
+                .mapToInt(SetScore::getScore1)
+                .sum();
+
+        int player2Games = result.getSetScores().stream()
+                .mapToInt(SetScore::getScore2)
+                .sum();
+
+        boolean winnerIsHome = winner.getId().equals(match.getHomeTeam().getId());
+
+        int winnerGames = winnerIsHome ? player1Games : player2Games;
+        int loserGames = winnerIsHome ? player2Games : player1Games;
+
+        double gameFactor = (double) winnerGames / (winnerGames + loserGames);
+        double marginMultiplier = 1.0 + (gameFactor - 0.5);
+
+        // Priemerný rating každej dvojice
+        double winnerAverageRating = (
+                winner1Rating.getDoubleRating()
+                        + winner2Rating.getDoubleRating()
+        ) / 2.0;
+
+        double loserAverageRating = (
+                loser1Rating.getDoubleRating()
+                        + loser2Rating.getDoubleRating()
+        ) / 2.0;
+
+        int newWinner1Rating = calculateNewRating(
+                winner1Rating.getDoubleRating(),
+                (int) Math.round(loserAverageRating),
+                1.0,
+                marginMultiplier
+        );
+
+        int newWinner2Rating = calculateNewRating(
+                winner2Rating.getDoubleRating(),
+                (int) Math.round(loserAverageRating),
+                1.0,
+                marginMultiplier
+        );
+
+        int newLoser1Rating = calculateNewRating(
+                loser1Rating.getDoubleRating(),
+                (int) Math.round(winnerAverageRating),
+                0.0,
+                marginMultiplier
+        );
+
+        int newLoser2Rating = calculateNewRating(
+                loser2Rating.getDoubleRating(),
+                (int) Math.round(winnerAverageRating),
+                0.0,
+                marginMultiplier
+        );
+
+        winner1Rating.setDoubleRatingChange(
+                newWinner1Rating - winner1Rating.getDoubleRating()
+        );
+        winner2Rating.setDoubleRatingChange(
+                newWinner2Rating - winner2Rating.getDoubleRating()
+        );
+        loser1Rating.setDoubleRatingChange(
+                newLoser1Rating - loser1Rating.getDoubleRating()
+        );
+        loser2Rating.setDoubleRatingChange(
+                newLoser2Rating - loser2Rating.getDoubleRating()
+        );
+
+        winner1Rating.setDoubleRating(newWinner1Rating);
+        winner2Rating.setDoubleRating(newWinner2Rating);
+        loser1Rating.setDoubleRating(newLoser1Rating);
+        loser2Rating.setDoubleRating(newLoser2Rating);
+
+        playerRatingRepository.save(winner1Rating);
+        playerRatingRepository.save(winner2Rating);
+        playerRatingRepository.save(loser1Rating);
+        playerRatingRepository.save(loser2Rating);
+    }
+
+    private void updateSinglesRatingsAfterMatch(Match match) {
+        Player homePlayer = match.getHomePlayer();
+        Player awayPlayer = match.getAwayPlayer();
+
+        if (homePlayer == null || awayPlayer == null) {
+            throw new IllegalStateException(
+                    "Singles zápas nemá oboch hráčov."
+            );
+        }
+
+        Player winner;
+        Player loser;
+
+        if (homePlayer.getId().equals(match.getResult().getWinnerId())) {
+            winner = homePlayer;
+            loser = awayPlayer;
+        } else if (awayPlayer.getId().equals(match.getResult().getWinnerId())) {
+            winner = awayPlayer;
+            loser = homePlayer;
+        } else {
+            throw new IllegalStateException(
+                    "WinnerId nezodpovedá hráčovi v zápase."
+            );
+        }
+
+        PlayerRating homeRating = getPlayerRating(homePlayer.getId());
+
+        PlayerRating awayRating = getPlayerRating(awayPlayer.getId());
+
+        if (match.getHomePlayerRatingBefore() == null) {
+            match.setHomePlayerRatingBefore(homeRating.getRating());
+        }
+
+        if (match.getAwayPlayerRatingBefore() == null) {
+            match.setAwayPlayerRatingBefore(awayRating.getRating());
+        }
+
+        updatePlayerRatings(match, winner, loser);
+    }
+
+    private void updateDoublesRatingsAfterMatch(Match match) {
+        Team homeTeam = match.getHomeTeam();
+        Team awayTeam = match.getAwayTeam();
+
+        if (homeTeam == null || awayTeam == null) {
+            throw new IllegalStateException(
+                    "Doubles zápas nemá oba tímy."
+            );
+        }
+
+        Team winner;
+        Team loser;
+
+        if (homeTeam.getId().equals(match.getResult().getWinnerId())) {
+            winner = homeTeam;
+            loser = awayTeam;
+        } else if (awayTeam.getId().equals(match.getResult().getWinnerId())) {
+            winner = awayTeam;
+            loser = homeTeam;
+        } else {
+            throw new IllegalStateException(
+                    "WinnerId nezodpovedá tímu v zápase."
+            );
+        }
+
+        if (winner.getPlayer1() == null || winner.getPlayer2() == null
+                || loser.getPlayer1() == null || loser.getPlayer2() == null) {
+            throw new IllegalStateException(
+                    "Oba tímy musia mať dvoch hráčov."
+            );
+        }
+
+        // Načítanie ratingov domácich hráčov
+        PlayerRating homePlayer1Rating = getPlayerRating(homeTeam.getPlayer1().getId());
+
+        PlayerRating homePlayer2Rating = getPlayerRating(homeTeam.getPlayer2().getId());
+
+        // Načítanie ratingov hosťujúcich hráčov
+        PlayerRating awayPlayer1Rating = getPlayerRating(awayTeam.getPlayer1().getId());
+
+        PlayerRating awayPlayer2Rating = getPlayerRating(awayTeam.getPlayer2().getId());
+
+        // Uloženie pôvodných double ratingov iba raz
+        if (match.getHomeTeamPlayer1DoubleRatingBefore() == null) {
+            match.setHomeTeamPlayer1DoubleRatingBefore(
+                    homePlayer1Rating.getDoubleRating());
+        }
+
+        if (match.getHomeTeamPlayer2DoubleRatingBefore() == null) {
+            match.setHomeTeamPlayer2DoubleRatingBefore(
+                    homePlayer2Rating.getDoubleRating());
+        }
+
+        if (match.getAwayTeamPlayer1DoubleRatingBefore() == null) {
+            match.setAwayTeamPlayer1DoubleRatingBefore(
+                    awayPlayer1Rating.getDoubleRating());
+        }
+
+        if (match.getAwayTeamPlayer2DoubleRatingBefore() == null) {
+            match.setAwayTeamPlayer2DoubleRatingBefore(
+                    awayPlayer2Rating.getDoubleRating());
+        }
+
+        updateDoublesRatings(match, winner, loser);
+    }
+
+    private void setRatingValue(
+            String playerId,
+            int ratingValue,
+            MatchType matchType) {
+
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Hráč neexistuje."));
+
+        PlayerRating playerRating = playerRatingRepository
+                .findByPlayerId(playerId)
+                .orElseGet(() -> PlayerRating.builder()
+                        .id(UUID.randomUUID().toString())
+                        .player(player)
+                        .build());
+
+        switch (matchType) {
+            case SINGLES -> playerRating.setRating(ratingValue);
+            case DOUBLES -> playerRating.setDoubleRating(ratingValue);
+            default -> throw new IllegalArgumentException(
+                    "Neznámy typ disciplíny.");
+        }
+
+        playerRatingRepository.save(playerRating);
+    }
+
+    private List<Match> getFinishedMatchesForLeague(String leagueId) {
         League league = leagueRepository.findById(leagueId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Liga neexistuje."));
 
-        for (Player player : league.getPlayers()) {
+        MatchType matchType = league.getLeagueType();
 
-            if (!player.getSports().contains(Sport.TENNIS)) {
-                continue;
-            }
+        if (matchType != MatchType.SINGLES
+                && matchType != MatchType.DOUBLES) {
+            throw new IllegalStateException("Neznámy typ ligy.");
+        }
 
-            PlayerRating playerRating = playerRatingRepository
-                    .findByPlayerId(player.getId())
-                    .orElseGet(() -> PlayerRating.builder()
-                            .id(UUID.randomUUID().toString())
-                            .player(player)
-                            .build());
+        return matchRepository
+                .findByLeagueIdAndStatusAndMatchTypeOrderByRoundNumberAsc(
+                        leagueId,
+                        MatchStatus.FINISHED,
+                        matchType
+                );
+    }
 
+    private void initializePlayerRating(
+            Player player,
+            int ratingValue,
+            MatchType matchType) {
+
+        if (player == null
+                || !player.getSports().contains(Sport.TENNIS)) {
+            return;
+        }
+
+        PlayerRating playerRating = playerRatingRepository
+                .findByPlayerId(player.getId())
+                .orElseGet(() -> PlayerRating.builder()
+                        .id(UUID.randomUUID().toString())
+                        .player(player)
+                        .build());
+
+        if (matchType == MatchType.SINGLES) {
             playerRating.setRating(ratingValue);
-
-            playerRatingRepository.save(playerRating);
+        } else if (matchType == MatchType.DOUBLES) {
+            playerRating.setDoubleRating(ratingValue);
         }
+
+        playerRatingRepository.save(playerRating);
     }
 
-    @Override
-    @Transactional
-    public void recalculateRatingsForLeague(String leagueId) {
-        List<Match> matches = matchRepository
-                .findByLeagueIdAndStatusAndMatchTypeOrderByRoundNumberAsc(
-                        leagueId,
-                        MatchStatus.FINISHED,
-                        MatchType.SINGLES
-                );
-
-        for (Match match : matches) {
-            if (match.isRatingCalculated()) {
-                continue;
-            }
-            updateRatingsAfterMatch(match.getId());
-        }
-    }
-
-    @Override
-    @Transactional
-    public void resetRatingCalculationForLeague(String leagueId) {
-        List<Match> matches = matchRepository
-                .findByLeagueIdAndStatusAndMatchTypeOrderByRoundNumberAsc(
-                        leagueId,
-                        MatchStatus.FINISHED,
-                        MatchType.SINGLES
-                );
-
-        for (Match match : matches) {
-            match.setRatingCalculated(false);
-            match.setHomePlayerRatingBefore(null);
-            match.setAwayPlayerRatingBefore(null);
-        }
+    private PlayerRating getPlayerRating(String playerId) {
+        return playerRatingRepository
+                .findByPlayerId(playerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Rating hráča neexistuje: " + playerId
+                ));
     }
 }

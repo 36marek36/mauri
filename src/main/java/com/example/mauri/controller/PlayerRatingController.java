@@ -1,5 +1,6 @@
 package com.example.mauri.controller;
 
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.dto.response.PlayerRatingResponseDTO;
 import com.example.mauri.service.PlayerRatingService;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,21 @@ public class PlayerRatingController {
         return playerRatingService.calculateNewRating(playerRating, opponentRating, actualScore, marginMultiplier);
     }
 
-    @GetMapping("/ranking")
-    public ResponseEntity<List<PlayerRatingResponseDTO>> getRatingRanking() {
-        return ResponseEntity.ok(playerRatingService.getRatingRanking());
+    @GetMapping("/ratings")
+    public List<PlayerRatingResponseDTO> getPlayerRatings(
+            @RequestParam(defaultValue = "SINGLES") MatchType matchType) {
+        return playerRatingService.getRatingsByType(matchType);
     }
 
     @PatchMapping("/{playerId}/rating")
     public ResponseEntity<Void> setPlayerRating(@PathVariable String playerId, @RequestParam int rating) {
         playerRatingService.setPlayerRating(playerId, rating);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{playerId}/double-rating")
+    public ResponseEntity<Void> setPlayerDoubleRating(@PathVariable String playerId, @RequestParam int rating) {
+        playerRatingService.setPlayerDoubleRating(playerId, rating);
         return ResponseEntity.ok().build();
     }
 
