@@ -56,6 +56,17 @@ public class Match {
     @Column(name = "away_player_rating_before")
     private Integer awayPlayerRatingBefore;
 
+    @Column(name = "home_team_player1_double_rating_before")
+    private Integer homeTeamPlayer1DoubleRatingBefore;
+
+    @Column(name = "home_team_player2_double_rating_before")
+    private Integer homeTeamPlayer2DoubleRatingBefore;
+
+    @Column(name = "away_team_player1_double_rating_before")
+    private Integer awayTeamPlayer1DoubleRatingBefore;
+
+    @Column(name = "away_team_player2_double_rating_before")
+    private Integer awayTeamPlayer2DoubleRatingBefore;
     @PrePersist
     protected void onCreate() {
         status = MatchStatus.CREATED;

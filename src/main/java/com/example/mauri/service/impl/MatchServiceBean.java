@@ -124,8 +124,8 @@ public class MatchServiceBean implements MatchService {
 
         Match savedMatch = matchRepository.save(match);
 
-        // Rating vypočítame iba pre dokončený singles zápas.
-        if (savedMatch.getStatus() == MatchStatus.FINISHED && savedMatch.getMatchType() == MatchType.SINGLES) {
+        // Rating vypočítame iba pre dokončený zápas.
+        if (savedMatch.getStatus() == MatchStatus.FINISHED) {
             playerRatingService.updateRatingsAfterMatch(savedMatch.getId());
         }
 
@@ -197,21 +197,32 @@ public class MatchServiceBean implements MatchService {
     @Override
     public void cancelResult(String matchId) {
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No Match found with id: " + matchId));
 
-        // Ak bol rating už vypočítaný,
-        // vrátime hráčov na rating pred zápasom.
+        // Obnovenie ratingov podľa typu zápasu
         if (match.isRatingCalculated()) {
-            restoreRatingsBeforeMatch(match);
+            if (match.getMatchType() == MatchType.SINGLES) {
+                restoreRatingsBeforeMatch(match);
+            } else if (match.getMatchType() == MatchType.DOUBLES) {
+                restoreDoubleRatingsBeforeMatch(match);
+            }
         }
+
+        // Zrušenie výsledku
         match.setStatus(MatchStatus.CREATED);
         match.setResult(null);
         match.setRatingCalculated(false);
 
-        // Ratingy pred zápasom už nemajú význam,
-        // pretože zápas momentálne nemá výsledok.
+        // Vymazanie pôvodných ratingov dvojhry
         match.setHomePlayerRatingBefore(null);
         match.setAwayPlayerRatingBefore(null);
+
+        // Vymazanie pôvodných double ratingov štvorhry
+        match.setHomeTeamPlayer1DoubleRatingBefore(null);
+        match.setHomeTeamPlayer2DoubleRatingBefore(null);
+        match.setAwayTeamPlayer1DoubleRatingBefore(null);
+        match.setAwayTeamPlayer2DoubleRatingBefore(null);
 
         matchRepository.save(match);
 
@@ -292,20 +303,72 @@ public class MatchServiceBean implements MatchService {
             throw new IllegalStateException("Zápas nemá oboch hráčov.");
         }
 
-        PlayerRating homePlayerRating = playerRatingRepository
-                .findByPlayerId(homePlayer.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rating hráča neexistuje: " + homePlayer.getId()));
+        PlayerRating homePlayerRating = getPlayerRating(homePlayer.getId());
 
-        PlayerRating awayPlayerRating = playerRatingRepository
-                .findByPlayerId(awayPlayer.getId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Rating hráča neexistuje: " + awayPlayer.getId()));
+        PlayerRating awayPlayerRating = getPlayerRating(awayPlayer.getId());
 
         homePlayerRating.setRating(match.getHomePlayerRatingBefore());
         homePlayerRating.setRatingChange(0);
 
         awayPlayerRating.setRating(match.getAwayPlayerRatingBefore());
         awayPlayerRating.setRatingChange(0);
+    }
+
+    private void restoreDoubleRatingsBeforeMatch(Match match) {
+
+        if (match.getHomeTeamPlayer1DoubleRatingBefore() == null
+                || match.getHomeTeamPlayer2DoubleRatingBefore() == null
+                || match.getAwayTeamPlayer1DoubleRatingBefore() == null
+                || match.getAwayTeamPlayer2DoubleRatingBefore() == null) {
+            throw new IllegalStateException(
+                    "Zápas nemá uložené double ratingy hráčov pred zápasom.");
+        }
+
+        Team homeTeam = match.getHomeTeam();
+        Team awayTeam = match.getAwayTeam();
+
+        if (homeTeam == null || awayTeam == null
+                || homeTeam.getPlayer1() == null
+                || homeTeam.getPlayer2() == null
+                || awayTeam.getPlayer1() == null
+                || awayTeam.getPlayer2() == null) {
+            throw new IllegalStateException(
+                    "Doubles zápas nemá všetkých štyroch hráčov.");
+        }
+
+        PlayerRating homePlayer1Rating = getPlayerRating(
+                homeTeam.getPlayer1().getId());
+
+        PlayerRating homePlayer2Rating = getPlayerRating(
+                homeTeam.getPlayer2().getId());
+
+        PlayerRating awayPlayer1Rating = getPlayerRating(
+                awayTeam.getPlayer1().getId());
+
+        PlayerRating awayPlayer2Rating = getPlayerRating(
+                awayTeam.getPlayer2().getId());
+
+        homePlayer1Rating.setDoubleRating(
+                match.getHomeTeamPlayer1DoubleRatingBefore());
+        homePlayer1Rating.setDoubleRatingChange(0);
+
+        homePlayer2Rating.setDoubleRating(
+                match.getHomeTeamPlayer2DoubleRatingBefore());
+        homePlayer2Rating.setDoubleRatingChange(0);
+
+        awayPlayer1Rating.setDoubleRating(
+                match.getAwayTeamPlayer1DoubleRatingBefore());
+        awayPlayer1Rating.setDoubleRatingChange(0);
+
+        awayPlayer2Rating.setDoubleRating(
+                match.getAwayTeamPlayer2DoubleRatingBefore());
+        awayPlayer2Rating.setDoubleRatingChange(0);
+    }
+
+    private PlayerRating getPlayerRating(String playerId) {
+        return playerRatingRepository.findByPlayerId(playerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Rating hráča neexistuje: " + playerId));
     }
 
 }
