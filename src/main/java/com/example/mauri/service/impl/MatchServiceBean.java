@@ -302,8 +302,10 @@ public class MatchServiceBean implements MatchService {
                         new ResourceNotFoundException("Rating hráča neexistuje: " + awayPlayer.getId()));
 
         homePlayerRating.setRating(match.getHomePlayerRatingBefore());
+        homePlayerRating.setRatingChange(0);
 
         awayPlayerRating.setRating(match.getAwayPlayerRatingBefore());
+        awayPlayerRating.setRatingChange(0);
     }
 
 }

@@ -15,4 +15,5 @@ public class PlayerRatingResponseDTO {
     private String playerName;
     private Integer rating;
     private PlayerLevel playerLevel;
+    private int ratingChange;
 }

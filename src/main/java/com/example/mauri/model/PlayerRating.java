@@ -24,4 +24,8 @@ public class PlayerRating {
     @Column(nullable = false)
     private int rating = 1000;
 
+    @Column(nullable = false)
+    private int ratingChange;
+
+
 }
