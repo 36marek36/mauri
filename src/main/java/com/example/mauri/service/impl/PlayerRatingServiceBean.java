@@ -64,6 +64,7 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                             .playerName(ParticipantNameUtils.buildPlayerName(player))
                             .rating(playerRating.getRating())
                             .playerLevel(PlayerLevel.fromRating(playerRating.getRating()))
+                            .ratingChange(playerRating.getRatingChange())
                             .build();
                 })
                 .toList();
@@ -207,6 +208,9 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
 
         double marginMultiplier = 1.0 + (gameFactor - 0.5);
 
+        int oldWinnerRating = winnerRating.getRating();
+        int oldLoserRating = loserRating.getRating();
+
         int newWinnerRating = calculateNewRating(
                 winnerRating.getRating(),
                 loserRating.getRating(),
@@ -221,6 +225,11 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                 marginMultiplier
         );
 
+        // Zmena ratingu po poslednom zápase
+        winnerRating.setRatingChange(newWinnerRating - oldWinnerRating);
+        loserRating.setRatingChange(newLoserRating - oldLoserRating);
+
+        // Aktualizácia aktuálneho ratingu
         winnerRating.setRating(newWinnerRating);
         loserRating.setRating(newLoserRating);
 
