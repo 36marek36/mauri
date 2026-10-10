@@ -20,9 +20,8 @@ public class PlayerRating {
     @JoinColumn(name = "player_id",nullable = false)
     private Player player;
 
-    @Builder.Default
     @Column(nullable = false)
-    private int rating = 1000;
+    private int rating;
 
     @Column(nullable = false)
     private int ratingChange;

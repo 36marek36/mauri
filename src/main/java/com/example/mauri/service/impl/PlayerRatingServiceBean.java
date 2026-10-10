@@ -60,6 +60,9 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
         }
 
         return ratings.stream()
+                .filter(playerRating ->
+                        matchType == MatchType.SINGLES ? playerRating.getRating() != 0 : playerRating.getDoubleRating() != 0
+                )
                 .map(playerRating -> {
 
                     Player player = playerRating.getPlayer();
