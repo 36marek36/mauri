@@ -26,7 +26,7 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
     private final LeagueRepository leagueRepository;
     private final MatchRepository matchRepository;
     private final PlayerRepository playerRepository;
-    private static final double K_FACTOR = 32.0;
+    private static final double K_FACTOR = 64.0;
     private static final double RATING_SCALE = 400.0;
 
     @Override
@@ -82,10 +82,10 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
     }
 
     @Override
-    public int calculateNewRating(int playerRating, int opponentRating, double actualScore, double marginMultiplier) {
+    public int calculateNewRating(int playerRating, int opponentRating, double actualScore, double gameFactor) {
         double expectedScore = 1.0 / (1.0 + Math.pow(10, (opponentRating - playerRating) / RATING_SCALE));
 
-        double ratingChange = K_FACTOR * (actualScore - expectedScore) * marginMultiplier;
+        double ratingChange = K_FACTOR * (actualScore - expectedScore) * gameFactor;
 
         return (int) Math.round(playerRating + ratingChange);
     }
@@ -200,7 +200,6 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
 
     private void updatePlayerRatings(Match match, Player winner, Player loser) {
         PlayerRating winnerRating = getPlayerRating(winner.getId());
-
         PlayerRating loserRating = getPlayerRating(loser.getId());
 
         MatchResult result = match.getResult();
@@ -208,6 +207,7 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
         int player1games = result.getSetScores().stream()
                 .mapToInt(SetScore::getScore1)
                 .sum();
+
         int player2games = result.getSetScores().stream()
                 .mapToInt(SetScore::getScore2)
                 .sum();
@@ -217,34 +217,31 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
         int winnerGames = winnerIsPlayer1 ? player1games : player2games;
         int loserGames = winnerIsPlayer1 ? player2games : player1games;
 
-        double gameFactor = (double) winnerGames / (winnerGames + loserGames);
+        if (winnerGames + loserGames == 0) {
+            throw new IllegalArgumentException("Invalid match score");
+        }
 
-        double marginMultiplier = 1.0 + (gameFactor - 0.5);
+        double gameFactor = (double) winnerGames / (winnerGames + loserGames);
 
         int oldWinnerRating = winnerRating.getRating();
         int oldLoserRating = loserRating.getRating();
 
         int newWinnerRating = calculateNewRating(
-                winnerRating.getRating(),
-                loserRating.getRating(),
+                oldWinnerRating,
+                oldLoserRating,
                 1.0,
-                marginMultiplier
+                gameFactor
         );
 
-        int newLoserRating = calculateNewRating(
-                loserRating.getRating(),
-                winnerRating.getRating(),
-                0.0,
-                marginMultiplier
-        );
+        int delta = newWinnerRating - oldWinnerRating;
 
         // Zmena ratingu po poslednom zápase
-        winnerRating.setRatingChange(newWinnerRating - oldWinnerRating);
-        loserRating.setRatingChange(newLoserRating - oldLoserRating);
+        winnerRating.setRatingChange(delta);
+        loserRating.setRatingChange(-delta);
 
         // Aktualizácia aktuálneho ratingu
         winnerRating.setRating(newWinnerRating);
-        loserRating.setRating(newLoserRating);
+        loserRating.setRating(oldLoserRating - delta);
 
         playerRatingRepository.save(winnerRating);
         playerRatingRepository.save(loserRating);
@@ -289,13 +286,16 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                 .mapToInt(SetScore::getScore2)
                 .sum();
 
+        if (player1Games + player2Games == 0) {
+            throw new IllegalArgumentException("Invalid match score");
+        }
+
         boolean winnerIsHome = winner.getId().equals(match.getHomeTeam().getId());
 
         int winnerGames = winnerIsHome ? player1Games : player2Games;
         int loserGames = winnerIsHome ? player2Games : player1Games;
 
         double gameFactor = (double) winnerGames / (winnerGames + loserGames);
-        double marginMultiplier = 1.0 + (gameFactor - 0.5);
 
         // Priemerný rating každej dvojice
         double winnerAverageRating = (
@@ -307,52 +307,36 @@ public class PlayerRatingServiceBean implements PlayerRatingService {
                 loser1Rating.getDoubleRating()
                         + loser2Rating.getDoubleRating()
         ) / 2.0;
-
-        int newWinner1Rating = calculateNewRating(
-                winner1Rating.getDoubleRating(),
+// Výpočet spoločnej zmeny ratingu pre celý tím
+        int newWinnerAverageRating = calculateNewRating(
+                (int) Math.round(winnerAverageRating),
                 (int) Math.round(loserAverageRating),
                 1.0,
-                marginMultiplier
+                gameFactor
         );
 
-        int newWinner2Rating = calculateNewRating(
-                winner2Rating.getDoubleRating(),
-                (int) Math.round(loserAverageRating),
-                1.0,
-                marginMultiplier
-        );
+        int delta = newWinnerAverageRating
+                - (int) Math.round(winnerAverageRating);
 
-        int newLoser1Rating = calculateNewRating(
-                loser1Rating.getDoubleRating(),
-                (int) Math.round(winnerAverageRating),
-                0.0,
-                marginMultiplier
-        );
+// Zmena ratingu
+        winner1Rating.setDoubleRatingChange(delta);
+        winner2Rating.setDoubleRatingChange(delta);
+        loser1Rating.setDoubleRatingChange(-delta);
+        loser2Rating.setDoubleRatingChange(-delta);
 
-        int newLoser2Rating = calculateNewRating(
-                loser2Rating.getDoubleRating(),
-                (int) Math.round(winnerAverageRating),
-                0.0,
-                marginMultiplier
+// Aktualizácia ratingov
+        winner1Rating.setDoubleRating(
+                winner1Rating.getDoubleRating() + delta
         );
-
-        winner1Rating.setDoubleRatingChange(
-                newWinner1Rating - winner1Rating.getDoubleRating()
+        winner2Rating.setDoubleRating(
+                winner2Rating.getDoubleRating() + delta
         );
-        winner2Rating.setDoubleRatingChange(
-                newWinner2Rating - winner2Rating.getDoubleRating()
+        loser1Rating.setDoubleRating(
+                loser1Rating.getDoubleRating() - delta
         );
-        loser1Rating.setDoubleRatingChange(
-                newLoser1Rating - loser1Rating.getDoubleRating()
+        loser2Rating.setDoubleRating(
+                loser2Rating.getDoubleRating() - delta
         );
-        loser2Rating.setDoubleRatingChange(
-                newLoser2Rating - loser2Rating.getDoubleRating()
-        );
-
-        winner1Rating.setDoubleRating(newWinner1Rating);
-        winner2Rating.setDoubleRating(newWinner2Rating);
-        loser1Rating.setDoubleRating(newLoser1Rating);
-        loser2Rating.setDoubleRating(newLoser2Rating);
 
         playerRatingRepository.save(winner1Rating);
         playerRatingRepository.save(winner2Rating);

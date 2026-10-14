@@ -16,8 +16,8 @@ public class PlayerRatingController {
     private final PlayerRatingService playerRatingService;
 
     @GetMapping("/calculate")
-    public int calculateRating(@RequestParam int playerRating, @RequestParam int opponentRating, @RequestParam double actualScore, @RequestParam double marginMultiplier) {
-        return playerRatingService.calculateNewRating(playerRating, opponentRating, actualScore, marginMultiplier);
+    public int calculateRating(@RequestParam int playerRating, @RequestParam int opponentRating, @RequestParam double actualScore, @RequestParam double gameFactor) {
+        return playerRatingService.calculateNewRating(playerRating, opponentRating, actualScore, gameFactor);
     }
 
     @GetMapping("/ratings")
