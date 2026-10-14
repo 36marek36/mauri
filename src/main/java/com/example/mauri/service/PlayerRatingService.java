@@ -13,7 +13,7 @@ public interface PlayerRatingService {
 
     List<PlayerRatingResponseDTO> getRatingsByType(MatchType matchType);
 
-    int calculateNewRating(int playerRating, int opponentRating, double actualScore, double marginMultiplier);
+    int calculateNewRating(int playerRating, int opponentRating, double actualScore, double gameFactor);
 
     void updateRatingsAfterMatch(String matchId);
 

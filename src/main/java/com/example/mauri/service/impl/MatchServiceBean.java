@@ -202,11 +202,8 @@ public class MatchServiceBean implements MatchService {
 
         // Obnovenie ratingov podľa typu zápasu
         if (match.isRatingCalculated()) {
-            if (match.getMatchType() == MatchType.SINGLES) {
-                restoreRatingsBeforeMatch(match);
-            } else if (match.getMatchType() == MatchType.DOUBLES) {
-                restoreDoubleRatingsBeforeMatch(match);
-            }
+            restoreRatingsBeforeMatch(match);
+            match.setRatingCalculated(false);
         }
 
         // Zrušenie výsledku
@@ -291,6 +288,18 @@ public class MatchServiceBean implements MatchService {
     }
 
     private void restoreRatingsBeforeMatch(Match match) {
+        if (match.getMatchType() == MatchType.SINGLES) {
+            restoreSingleRatingsBeforeMatch(match);
+        } else if (match.getMatchType() == MatchType.DOUBLES) {
+            restoreDoubleRatingsBeforeMatch(match);
+        } else {
+            throw new IllegalArgumentException(
+                    "Nepodporovaný typ zápasu: " + match.getMatchType()
+            );
+        }
+    }
+
+    private void restoreSingleRatingsBeforeMatch(Match match) {
 
         if (match.getHomePlayerRatingBefore() == null || match.getAwayPlayerRatingBefore() == null) {
             throw new IllegalStateException("Zápas nemá uložené ratingy hráčov pred zápasom.");
@@ -312,6 +321,9 @@ public class MatchServiceBean implements MatchService {
 
         awayPlayerRating.setRating(match.getAwayPlayerRatingBefore());
         awayPlayerRating.setRatingChange(0);
+
+        playerRatingRepository.save(homePlayerRating);
+        playerRatingRepository.save(awayPlayerRating);
     }
 
     private void restoreDoubleRatingsBeforeMatch(Match match) {
@@ -363,6 +375,11 @@ public class MatchServiceBean implements MatchService {
         awayPlayer2Rating.setDoubleRating(
                 match.getAwayTeamPlayer2DoubleRatingBefore());
         awayPlayer2Rating.setDoubleRatingChange(0);
+
+        playerRatingRepository.save(homePlayer1Rating);
+        playerRatingRepository.save(homePlayer2Rating);
+        playerRatingRepository.save(awayPlayer1Rating);
+        playerRatingRepository.save(awayPlayer2Rating);
     }
 
     private PlayerRating getPlayerRating(String playerId) {
