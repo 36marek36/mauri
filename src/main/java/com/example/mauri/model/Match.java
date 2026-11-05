@@ -1,5 +1,6 @@
 package com.example.mauri.model;
 
+import com.example.mauri.enums.MatchCategory;
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import jakarta.persistence.*;
@@ -20,6 +21,9 @@ public class Match {
 
     @Enumerated(EnumType.STRING)
     private MatchType matchType;
+
+    @Enumerated(EnumType.STRING)
+    private MatchCategory matchCategory;
 
     @ManyToOne
     @JoinColumn (name = ("home_player_id"))

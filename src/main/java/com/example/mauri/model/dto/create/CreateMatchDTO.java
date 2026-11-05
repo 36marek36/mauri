@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto.create;
 
+import com.example.mauri.enums.MatchCategory;
 import com.example.mauri.enums.MatchType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateMatchDTO {
     private MatchType matchType;
+    private MatchCategory matchCategory;
 
     private String player1Id;
     private String player2Id;

@@ -59,4 +59,6 @@ public interface MatchRepository extends JpaRepository<Match, String> {
             MatchType matchType
     );
 
+    List<Match> findByMatchCategoryIsNullAndLeagueIdIsNotNull();
+
 }

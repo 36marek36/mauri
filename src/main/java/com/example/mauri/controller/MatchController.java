@@ -95,4 +95,10 @@ public class MatchController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/migrate-match-category")
+    public ResponseEntity<String> migrateMatchCategory(){
+        int count = matchService.migrateMatchCategory();
+        return ResponseEntity.ok("Match category migrated for " + count + " matches");
+    }
+
 }
