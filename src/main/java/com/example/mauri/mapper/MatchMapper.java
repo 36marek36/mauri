@@ -43,6 +43,7 @@ public class MatchMapper {
         return MatchResponseDTO.builder()
                 .id(match.getId())
                 .matchType(match.getMatchType())
+                .matchCategory(match.getMatchCategory())
                 .leagueId(match.getLeagueId())
                 .result(match.getResult())
                 .roundNumber(match.getRoundNumber())

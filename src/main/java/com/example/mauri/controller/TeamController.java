@@ -54,6 +54,12 @@ public class TeamController {
         return ResponseEntity.ok(teams);
     }
 
+    @GetMapping("/by-player/{playerId}")
+    public ResponseEntity<List<TeamShortDTO>> getTeamsByPlayerId(@PathVariable String playerId) {
+        List<TeamShortDTO> teams = teamService.getTeamsByPlayerId(playerId);
+        return ResponseEntity.ok(teams);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<TeamResponseDTO> createTeam(@Valid @RequestBody CreateTeamDTO team) {
         TeamResponseDTO created = teamService.createTeam(team.getPlayer1Id(), team.getPlayer2Id());

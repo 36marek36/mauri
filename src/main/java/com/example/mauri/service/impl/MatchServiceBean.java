@@ -1,9 +1,6 @@
 package com.example.mauri.service.impl;
 
-import com.example.mauri.enums.LeagueStatus;
-import com.example.mauri.enums.MatchStatus;
-import com.example.mauri.enums.MatchType;
-import com.example.mauri.enums.SeasonStatus;
+import com.example.mauri.enums.*;
 import com.example.mauri.exception.ResourceNotFoundException;
 import com.example.mauri.mapper.MatchMapper;
 import com.example.mauri.model.*;
@@ -15,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -56,11 +54,13 @@ public class MatchServiceBean implements MatchService {
         return matchMapper.mapMatchToDTO(match);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Override
     public MatchResponseDTO createMatch(CreateMatchDTO createMatchDTO) {
         Match match = Match.builder()
                 .id(UUID.randomUUID().toString())
                 .matchType(createMatchDTO.getMatchType())
+                .matchCategory(MatchCategory.FRIENDLY)
                 .leagueId(createMatchDTO.getLeagueId())
                 .build();
 
@@ -97,11 +97,16 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
 
-        League league = leagueRepository.findById(match.getLeagueId()).orElseThrow();
-        Season season = league.getSeason();
+        // Kontrola ligy iba v prípade, že zápas patrí do ligy
+        if (match.getLeagueId() != null) {
+            League league = leagueRepository.findById(match.getLeagueId())
+                    .orElseThrow(() -> new ResourceNotFoundException("No League found with id: " + match.getLeagueId()));
 
-        if (season.getStatus() == SeasonStatus.FINISHED) {
-            throw new IllegalStateException("Sezóna je ukončená, úpravy nie sú povolené.");
+            Season season = league.getSeason();
+
+            if (season.getStatus() == SeasonStatus.FINISHED) {
+                throw new IllegalStateException("Sezóna je ukončená, úpravy nie sú povolené.");
+            }
         }
 
         boolean ratingWasCalculated = match.isRatingCalculated();
@@ -171,6 +176,8 @@ public class MatchServiceBean implements MatchService {
             }
             default -> throw new UnsupportedOperationException("Nepodporovaný typ zápasu: " + type);
         }
+
+        matches.forEach(match -> match.setMatchCategory(MatchCategory.LEAGUE));
 
         matchRepository.saveAll(matches);
 
@@ -271,6 +278,20 @@ public class MatchServiceBean implements MatchService {
             matchResultService.recalculate(match, result);
         }
         matchRepository.saveAll(matches);
+    }
+
+    @Override
+    public int migrateMatchCategory() {
+        List<Match> matches =
+                matchRepository.findByMatchCategoryIsNullAndLeagueIdIsNotNull();
+
+        matches.forEach(match ->
+                match.setMatchCategory(MatchCategory.LEAGUE)
+        );
+
+        matchRepository.saveAll(matches);
+
+        return matches.size();
     }
 
     private List<String> getActiveSeasonLeagueIds() {

@@ -15,6 +15,7 @@ import com.example.mauri.model.dto.update.UpdateTeamDTO;
 import com.example.mauri.repository.*;
 import com.example.mauri.service.TeamService;
 import com.example.mauri.service.TeamStatsService;
+import com.example.mauri.util.ParticipantNameUtils;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -242,6 +243,14 @@ public class TeamServiceBean implements TeamService {
         } else {
             throw new IllegalArgumentException("Player not found in team.");
         }
+    }
+
+    @Override
+    public List<TeamShortDTO> getTeamsByPlayerId(String playerId) {
+        return teamRepository.findByPlayer1IdOrPlayer2Id(playerId, playerId)
+                .stream()
+                .map(team -> new TeamShortDTO(team.getId(), ParticipantNameUtils.buildTeamShortName(team)))
+                .toList();
     }
 
     @Override

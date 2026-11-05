@@ -1,5 +1,6 @@
 package com.example.mauri.model.dto.response;
 
+import com.example.mauri.enums.MatchCategory;
 import com.example.mauri.enums.MatchStatus;
 import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.MatchResult;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class MatchResponseDTO {
     private String id;
     private MatchType matchType;
+    private MatchCategory matchCategory;
 
     private ParticipantDTO homePlayer ;
     private ParticipantDTO awayPlayer ;

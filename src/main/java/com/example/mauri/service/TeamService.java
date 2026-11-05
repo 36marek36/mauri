@@ -35,4 +35,6 @@ public interface TeamService {
 
     void changePlayerInTeam(String teamId, ChangeTeamDTO changeTeamDTO);
 
+    List<TeamShortDTO> getTeamsByPlayerId(String playerId);
+
 }
