@@ -53,6 +53,7 @@ public class MatchMapper {
                 .homeTeam(homeTeam)
                 .awayTeam(awayTeam)
                 .ratingCalculated(match.isRatingCalculated())
+                .createdAt(match.getCreatedAt())
                 .build();
     }
 }

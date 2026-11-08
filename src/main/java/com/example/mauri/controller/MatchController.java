@@ -8,6 +8,7 @@ import com.example.mauri.model.dto.response.MatchResponseDTO;
 import com.example.mauri.service.MatchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -59,6 +60,15 @@ public class MatchController {
         return ResponseEntity.ok(matches);
     }
 
+    @GetMapping("/friendly")
+    public ResponseEntity<Page<MatchResponseDTO>> getFriendlyMatches(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<MatchResponseDTO> matches = matchService.getFriendlyMatches(page, size);
+        return ResponseEntity.ok(matches);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<MatchResponseDTO> createMatch(@RequestBody CreateMatchDTO createMatchDTO) {
         MatchResponseDTO created = matchService.createMatch(createMatchDTO);
@@ -90,13 +100,13 @@ public class MatchController {
     }
 
     @PatchMapping("/{leagueId}/recalculate-league")
-    public ResponseEntity<Void> recalculateLeague (@PathVariable String leagueId){
+    public ResponseEntity<Void> recalculateLeague(@PathVariable String leagueId) {
         matchService.recalculateLeague(leagueId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/migrate-match-category")
-    public ResponseEntity<String> migrateMatchCategory(){
+    public ResponseEntity<String> migrateMatchCategory() {
         int count = matchService.migrateMatchCategory();
         return ResponseEntity.ok("Match category migrated for " + count + " matches");
     }

@@ -6,6 +6,7 @@ import com.example.mauri.model.dto.create.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
 import com.example.mauri.model.dto.response.MatchResponseDTO;
 import lombok.NonNull;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
@@ -13,15 +14,28 @@ import java.util.Map;
 public interface MatchService {
 
     List<MatchResponseDTO> getMatches();
+
     MatchResponseDTO getMatch(@NonNull String id);
+
     MatchResponseDTO createMatch(CreateMatchDTO createMatchDTO);
+
     void deleteMatch(@NonNull String id);
-    Match addResult (String matchId, MatchResult matchResult);
+
+    Match addResult(String matchId, MatchResult matchResult);
+
     List<MatchResponseDTO> generateMatchesForLeague(String leagueId);
+
     Map<Integer, List<MatchResponseDTO>> getMatchesGroupedByRound(String leagueId);
+
     void cancelResult(String matchId);
+
     List<MatchResponseDTO> getMatchesForPlayerInActiveSeason(String playerId, MatchStatus status);
+
     List<MatchResponseDTO> getMatchesForTeamInActiveSeason(String teamId, MatchStatus status);
+
     void recalculateLeague(String leagueId);
+
     int migrateMatchCategory();
+
+    Page<MatchResponseDTO> getFriendlyMatches(int page, int size);
 }

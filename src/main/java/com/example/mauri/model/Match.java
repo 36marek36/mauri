@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
 
 @Entity(name = "matches")
 @Data
@@ -18,6 +20,10 @@ public class Match {
 
     @Id
     private String id;
+
+    @CreationTimestamp
+    @Column(name = "created_at",updatable = false)
+    private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
     private MatchType matchType;
