@@ -1,6 +1,7 @@
 package com.example.mauri.controller;
 
 import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.create.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -62,10 +64,13 @@ public class MatchController {
 
     @GetMapping("/friendly")
     public ResponseEntity<Page<MatchResponseDTO>> getFriendlyMatches(
+            @RequestParam(defaultValue = "SINGLES") MatchType matchType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Page<MatchResponseDTO> matches = matchService.getFriendlyMatches(page, size);
+        Page<MatchResponseDTO> matches =
+                matchService.getFriendlyMatches(matchType, page, size);
+
         return ResponseEntity.ok(matches);
     }
 

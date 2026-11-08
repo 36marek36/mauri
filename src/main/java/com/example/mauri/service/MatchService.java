@@ -1,6 +1,7 @@
 package com.example.mauri.service;
 
 import com.example.mauri.enums.MatchStatus;
+import com.example.mauri.enums.MatchType;
 import com.example.mauri.model.Match;
 import com.example.mauri.model.dto.create.CreateMatchDTO;
 import com.example.mauri.model.MatchResult;
@@ -37,5 +38,5 @@ public interface MatchService {
 
     int migrateMatchCategory();
 
-    Page<MatchResponseDTO> getFriendlyMatches(int page, int size);
+    Page<MatchResponseDTO> getFriendlyMatches(MatchType matchType,int page,int size);
 }
