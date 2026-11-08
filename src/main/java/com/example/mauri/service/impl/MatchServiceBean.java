@@ -12,6 +12,10 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -292,6 +296,13 @@ public class MatchServiceBean implements MatchService {
         matchRepository.saveAll(matches);
 
         return matches.size();
+    }
+
+    @Override
+    public Page<MatchResponseDTO> getFriendlyMatches(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return matchRepository.findByMatchCategoryOrderByCreatedAtDesc(MatchCategory.FRIENDLY, pageable)
+                .map(matchMapper::mapMatchToDTO);
     }
 
     private List<String> getActiveSeasonLeagueIds() {
