@@ -299,9 +299,12 @@ public class MatchServiceBean implements MatchService {
     }
 
     @Override
-    public Page<MatchResponseDTO> getFriendlyMatches(int page, int size) {
+    public Page<MatchResponseDTO> getFriendlyMatches(MatchType matchType, int page, int size) {
+
         Pageable pageable = PageRequest.of(page, size);
-        return matchRepository.findByMatchCategoryOrderByCreatedAtDesc(MatchCategory.FRIENDLY, pageable)
+
+        return matchRepository
+                .findByMatchCategoryAndMatchTypeOrderByCreatedAtDesc(MatchCategory.FRIENDLY, matchType, pageable)
                 .map(matchMapper::mapMatchToDTO);
     }
 

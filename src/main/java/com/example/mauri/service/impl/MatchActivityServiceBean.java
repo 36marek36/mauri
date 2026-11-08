@@ -1,5 +1,6 @@
 package com.example.mauri.service.impl;
 
+import com.example.mauri.enums.MatchCategory;
 import com.example.mauri.enums.Sport;
 import com.example.mauri.mapper.MatchMapper;
 import com.example.mauri.model.League;
@@ -70,6 +71,7 @@ public class MatchActivityServiceBean implements MatchActivityService {
         // 👉 zber leagueId
         Set<String> leagueIds = matches.stream()
                 .map(Match::getLeagueId)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         // 👉 batch fetch líg
@@ -98,10 +100,23 @@ public class MatchActivityServiceBean implements MatchActivityService {
                     dto.setMatch(matchMapper.mapMatchToDTO(match));
                     dto.setPlayedAt(activity.getCreatedAt());
 
-                    dto.setLeagueName(
-                            matchTypeText + " " +
-                                    leagueNameMap.get(match.getLeagueId())
-                    );
+                    String activityName;
+
+                    if (match.getMatchCategory() == MatchCategory.FRIENDLY) {
+
+                        activityName = matchTypeText + " - Priateľský zápas";
+
+                    } else if (match.getMatchCategory() == MatchCategory.LEAGUE) {
+
+                        activityName = matchTypeText + " " +
+                                leagueNameMap.get(match.getLeagueId());
+
+                    } else {
+
+                        activityName = matchTypeText + " - Turnaj";
+                    }
+
+                    dto.setLeagueName(activityName);
 
                     return dto;
                 })

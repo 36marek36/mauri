@@ -64,6 +64,6 @@ public interface MatchRepository extends JpaRepository<Match, String> {
 
     List<Match> findByMatchCategoryIsNullAndLeagueIdIsNotNull();
 
-    Page<Match> findByMatchCategoryOrderByCreatedAtDesc(MatchCategory matchCategory, Pageable pageable);
+    Page<Match> findByMatchCategoryAndMatchTypeOrderByCreatedAtDesc(MatchCategory matchCategory, MatchType matchType, Pageable pageable);
 
 }
