@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -102,6 +103,12 @@ public class MatchController {
     ResponseEntity<?> cancelMatchResult(@PathVariable String matchId) {
         matchService.cancelResult(matchId);
         return ResponseEntity.ok().body("Match cancelled");
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{matchId}/approve")
+    public Match approveResult(@PathVariable String matchId) {
+        return matchService.approveResult(matchId);
     }
 
     @PatchMapping("/{leagueId}/recalculate-league")
