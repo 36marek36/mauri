@@ -101,8 +101,8 @@ public class MatchServiceBean implements MatchService {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ResourceNotFoundException("No Match found with id: " + matchId));
 
-        // Kontrola ligy iba v prípade, že zápas patrí do ligy
-        if (match.getLeagueId() != null) {
+        // Kontrola sezóny pri ligových zápasoch
+        if (match.getMatchCategory() == MatchCategory.LEAGUE) {
             League league = leagueRepository.findById(match.getLeagueId())
                     .orElseThrow(() -> new ResourceNotFoundException("No League found with id: " + match.getLeagueId()));
 
@@ -111,6 +111,14 @@ public class MatchServiceBean implements MatchService {
             if (season.getStatus() == SeasonStatus.FINISHED) {
                 throw new IllegalStateException("Sezóna je ukončená, úpravy nie sú povolené.");
             }
+        }
+
+        if (match.getMatchCategory() == MatchCategory.FRIENDLY
+                && match.getStatus().isCompleted()) {
+
+            throw new IllegalStateException(
+                    "Výsledok schváleného priateľského zápasu už nie je možné upravovať."
+            );
         }
 
         boolean ratingWasCalculated = match.isRatingCalculated();
@@ -122,10 +130,15 @@ public class MatchServiceBean implements MatchService {
             match.setRatingCalculated(false);
         }
 
+        // Spracovanie výsledku
         MatchResult finalResult = matchResultService.processResult(match, matchResult);
         match.setResult(finalResult);
 
-        if (finalResult.getScratchedId() != null) {
+        // Určenie stavu zápasu
+        // FRIENDLY zápasy čakajú na schválenie
+        if (match.getMatchCategory() == MatchCategory.FRIENDLY) {
+            match.setStatus(MatchStatus.PENDING_APPROVAL);
+        } else if (finalResult.getScratchedId() != null) {
             match.setStatus(MatchStatus.SCRATCHED);
         } else {
             match.setStatus(MatchStatus.FINISHED);
@@ -306,6 +319,44 @@ public class MatchServiceBean implements MatchService {
         return matchRepository
                 .findByMatchCategoryAndMatchTypeOrderByCreatedAtDesc(MatchCategory.FRIENDLY, matchType, pageable)
                 .map(matchMapper::mapMatchToDTO);
+    }
+
+    @Override
+    @Transactional
+    public Match approveResult(String matchId) {
+
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No Match found with id: " + matchId));
+
+        if (match.getStatus() != MatchStatus.PENDING_APPROVAL) {
+            throw new IllegalStateException(
+                    "Match is not waiting for approval.");
+        }
+
+        if (match.getResult() == null) {
+            throw new IllegalStateException(
+                    "Match has no result.");
+        }
+
+        // Skrečovaný zápas nepotrebuje výpočet ratingu
+        if (match.getResult().getScratchedId() != null) {
+            match.setStatus(MatchStatus.SCRATCHED);
+        } else {
+            match.setStatus(MatchStatus.FINISHED);
+        }
+
+        Match savedMatch = matchRepository.save(match);
+
+        if (savedMatch.getStatus() == MatchStatus.FINISHED
+                && !savedMatch.isRatingCalculated()) {
+
+            playerRatingService.updateRatingsAfterMatch(savedMatch.getId());
+        }
+
+        matchActivityService.createActivity(savedMatch.getId());
+
+        return savedMatch;
     }
 
     private List<String> getActiveSeasonLeagueIds() {

@@ -39,4 +39,6 @@ public interface MatchService {
     int migrateMatchCategory();
 
     Page<MatchResponseDTO> getFriendlyMatches(MatchType matchType,int page,int size);
+
+    Match approveResult(String matchId);
 }

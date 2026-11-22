@@ -202,6 +202,7 @@ public class SeasonMapper {
                 .id(league.getId())
                 .name(league.getName())
                 .leagueType(league.getLeagueType())
+                .leagueStatus(league.getStatus())
                 .players(players)
                 .teams(teams)
                 .build();
@@ -219,6 +220,7 @@ public class SeasonMapper {
         return VolleyLeagueManagementResponseDTO.builder()
                 .id(league.getId())
                 .name(league.getName())
+                .leagueStatus(league.getStatus())
                 .teams(teams)
                 .build();
     }
